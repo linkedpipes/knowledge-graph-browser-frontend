@@ -1,0 +1,27 @@
+{
+  "name": "kgvisualbrowser",
+  "version": "0.1.0",
+  "private": true,
+  "description": "",
+  "scripts": {
+    "build": "webpack --mode=development",
+    "production": "webpack --mode=production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sstenchlak/kgvisualbrowser.git"
+  },
+  "author": "Štěpán Stenchlák",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/cytoscape": "github:phreed/ts-typings#cytoscape",
+    "ts-loader": "^6.0.4",
+    "typescript": "^3.5.3",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "webpack": "^4.39.1",
+    "webpack-cli": "^3.3.6"
+  },
+  "dependencies": {
+    "cytoscape": "^3.8.2"
+  }
+}
