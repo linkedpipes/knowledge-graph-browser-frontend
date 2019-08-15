@@ -1,7 +1,7 @@
 import { NodeData } from "./NodeData";
 import { Expansion } from "./Expansion";
 import { NodeType } from "./NodeType";
-import { GraphData } from "./Graph";
+import { GraphData, Graph } from "./Graph";
 
 
 /**
@@ -13,6 +13,11 @@ export class Node {
      * NodeData will be passed to Cytoscape as node data
      */
     nodeData: NodeData;
+
+    cyInstance: Cy.CollectionElements;
+
+    // Each node is a part of Graph
+    graph: Graph;
 
     /**
      * Helper variables used by Graph class

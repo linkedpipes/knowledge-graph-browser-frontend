@@ -14,19 +14,42 @@ export class GraphView {
 
         let elements = graph.getAllVisibleElements();
 
+        this.addElements(graph.roots, null);
+
         // todo: register callbacks
 
         // todo: somehow call addElements()
     }
 
-    private addElements() {
-        this.cy.add(null);
+    private addElements(nodes: Node[], edges: void) {
+        for (let node of nodes) {
+            if (node.cyInstance) {
+                this.cy.add(node.cyInstance);
+            } else {
+                node.cyInstance = this.cy.add({
+                    group: "nodes",
+                    data: node.nodeData
+                })[0];
+            }
+        }
+
+        this.cy.layout({
+            name: 'random'
+          }).run();
     }
 
-    private prepareNode(node: Node): Cy.ElementDefinition|Cy.Collection {
+    /**
+     * Remove elements from the graph.
+     * 
+     * @param nodes 
+     */
+    private removeElements(nodes: Node[], edges: void) {
+        for (let node of nodes) {
+            this.cy.remove(node.cyInstance);
+            // Reference will not be removed
+        }
 
+        // No need to remove edges
     }
-
-    private 
 
 }

@@ -22,7 +22,10 @@ export class Graph {
     /**
      * List of existing nodes in the graph
      */
-    private nodes: {[IRI: string]: Node} = {};
+    nodes: {[IRI: string]: Node} = {};
+    private nodeTypes: void;
+    private edgeTypes: void;
+
 
     /**
      * List of visible nodes in the graph
