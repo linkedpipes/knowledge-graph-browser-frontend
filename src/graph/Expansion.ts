@@ -1,7 +1,9 @@
 import { Node } from "./Node";
+import { Edge } from "./Edge";
 
 /**
- * Expansion is a structure which stores expanded vertices and edges of the graph
+ * Expansion stores graph of verticles and edges expanded from parentNode node.
+ * Todo: Should somehow support filters
  */
 export class Expansion {
     /**
@@ -9,17 +11,20 @@ export class Expansion {
      */
     parentNode: Node;
 
-    /**
-     * List of nodes which the expansion from parentNode expands
-     */
     nodes: Node[] = [];
+    edges: Edge[] = [];
 
     /**
-     * List of edges connecting only nodes and parentNode
+     * Creates new Expansion - subgraph with own list of nodes and eges
+     * @param initiator Expanded node
      */
-    //edges: Edge[] = [];
-
     constructor(initiator: Node) {
         this.parentNode = initiator;
     }
+
+    getAllNodes = () => this.nodes;
+    getAllEdges = () => this.edges;
+
+    getNodes = () => this.getAllNodes();
+    getEdges = () => this.getAllEdges();
 }

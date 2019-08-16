@@ -1,4 +1,5 @@
 import { Node } from "./Node";
+import { Expansion } from "./Expansion";
 
 /**
  * Each node stores this data for Graph class algorithms
@@ -64,6 +65,15 @@ export class Graph {
      * Function called by one of its Nodes when some of the subNodes were removed or created
      */
     elementsChanged(): void {
+
+    }
+
+    /**
+     * Trigger traversing the graph and looking for only Nodes BECOMING visible
+     * from specific Expansion only. Used when new expansion added to graph.
+     * @param expansion 
+     */
+    triggerElementsAddedFrom(expansion: Expansion) {
 
     }
 

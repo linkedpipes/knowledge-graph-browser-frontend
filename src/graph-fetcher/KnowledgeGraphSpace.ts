@@ -1,6 +1,7 @@
 import { Graph } from "../graph/Graph";
 import { DataGraphFetcher } from "./DataGraphFetcher";
 import { Node } from "../graph/Node";
+import { Expansion } from "../graph/Expansion";
 
 /**
  * This class can load and create new graphs
@@ -23,26 +24,45 @@ export class KnowledgeGraphSpace {
      // pak muze byt zaclenena (vzdy bude) a 
     async getExpansion(fromNode: Node, viewIRI: string): Promise<Graph> {
         // Get the expansion
-        let expansion = await this.fetcher.getExpansion(viewIRI, fromNode.IRI);
+        let expansionData = await this.fetcher.getExpansion(viewIRI, fromNode.IRI);
 
-        // Graph where we create new nodes
         let graph = fromNode.graph;
+        let expansion = new Expansion(fromNode);
 
-        // Todo: somehow create expansion object
-
-        for (let expansionNode of expansion.nodes) {
+        // Create nodes
+        for (let expansionNode of expansionData.nodes) {
             let node = graph.nodes[expansionNode.iri];
-            if (node) {
-                // Already in the graph
-            } else {
-                // We have to create new one
+            if (!node) {
+                // We have to create a new one
                 node = new Node(expansionNode);
                 graph.nodes[expansionNode.iri] = node;
             }
+
+            expansion.nodes.push(node);
         }
 
+        // Create edges
+        for (let expansionEdge of expansionData.edges) {
+            // todo
+        }
 
-        return graph;
+        graph.triggerElementsAddedFrom(expansion);
+    }
+
+    /**
+     * Set Nodes detail 
+     * @param node 
+     * @param viewIRI 
+     */
+    async getDetail(node: Node, viewIRI: string) {
+        let detailData = await this.fetcher.getDetail(viewIRI, node.IRI);
+        node.nodeData.details[viewIRI] = detailData;
+        // todo does it return Promise?
+    }
+
+    async getPreview(node: Node, viewIRI: string) {
+        let previewData = avait this.fetcher.getPreview(viewIRI, node.IRI);
+        node.nodeData.previews[viewIRI] = previewData;
     }
 
     /**

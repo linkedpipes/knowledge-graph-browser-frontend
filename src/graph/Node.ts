@@ -8,16 +8,16 @@ import { GraphData, Graph } from "./Graph";
  * Node as a part of graph. Each Node belongs to exactly one Graph.
  */
 export class Node {
-    /**
-     * Node data are stored in the separate structure because of possibility of multiple graphs
-     * NodeData will be passed to Cytoscape as node data
-     */
+
     nodeData: NodeData;
 
     cyInstance: Cy.CollectionElements;
 
-    // Each node is a part of Graph
-    graph: Graph;
+    /**
+     * Each Node must belong to at most one Graph. If so, for any change of node
+     * the parent graph should be informed.
+     */
+    graph: Graph = null;
 
     /**
      * Helper variables used by Graph class
