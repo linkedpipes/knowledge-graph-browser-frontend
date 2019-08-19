@@ -1,5 +1,6 @@
 import { Node } from "./Node";
 import { Expansion } from "./Expansion";
+import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 
 /**
  * Each node stores this data for Graph class algorithms
@@ -27,6 +28,10 @@ export class Graph {
     private nodeTypes: void;
     private edgeTypes: void;
 
+    /**
+     * Each Graph instance can fetch data only from one source
+     */
+    fetcher: DataGraphFetcher;
 
     /**
      * List of visible nodes in the graph
@@ -34,9 +39,9 @@ export class Graph {
     //private visibleNodes: Set<Node> = new Set();
 
     /**
-     * List of initial nodes in the graph.
+     * Set of initial nodes in the graph.
      */
-    roots: Node[] = [];
+    roots: Set<Node> = new Set();
 
     /**
      * Returns all visible elements
@@ -73,8 +78,32 @@ export class Graph {
      * from specific Expansion only. Used when new expansion added to graph.
      * @param expansion 
      */
-    triggerElementsAddedFrom(expansion: Expansion) {
+    triggerElementsAddedFrom(expansion: Expansion | Node) {
 
+    }
+
+    triggerSingleNodeAdded(node: Node) {
+
+    }
+
+    /**
+     * Creates a Node from IRI and registers it as a root node.
+     * If Node already exists, it will be only registered.
+     * @param IRI 
+     */
+    async addRootNode(IRI: string) {
+        let node = this.nodes[IRI];
+
+        if (!node) {
+            node = new Node(this, null);
+            let viewSets = await this.fetcher.getViewSets(IRI);
+            // todo somehow construct
+        }
+
+        this.roots.add(node);
+        this.triggerElementsAddedFrom(node);
+
+        return node;
     }
 
     /**
