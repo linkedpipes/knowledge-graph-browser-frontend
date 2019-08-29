@@ -1,4 +1,5 @@
 import { Node } from "./Node";
+import Cytoscape from "cytoscape";
 
 /**
  * Represents oriented edge in the graph
@@ -9,7 +10,7 @@ export class Edge {
     type: void; // todo
     cyData: void; // todo
 
-    cyInstance: Cy.CollectionElements;
+    cyInstance: Cytoscape.EdgeSingular;
 
 
     show() {

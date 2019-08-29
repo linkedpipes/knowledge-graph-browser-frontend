@@ -1,8 +1,8 @@
 import { Node } from "./Node";
 import { Expansion } from "./Expansion";
 import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
-import Cytoscape from "cytoscape";
 import { Edge } from "./Edge";
+import Cytoscape from "cytoscape";
 
 /**
  * Each node stores this data for Graph class algorithms
@@ -38,7 +38,7 @@ export class Graph {
     /**
      * Every operations are performed od Cy
      */
-    CyInstance: Cy.Instance;
+    CyInstance: Cytoscape.Core;
 
     /**
      * List of visible nodes in the graph
@@ -111,7 +111,7 @@ export class Graph {
         let node = new Node(this);
         node.cyInstance = this.CyInstance.add({
             group: 'nodes',
-            data: { id: IRI, label: '' } as Cy.NodeDataDefinition
+            data: { id: IRI, label: '' }
         });
         node.cyInstance.css('display', 'none');
         node.cyInstance.scratch("_node", node);
@@ -123,7 +123,7 @@ export class Graph {
         let edge = new Edge();
         edge.cyInstance =  this.CyInstance.add({
             group: 'edges',
-            data: { source: fromIRI, target: toIRI, ...data } as Cy.EdgeDataDefinition
+            data: { source: fromIRI, target: toIRI, ...data }
         });
 
         edge.cyInstance.css('display', 'none');

@@ -14,7 +14,7 @@
   "author": "Štěpán Stenchlák",
   "license": "ISC",
   "devDependencies": {
-    "@types/cytoscape": "github:phreed/ts-typings#cytoscape",
+    "@types/cytoscape": "^3.8.1",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.3",
     "uglifyjs-webpack-plugin": "^2.2.0",

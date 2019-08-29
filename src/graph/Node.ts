@@ -1,6 +1,7 @@
 import { GraphData, Graph } from "./Graph";
 import { NodeViewSet } from "./NodeViewSet";
 import { NodeView } from "./NodeView";
+import Cytoscape from "cytoscape";
 
 /**
  * Node as a part of graph. Each Node belongs to exactly one Graph.
@@ -13,7 +14,7 @@ export class Node {
 
     activeNodeView: NodeView = null;
     
-    cyInstance: Cy.CollectionElements;
+    cyInstance: Cytoscape.NodeSingular;
 
     /**
      * Each Node must belong to one and only one Graph. Every update is reported to the graph instance. Also provides fetcher.
