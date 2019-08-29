@@ -61,6 +61,14 @@ export class Node {
         }
     }
 
+    show() {
+        this.cyInstance.removeStyle("display").style("opacity", '0').animate({
+            style: { opacity: 1 }
+          }, {
+            duration: 3000
+          });
+    }
+
     constructor(graph: Graph) {
         this.graph = graph;
         this.graphData = new GraphData();

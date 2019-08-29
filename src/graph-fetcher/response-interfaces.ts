@@ -68,7 +68,7 @@ export interface ResponseDetail {
     types: ResponseElementType[]; 
 }
 
-interface ResponseElementType {
+export interface ResponseElementType {
     iri: string;
     label: string;
     description: string;

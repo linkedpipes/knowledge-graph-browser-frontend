@@ -2,6 +2,7 @@ import { Node } from "./Node";
 import { Expansion } from "./Expansion";
 import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 import Cytoscape from "cytoscape";
+import { Edge } from "./Edge";
 
 /**
  * Each node stores this data for Graph class algorithms
@@ -62,7 +63,7 @@ export class Graph {
                     'label': 'data(id)'
                   } as Cy.Css.Node
                 },
-              
+
                 {
                   selector: 'edge',
                   style: {
@@ -94,28 +95,46 @@ export class Graph {
         return this.CyInstance.getElementById(IRI).scratch("_node");
     }
 
+    /**
+     * Returns existing edge by its IRI
+     * @param IRI
+     */
+    getEdgeByIRI(IRI: string): Edge|null {
+        return this.CyInstance.getElementById(IRI).scratch("_edge");
+    }
+
+    /**
+     * Creates a new node in the graph
+     * @param IRI
+     */
     registerNode(IRI: string): Node {
         let node = new Node(this);
-        console.log("Adding new node");
         node.cyInstance = this.CyInstance.add({
             group: 'nodes',
-            data: { id: IRI } as Cy.NodeDataDefinition
+            data: { id: IRI, label: '' } as Cy.NodeDataDefinition
         });
+        node.cyInstance.css('display', 'none');
         node.cyInstance.scratch("_node", node);
 
         return node;
     }
 
-    registerEdge(fromIRI: string, toIRI: string) {
-        this.CyInstance.add({
+    registerEdge(fromIRI: string, toIRI: string, data: object) {
+        let edge = new Edge();
+        edge.cyInstance =  this.CyInstance.add({
             group: 'edges',
-            data: { source: fromIRI, target: toIRI } as Cy.EdgeDataDefinition
+            data: { source: fromIRI, target: toIRI, ...data } as Cy.EdgeDataDefinition
         });
+
+        edge.cyInstance.css('display', 'none');
+        edge.cyInstance.scratch("_edge", edge);
+
+        return edge;
     }
 
     /**
      * Creates a new node in the graph based on its IRI
-     * @param IRI 
+     * @param IRI
      */
     async fetchNode(IRI: string): Promise<Node> {
         let node = this.registerNode(IRI);
