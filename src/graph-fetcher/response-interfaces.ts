@@ -83,4 +83,6 @@ interface ResponseElementEdge {
 interface ResponseElementNode {
     iri: string;
     type: string;
+    label: string;
+    classes: string[];
 }

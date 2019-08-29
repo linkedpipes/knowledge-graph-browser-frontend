@@ -50,9 +50,11 @@ export class Graph {
     //roots: Set<Node> = new Set();
 
 
-    constructor() {
+    async betaCreateCy() {
+        let ss = await this.fetcher.getStylesheet("https://linked.opendata.cz/resource/knowledge-graph-browser/rpp/style-sheet");
+        console.log(ss.styles.map(style => { return {style: style.selector, css: style.properties}}));
         this.CyInstance = Cytoscape({
-            style: [ // the stylesheet for the graph
+            style: /*[ // the stylesheet for the graph
                 {
                   selector: 'node',
                   style: {
@@ -70,8 +72,13 @@ export class Graph {
                     'target-arrow-shape': 'triangle'
                   } as Cy.Css.Edge
                 } as Cy.Stylesheet
-              ] as Cy.Stylesheet[]
+              ] as Cy.Stylesheet[]*/
+              ss.styles.map(style => { return {selector: style.selector, css: style.properties}})
         });
+    }
+
+    constructor() {
+
         this.fetcher = new DataGraphFetcher("http://localhost:3000/", "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/rpp");
     }
 
@@ -97,6 +104,13 @@ export class Graph {
         node.cyInstance.scratch("_node", node);
 
         return node;
+    }
+
+    registerEdge(fromIRI: string, toIRI: string) {
+        this.CyInstance.add({
+            group: 'edges',
+            data: { source: fromIRI, target: toIRI } as Cy.EdgeDataDefinition
+        });
     }
 
     /**
