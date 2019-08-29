@@ -1,6 +1,7 @@
 import { Node } from "./Node";
 import { Expansion } from "./Expansion";
 import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
+import Cytoscape from "cytoscape";
 
 /**
  * Each node stores this data for Graph class algorithms
@@ -34,6 +35,11 @@ export class Graph {
     fetcher: DataGraphFetcher;
 
     /**
+     * Every operations are performed od Cy
+     */
+    CyInstance: Cy.Instance;
+
+    /**
      * List of visible nodes in the graph
      */
     //private visibleNodes: Set<Node> = new Set();
@@ -41,159 +47,65 @@ export class Graph {
     /**
      * Set of initial nodes in the graph.
      */
-    roots: Set<Node> = new Set();
+    //roots: Set<Node> = new Set();
 
-    /**
-     * Returns all visible elements
-     * E.g.: for new Cytoscape instance
-     */
-    getAllVisibleElements() {
-        let elements: Node[] = [];
-        for (let IRI in this.nodes) {
-            if (this.nodes[IRI].graphData.visible) {
-                elements.push(this.nodes[IRI]);
-            }
-        }
 
-        return elements;
+    constructor() {
+        this.CyInstance = Cytoscape({
+            style: [ // the stylesheet for the graph
+                {
+                  selector: 'node',
+                  style: {
+                    'background-color': '#666',
+                    'label': 'data(id)'
+                  } as Cy.Css.Node
+                },
+              
+                {
+                  selector: 'edge',
+                  style: {
+                    'width': 3,
+                    'line-color': '#ccc',
+                    'target-arrow-color': '#ccc',
+                    'target-arrow-shape': 'triangle'
+                  } as Cy.Css.Edge
+                } as Cy.Stylesheet
+              ] as Cy.Stylesheet[]
+        });
+        this.fetcher = new DataGraphFetcher("http://localhost:3000/", "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/rpp");
+    }
+
+    mountVisualizationElement(element: HTMLElement) {
+        this.CyInstance.mount(element);
     }
 
     /**
-     * Function called by one of its Nodes when some of them changed the visibility
+     * Returns existing node by its IRI
+     * @param IRI
      */
-    visibilityChanged(): void {
-        let updated = this.traverseGraph(false);
-        // Todo: what about visibility?
+    getNodeByIRI(IRI: string): Node|null {
+        return this.CyInstance.getElementById(IRI).scratch("_node");
     }
 
-    /**
-     * Function called by one of its Nodes when some of the subNodes were removed or created
-     */
-    elementsChanged(): void {
-
-    }
-
-    /**
-     * Trigger traversing the graph and looking for only Nodes BECOMING visible
-     * from specific Expansion only. Used when new expansion added to graph.
-     * @param expansion 
-     */
-    triggerElementsAddedFrom(expansion: Expansion | Node) {
-
-    }
-
-    triggerSingleNodeAdded(node: Node) {
-
-    }
-
-    /**
-     * Creates a Node from IRI and registers it as a root node.
-     * If Node already exists, it will be only registered.
-     * @param IRI 
-     */
-    async addRootNode(IRI: string) {
-        let node = this.nodes[IRI];
-
-        if (!node) {
-            node = new Node(this, null);
-            let viewSets = await this.fetcher.getViewSets(IRI);
-            // todo somehow construct
-        }
-
-        this.roots.add(node);
-        this.triggerElementsAddedFrom(node);
+    registerNode(IRI: string): Node {
+        let node = new Node(this);
+        console.log("Adding new node");
+        node.cyInstance = this.CyInstance.add({
+            group: 'nodes',
+            data: { id: IRI } as Cy.NodeDataDefinition
+        });
+        node.cyInstance.scratch("_node", node);
 
         return node;
     }
 
     /**
-     * After updating visibility of an expansion, changing filter on an
-     * expansion (which affects visibility) or removing an expansion, the graph
-     * must be checked if all nodes are reachable through existing and visible
-     * nodes.
-     * @param mode True - ONLY expansion has been removed, False - ONLY
-     * visibility (or filter) has been changed
+     * Creates a new node in the graph based on its IRI
+     * @param IRI 
      */
-    private traverseGraph(mode: boolean): [Set<Node>, Set<Node>] {
-        let added: Set<Node> = new Set();
-        let removed: Set<Node> = new Set();
-
-        // Unique identifier of this instance of algorithm
-        let symbol = Symbol();
-
-        // Stack of elements to be checked
-        // Start from the root nodes
-        let stack: Node[] = [...this.roots];
-
-        let element: Node|undefined;
-        while(element = stack.pop()) {
-            // Node has been already visited
-            if (element.graphData.reachability == symbol) {
-                continue;
-            }
-
-            // Set node to visited
-            element.graphData.reachability = symbol;
-
-            // Handle only added elements, because removed elements arent reachable this way
-            if (mode) {
-                // existence updated
-
-                // No code here, added elements can be tracked easily
-            } else {
-                // visibility updated
-
-                if (!element.graphData.visible) {
-                    added.add(element);
-                    element.graphData.visible = true;
-                }
-            }
-
-            // Add child nodes to stack
-            // todo
-        }
-
-        // Now, we handle removed elements
-        if (mode) {
-            // existence updated
-
-            for (let IRI in this.nodes) {
-                if (this.nodes[IRI].graphData.reachability != symbol) {
-                    removed.add(this.nodes[IRI]);
-                    delete this.nodes[IRI];
-                }
-            }
-        } else {
-            // visibility updated
-
-            for (let IRI in this.nodes) {
-                if (this.nodes[IRI].graphData.reachability != symbol &&
-                    this.nodes[IRI].graphData.visible) {
-                        this.nodes[IRI].graphData.visible = false;
-                        removed.add(this.nodes[IRI]);
-                    }
-            }
-        }
-
-        return [added, removed];
+    async fetchNode(IRI: string): Promise<Node> {
+        let node = this.registerNode(IRI);
+        await node.getViewSets();
+        return node;
     }
-
-    /**
-     * Joins two graph
-     * @param joinedGraph
-     */
-    joinSimple(joinedGraph: Graph) {
-        if(!(joinedGraph.roots[0].IRI in this.nodes)) {
-            throw "Can not join graph because the prime graph does not contain node to join.";
-        }
-
-
-    }
-
-    /**
-     * All these callback are called when internal graph is changed
-     */
-    elementRemoveListeners = [];
-    elementAddListeners = [];
-    elementChangeListeners = [];
 }

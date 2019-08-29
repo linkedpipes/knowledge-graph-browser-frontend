@@ -1,7 +1,12 @@
 /**
+ * Here are all interfaces of data that can be retrieved from a remote server.
+ * @see https://github.com/martinnec/kgbrowser
+ */
+
+/**
  * Interface for response /view-sets
  */
-interface ResponseViewSets {
+export interface ResponseViewSets {
     viewSets: {
         iri: string;
         label: string;
@@ -14,18 +19,46 @@ interface ResponseViewSets {
     }[];
 }
 
-interface ResponsePreview {
+/**
+ * Interface for response from /stylesheet
+ */
+export interface ResponseStylesheet {
+    styles: {
+        selector: string;
+        properties: {
+            [property: string]: string;
+        }
+    }[];
+}
+
+/**
+ * Interface for response from /preview
+ */
+export interface ResponsePreview {
+    /**
+     * Information about multiple nodes
+     */
     nodes: ResponseElementNode[];
+
+    /**
+     * Information about types associated with nodes
+     */
     types: ResponseElementType[];
 }
 
-interface ResponseExpand {
+/**
+ * Interface for response from /expand
+ */
+export interface ResponseExpand {
     nodes: ResponseElementNode[];
     edges: ResponseElementEdge[];
     types: ResponseElementType[];
 }
 
-interface ResponseDetail {
+/**
+ * Interface for response from /detail
+ */
+export interface ResponseDetail {
     nodes: {
         iri: string;
         data: {

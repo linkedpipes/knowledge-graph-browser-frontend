@@ -1,16 +1,18 @@
-import { NodeData } from "./NodeData";
-import { Expansion } from "./Expansion";
-import { NodeType } from "./NodeType";
 import { GraphData, Graph } from "./Graph";
-
+import { NodeViewSet } from "./NodeViewSet";
+import { NodeView } from "./NodeView";
 
 /**
  * Node as a part of graph. Each Node belongs to exactly one Graph.
  */
 export class Node {
+    /**
+     * List of view sets
+     */
+    viewSets: {[viewSetIRI: string]: NodeViewSet} = null;
 
-    nodeData: NodeData;
-
+    activeNodeView: NodeView = null;
+    
     cyInstance: Cy.CollectionElements;
 
     /**
@@ -23,72 +25,44 @@ export class Node {
      */
     graphData: GraphData;
 
-    //nodeType: NodeType;
-
-    /**
-     * List of expansions from this node
-     */
-    expansions: {[IRI: string]: Expansion} = {};
-
     /**
      * IRI of the node
      */
     get IRI(): string {
-        return this.nodeData.IRI;
+        return this.cyInstance.data('id');
     }
 
-    /**
-     * Active view used for detail
-     */
-    //detailView: string;
+    
+    async getViewSets() {
+        let result = await this.graph.fetcher.getViewSets(this.IRI);
 
-    constructor(graph: Graph, nodeData: NodeData) {
-        this.graph = graph;
-        this.nodeData = nodeData;
-        this.graphData = new GraphData();
-    }
+        if (this.viewSets) return;
 
-    async expand(viewIRI: string): Promise<Expansion> {
-        // Get the expansion
-        let expansionData = await this.graph.fetcher.getExpansion(viewIRI, this.IRI);
+        this.viewSets = {};
 
-        let expansion = new Expansion(this);
+        let nodeViews: {[viewIRI:string]: NodeView} = {};
+        for (let nv of result.views) {
+            let view = new NodeView();
+            view.IRI = nv.iri;
+            view.label = nv.label;
+            view.parentNode = this;
+            nodeViews[nv.iri] = view;
+        }
 
-        // Create nodes
-        for (let expansionNode of expansionData.nodes) {
-            let node = this.graph.nodes[expansionNode.iri];
-            if (!node) {
-                // We have to create a new one
-                node = new Node(this.graph, null);
-                this.graph.nodes[expansionNode.iri] = node;
+        for (let vs of result.viewSets) {
+            let viewSet = new NodeViewSet();
+            this.viewSets[vs.iri] = viewSet;
+            viewSet.IRI = vs.iri;
+            viewSet.label = vs.label;
+            viewSet.defaultView = nodeViews[vs.defaultView];
+            for (let nv of vs.views) {
+                viewSet.views[nv] = nodeViews[nv];
             }
-
-            expansion.nodes.push(node);
         }
-
-        // Create edges
-        for (let expansionEdge of expansionData.edges) {
-            // todo
-        }
-
-        graph.triggerElementsAddedFrom(expansion);
-
-        return expansion;
     }
 
-    /**
-     * Set Nodes detail 
-     * @param node 
-     * @param viewIRI 
-     */
-    async getDetail(viewIRI: string) {
-        let detailData = await this.fetcher.getDetail(viewIRI, node.IRI);
-        node.nodeData.details[viewIRI] = detailData;
-        // todo does it return Promise?
-    }
-
-    async getPreview(node: Node, viewIRI: string) {
-        let previewData = await this.graph.fetcher.getPreview(viewIRI, node.IRI);
-        node.nodeData.previews[viewIRI] = previewData;
+    constructor(graph: Graph) {
+        this.graph = graph;
+        this.graphData = new GraphData();
     }
 }
