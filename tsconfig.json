@@ -9,5 +9,6 @@
     "allowJs": true,
     "lib": ["es2015", "dom"],
     "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
   }
 }
