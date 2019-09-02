@@ -80,7 +80,7 @@ interface ResponseElementEdge {
     type: string;
 }
 
-interface ResponseElementNode {
+export interface ResponseElementNode {
     iri: string;
     type: string;
     label: string;

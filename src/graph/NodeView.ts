@@ -1,6 +1,6 @@
 import { Node } from "./Node";
 import { Expansion } from "./Expansion";
-import { ResponseElementType } from "../graph-fetcher/response-interfaces";
+import { ResponseElementType, ResponseElementNode } from "../graph-fetcher/response-interfaces";
 import { Edge } from "./Edge";
 
 export class NodeView {
@@ -17,7 +17,7 @@ export class NodeView {
     parentNode: Node;
 
     detail: object = null;
-    preview: object = null;
+    preview: ResponseElementNode = null;
     expansion: Expansion;
 
     /**

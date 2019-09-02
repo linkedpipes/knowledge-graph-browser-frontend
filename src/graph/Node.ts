@@ -35,9 +35,9 @@ export class Node {
 
     
     async getViewSets() {
-        let result = await this.graph.fetcher.getViewSets(this.IRI);
-
         if (this.viewSets) return;
+
+        let result = await this.graph.fetcher.getViewSets(this.IRI);
 
         this.viewSets = {};
 
