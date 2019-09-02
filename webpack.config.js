@@ -17,11 +17,18 @@ module.exports = {
                 exclude: /node_modules/,
                 // This option allows to use typescript inside .vue files
                 options: { appendTsSuffixTo: [/\.vue$/] }
-            }
+            },
+            {
+                test: /\.css$/,
+                use: [
+                  'vue-style-loader',
+                  'css-loader'
+                ]
+              }
         ]
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js']
+        extensions: ['.tsx', '.ts', '.js', '.css']
     },
     plugins: [
         new VueLoaderPlugin()

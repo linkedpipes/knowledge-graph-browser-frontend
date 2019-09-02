@@ -1,6 +1,13 @@
 import { Node } from "./Node";
 import Cytoscape from "cytoscape";
 
+import { ResponseElementType } from "../graph-fetcher/response-interfaces"
+
+/**
+ * Information about the type of Edge. Same as ResponseElementType
+ */
+export interface EdgeType extends ResponseElementType {};
+
 /**
  * Represents oriented edge in the graph
  */

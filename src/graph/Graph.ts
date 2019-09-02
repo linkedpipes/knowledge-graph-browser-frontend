@@ -24,13 +24,6 @@ export class GraphData {
  */
 export class Graph {
     /**
-     * List of existing nodes in the graph
-     */
-    nodes: {[IRI: string]: Node} = {};
-    private nodeTypes: void;
-    private edgeTypes: void;
-
-    /**
      * Each Graph instance can fetch data only from one source
      */
     fetcher: DataGraphFetcher;
@@ -40,19 +33,10 @@ export class Graph {
      */
     CyInstance: Cytoscape.Core;
 
-    /**
-     * List of visible nodes in the graph
-     */
-    //private visibleNodes: Set<Node> = new Set();
-
-    /**
-     * Set of initial nodes in the graph.
-     */
-    //roots: Set<Node> = new Set();
-
-
+    
     async betaCreateCy() {
-        let ss = await this.fetcher.getStylesheet("https://linked.opendata.cz/resource/knowledge-graph-browser/rpp/style-sheet");
+        //let ss = await this.fetcher.getStylesheet("https://linked.opendata.cz/resource/knowledge-graph-browser/rpp/style-sheet");
+        let ss = await this.fetcher.getStylesheet("https://linked.opendata.cz/resource/knowledge-graph-browser/wikidata/animals/style-sheet");
         console.log(ss.styles.map(style => { return {style: style.selector, css: style.properties}}));
         this.CyInstance = Cytoscape({
             style: /*[ // the stylesheet for the graph
@@ -80,7 +64,8 @@ export class Graph {
 
     constructor() {
 
-        this.fetcher = new DataGraphFetcher("http://localhost:3000/", "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/rpp");
+        //this.fetcher = new DataGraphFetcher("http://localhost:3000/", "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/rpp");
+        this.fetcher = new DataGraphFetcher("http://localhost:3000/", "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/wikidata/animals");
     }
 
     mountVisualizationElement(element: HTMLElement) {
@@ -139,6 +124,7 @@ export class Graph {
     async fetchNode(IRI: string): Promise<Node> {
         let node = this.registerNode(IRI);
         await node.getViewSets();
+        node.viewSets[Object.keys(node.viewSets)[0]].defaultView.use();
         return node;
     }
 }

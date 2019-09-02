@@ -1,7 +1,14 @@
 import { GraphData, Graph } from "./Graph";
 import { NodeViewSet } from "./NodeViewSet";
-import { NodeView } from "./NodeView";
+import { NodeView, NodePreview } from "./NodeView";
 import Cytoscape from "cytoscape";
+
+import { ResponseElementType } from "../graph-fetcher/response-interfaces"
+
+/**
+ * Information about the type of Node. Same as ResponseElementType
+ */
+export interface NodeType extends ResponseElementType {};
 
 /**
  * Node as a part of graph. Each Node belongs to exactly one Graph.
@@ -13,6 +20,8 @@ export class Node {
     viewSets: {[viewSetIRI: string]: NodeViewSet} = null;
 
     activeNodeView: NodeView = null;
+
+    activePreview: NodePreview;
     
     cyInstance: Cytoscape.NodeSingular;
 
@@ -66,7 +75,7 @@ export class Node {
         this.cyInstance.removeStyle("display").style("opacity", '0').animate({
             style: { opacity: 1 }
           }, {
-            duration: 3000
+            duration: 500
           });
     }
 
