@@ -1,68 +1,83 @@
 <template>
     <div id="detail-panel">
+        <v-app>
         <!-- Basic info -->
-        <div>
+        <div class="mx-5 mb-5">
             <a :href="IRI"><h1 v-if="actualPreview">{{actualPreview.label}}</h1><h1 v-else>[loading]</h1></a>
             <a :href="IRI">{{IRI}}</a>
 
             <!-- TODO: Does node type depends on view? -->
-            <div v-if="actualPreview" class="node-type">
+
+            <div v-if="actualPreview" class="class-list">
+                <v-chip v-for="cls in actualPreview.classes" :key="cls">{{cls}}</v-chip>
+            </div>
+        </div>
+
+        <v-card v-if="actualPreview" class="mx-5 mb-5">
+            <v-card-text>
                 <b>{{actualPreview.type.label}}</b> (<i>{{actualPreview.type.description}}</i>) <br>
                 <a :href="actualPreview.type.iri">{{actualPreview.type.iri}}</a>
-            </div>
+            </v-card-text>
+        </v-card>
 
-            <ul v-if="actualPreview" class="class-list">
-                <li v-for="cls in actualPreview.classes" :key="cls">{{cls}}</li>
-            </ul>
+        <div class="mx-5 mb-5">
+            <v-btn @click="hidden = !hidden" v-text="hidden ? 'Show' : 'Hide'" />
+            <v-btn @click="remove">Remove node</v-btn>
+            <v-btn color="primary">Button</v-btn>
         </div>
 
-        <div>
-            <button @click="hidden = !hidden" v-text="hidden ? 'Show' : 'Hide'" />
-            <button @click="remove">Remove node</button>
-        </div>
+        <v-card :loading="!viewSets" class="mx-5 mb-5">
+            <v-card-title>Avaiable views</v-card-title>
+            <template v-if="viewSets">
+                <v-simple-table v-if="viewSets.length">
+                    <tbody>
+                        <template v-for="viewSet in viewSets">
+                            <tr :key="viewSet.IRI"><th colspan="2">{{viewSet.label}}</th></tr>
+                            <tr v-for="view in viewSet.views" :key="view.IRI">
+                                <td>{{view.label}}</td>
+                                <td>
+                                    <v-btn color="red" @click="view.expand">Expand</v-btn>
+                                    <v-btn @click="view.use">View</v-btn>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </v-simple-table>
+                <v-alert v-else dense outlined type="error" class="mx-5">
+                    Server responded with no views. You should check your configuration. 
+                </v-alert>                
+            </template>
+            <v-card-text v-else>
+                Fetching views...
+            </v-card-text>
+        </v-card>
 
-        <div>
-            <h2>Avaiable views</h2>
-            <table v-if="viewSets">
-                <tbody>
-                    <template v-for="viewSet in viewSets">
-                        <tr :key="viewSet.IRI"><td colspan="2">{{viewSet.label}}</td></tr>
-                        <tr v-for="view in viewSet.views" :key="view.IRI">
-                            <td>{{view.label}}</td>
+        <v-card :disabled="!actualView" :loading="actualView && !actualView.detail" class="mx-5 mb-5">
+            <v-card-title>Detail</v-card-title>
+            <v-card-text v-if="!actualView">Select the view first to show detailed information.</v-card-text>
+            <v-card-text v-else-if="!actualView.detail">Fetching detailed information...</v-card-text>
+            <template v-else>
+                <v-card-text><a :href="actualView.IRI">{{actualView.label}}</a></v-card-text>
+                <v-simple-table>
+                    <thead>
+                        <tr>
+                            <td>Key</td>
+                            <td>Value</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="detail in actualView.detail" :key="detail.IRI">
+                            <td><a :href="detail.IRI">{{detail.type.label}}</a></td>
                             <td>
-                                <button @click="view.expand">Expand</button>
-                                <button @click="view.use">Switch to this view</button>
+                                <v-img v-if="['.jpg', '.png', '.bmp'].includes(detail.value.substr(detail.value.length - 4))" :src="detail.value" />
+                                <span v-else>{{detail.value}}</span>
                             </td>
                         </tr>
-                    </template>
-                </tbody>
-            </table>
-            <div v-else>
-                Still fetching...
-            </div>
-        </div>
-
-        <div v-if="actualView">
-            <h2>Detail of <small><a :href="actualView.IRI">{{actualView.label}}</a></small></h2>
-            <table>
-                <thead>
-                    <tr>
-                        <td>Key</td>
-                        <td>Value</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="detail in actualView.detail" :key="detail.IRI">
-                        <td><a :href="detail.IRI">{{detail.type.label}}</a></td>
-                        <td>
-                            <img v-if="['.jpg', '.png', '.bmp'].includes(detail.value.substr(detail.value.length - 4))" :src="detail.value" />
-                            <span v-else>{{detail.value}}</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
+                    </tbody>
+                </v-simple-table>
+            </template>
+        </v-card>
+        </v-app>
     </div>
 </template>
 <script lang="ts">
@@ -98,6 +113,7 @@ export default {
             remove: () => console.log("Calling remove"),
             // @ts-ignore
             actualView: {
+            // @ts-ignore
                 preview: {
                     
                 }

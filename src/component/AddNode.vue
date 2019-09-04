@@ -1,12 +1,36 @@
 <template>
-    <div id="add">
-        <input type="checkbox" v-model="multipleEntry">
+<v-dialog
+      v-model="dialogOpen"
+      max-width="290"
+    >
+      <v-card>
+        <v-card-title class="headline">Use Google's location service?</v-card-title>
 
-        <textarea v-if="multipleEntry" v-model="IRIs"></textarea>
-        <input v-else v-model="IRI" type="text" />
-        
-        <button @click="confirmed">Submit</button>
-    </div>
+        <v-card-text>
+          Let Google help apps determine location. This means sending anonymous location data to Google, even when no apps are running.
+        </v-card-text>
+
+        <v-card-actions>
+          <div class="flex-grow-1"></div>
+
+          <v-btn
+            color="green darken-1"
+            text
+            @click="dialogOpen= false"
+          >
+            Disagree
+          </v-btn>
+
+          <v-btn
+            color="green darken-1"
+            text
+            @click="dialogOpen= false"
+          >
+            Agree
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 </template>
 
 <script lang="ts">
@@ -17,9 +41,17 @@ export default {
             multipleEntry: false,
             IRI: "",
             IRIs: "",
+            dialogOpen: true,
         };
     },
-    props: ['graphInstance'],
+    watch: {
+        // todo, potrebuji prenest udalost
+    },
+    props: {
+        graphInstance: Graph,
+        dialog: Boolean
+    },
+    
     methods: {
         confirmed: async function() {
             let graph: Graph = this.graphInstance;

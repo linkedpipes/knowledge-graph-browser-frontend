@@ -1,6 +1,7 @@
 const path = require('path');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const { VueLoaderPlugin } = require('vue-loader');
+const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
     entry: './src/index.ts',
@@ -24,20 +25,48 @@ module.exports = {
                   'vue-style-loader',
                   'css-loader'
                 ]
-              }
+            },
+            {
+                test: /\.s(c|a)ss$/,
+                use: [
+                    'vue-style-loader',
+                    'css-loader',
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            implementation: require('sass'),
+                            fiber: require('fibers'),
+                            indentedSyntax: true // optional
+                        }
+                    }
+                ]
+            }
         ]
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js', '.css']
     },
     plugins: [
-        new VueLoaderPlugin()
+        new VueLoaderPlugin(),
+        new VuetifyLoaderPlugin()
     ],
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'dist')
     },
     optimization: {
-        minimizer: [new UglifyJsPlugin()]
+        minimizer: [new TerserPlugin({
+            terserOptions: {
+              output: {
+                comments: false,
+              },
+            },
+          })],
+/*         minimizer: [new UglifyJsPlugin({
+            uglifyOptions: {
+              output: {
+                comments: false,
+              },
+          })] */
     }
 };
