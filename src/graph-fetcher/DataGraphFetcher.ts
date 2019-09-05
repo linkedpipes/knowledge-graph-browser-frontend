@@ -16,7 +16,7 @@ export class DataGraphFetcher {
         let url = new URL(this.remoteUrl);
         url.pathname = path;
         Object.keys(parameters).forEach(key => url.searchParams.append(key, parameters[key]));
-        console.log("Fetching", parameters);
+//        console.log("Fetching", parameters);
         return fetch(url.href).then(response => response.json());
     }
 

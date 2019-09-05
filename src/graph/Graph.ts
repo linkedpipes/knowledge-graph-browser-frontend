@@ -33,39 +33,30 @@ export class Graph {
      */
     CyInstance: Cytoscape.Core;
 
-    
-    async betaCreateCy() {
-        //let ss = await this.fetcher.getStylesheet("https://linked.opendata.cz/resource/knowledge-graph-browser/rpp/style-sheet");
-        let ss = await this.fetcher.getStylesheet("https://linked.opendata.cz/resource/knowledge-graph-browser/wikidata/animals/style-sheet");
-        console.log(ss.styles.map(style => { return {style: style.selector, css: style.properties}}));
+    constructor(configurationIRI: string) {
+        this.fetcher = new DataGraphFetcher("http://localhost:3000/", configurationIRI);
         this.CyInstance = Cytoscape({
-            style: /*[ // the stylesheet for the graph
-                {
-                  selector: 'node',
-                  style: {
-                    'background-color': '#666',
-                    'label': 'data(id)'
-                  } as Cy.Css.Node
-                },
+            style: [ // the stylesheet for the graph
+    {
+      selector: 'node',
+      style: {
+        'background-color': '#666',
+        'label': 'data(id)'
+      }
+    },
 
-                {
-                  selector: 'edge',
-                  style: {
-                    'width': 3,
-                    'line-color': '#ccc',
-                    'target-arrow-color': '#ccc',
-                    'target-arrow-shape': 'triangle'
-                  } as Cy.Css.Edge
-                } as Cy.Stylesheet
-              ] as Cy.Stylesheet[]*/
-              ss.styles.map(style => { return {selector: style.selector, css: style.properties}})
-        });
+    {
+      selector: 'edge',
+      style: {
+        'width': 3,
+        'line-color': '#ccc',
+        'target-arrow-color': '#ccc',
+        'target-arrow-shape': 'triangle'
+      }
     }
+  ]
 
-    constructor() {
-
-        //this.fetcher = new DataGraphFetcher("http://localhost:3000/", "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/rpp");
-        this.fetcher = new DataGraphFetcher("http://localhost:3000/", "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/wikidata/animals");
+        });
     }
 
     mountVisualizationElement(element: HTMLElement) {
@@ -86,6 +77,10 @@ export class Graph {
      */
     getEdgeByIRI(IRI: string): Edge|null {
         return this.CyInstance.getElementById(IRI).scratch("_edge");
+    }
+
+    getAllNodes(): Node[] {
+        return this.CyInstance.nodes().map(node => node.scratch("_node"));
     }
 
     /**

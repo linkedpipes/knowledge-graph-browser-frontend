@@ -77,6 +77,14 @@ export class Node {
           }, {
             duration: 500
           });
+        this.graph.CyInstance.animate({
+            fit: {
+              eles: this.cyInstance,
+              padding: 50
+            }
+          }, {
+            duration: 0
+          });
     }
 
     constructor(graph: Graph) {

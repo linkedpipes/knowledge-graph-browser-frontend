@@ -1,23 +1,28 @@
 <template>
     <div class="graph-area" ref="graph"></div>
 </template>
-<script>
+<script lang="ts">
 import { Graph } from '../graph/Graph';
 export default {
     props: {
-        graphInstance: Graph
+        applicationData: Object
     },
-    mounted: function () {
-        this.graphInstance.mountVisualizationElement(this.$refs.graph);
+    methods: {
+        mount: function() {
+            let graph: Graph = this.applicationData.graph;
+
+            graph.mountVisualizationElement(this.$refs.graph);
+        },
+        unmount: function() {
+            let graph: Graph = this.applicationData.graph;
+
+            graph.CyInstance.unmount();
+        }
     }
 }
 </script>
-<style scoped>
+<style module>
 .graph-area {
-    width: 70%;
-    height: 100%;
-    position: fixed;
-    left: 0;
-    top: 0;
+    flex: auto;
 }
 </style>
