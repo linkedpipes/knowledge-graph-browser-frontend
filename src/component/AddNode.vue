@@ -56,7 +56,7 @@ export default {
     props: {
         applicationData: Object
     },
-    
+
     methods: {
         show: function(predefinedIRI: string = null) {
             this.dialog = true;
@@ -102,8 +102,11 @@ export default {
             if (!node) {
                 try {
                     node = await graph.fetchNode(this.IRI);
-                } catch {
+                } catch (error) {
                     node = null;
+                    this.loading = false;
+                    this.error = true;
+                    console.error("Error occurred while fetching a new node. Probably the user specified wrong IRI or there is a problem on server side.", error);
                 }
             }
 
@@ -112,9 +115,6 @@ export default {
 
                 this.IRI = "";
                 this.close();
-            } else {
-                this.loading = false;
-                this.error = true;
             }
         }
     }

@@ -47,7 +47,7 @@ export class Node {
         if (this.viewSets) return;
 
         let result = await this.graph.fetcher.getViewSets(this.IRI);
-
+        
         this.viewSets = {};
 
         let nodeViews: {[viewIRI:string]: NodeView} = {};

@@ -3,6 +3,7 @@ import { Expansion } from "./Expansion";
 import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 import { Edge } from "./Edge";
 import Cytoscape from "cytoscape";
+import { notDeepStrictEqual } from "assert";
 
 /**
  * Each node stores this data for Graph class algorithms
@@ -85,6 +86,7 @@ export class Graph {
 
     /**
      * Creates a new node in the graph
+     * IRI of this node may be broken
      * @param IRI
      */
     registerNode(IRI: string): Node {
@@ -113,13 +115,36 @@ export class Graph {
     }
 
     /**
+     * Low level function to unregister node from the Graph instance
+     * @param node Node instance to be unregistered
+     */
+    unregisterNode(node: Node) {
+        this.CyInstance.remove(node.cyInstance);
+    }
+
+    /**
      * Creates a new node in the graph based on its IRI
      * @param IRI
      */
     async fetchNode(IRI: string): Promise<Node> {
+        // The node is always registered despite the correctness of IRI
         let node = this.registerNode(IRI);
-        await node.getViewSets();
-        node.viewSets[Object.keys(node.viewSets)[0]].defaultView.use();
+
+        try {
+            await node.getViewSets();
+
+            if (Object.keys(node.viewSets).length == 0) {
+                throw new Error("Server responded, but no view sets returned. Probably wrong IRI specified.");
+            }
+        } catch(error) { // The node is removed and error is rethrowed
+            this.unregisterNode(node);
+            node = null;
+            throw(error);
+        }
+        
+        if (node) {
+            node.viewSets[Object.keys(node.viewSets)[0]].defaultView.use();
+        }
         return node;
     }
 }
