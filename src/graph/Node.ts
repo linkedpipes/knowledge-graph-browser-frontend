@@ -42,6 +42,17 @@ export class Node {
         return this.cyInstance.data('id');
     }
 
+    /**
+     * If node is explicitly hidden by the user.
+     * (It is still possible, that the node is hidden by filter)
+     */
+    get userHidden(): boolean {
+        return this.cyInstance.style('display') == "none";
+    }
+
+    set userHidden(hidden: boolean) {
+        this.cyInstance.style('display', hidden ? "none" : "element");
+    }
     
     async getViewSets() {
         if (this.viewSets) return;

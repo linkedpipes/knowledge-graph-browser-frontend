@@ -55,13 +55,37 @@ export class Graph {
         'target-arrow-shape': 'triangle'
       }
     }
-  ]
-
+  ],
+  zoom: 0
         });
     }
 
     mountVisualizationElement(element: HTMLElement) {
         this.CyInstance.mount(element);
+
+        let doubleClickDelayMs = 350;
+        let previousTapStamp = 0;
+        this.CyInstance.on('tap', 'node', (event) => {
+            let currentTapStamp = event.timeStamp;
+            let msFromLastTap = currentTapStamp - previousTapStamp;
+            previousTapStamp = currentTapStamp;
+
+            if (msFromLastTap < doubleClickDelayMs) {
+                let node: Node = event.target.scratch("_node");
+                node.getViewSets().then(()=>{
+                    for (let vs in node.viewSets) {
+                        for (let v in node.viewSets[vs].views) {
+                            node.viewSets[vs].views[v].use();
+                            node.viewSets[vs].views[v].expand().then(expansion => {
+                                expansion.nodes.forEach(n => {n.cyInstance.removeStyle("display")});
+                                expansion.edges.forEach(n => {n.cyInstance.removeStyle("display")});
+                                this.CyInstance.layout({name: 'grid'}).run();
+                            });
+                        }
+                    }
+                });
+            }
+        });
     }
 
     /**

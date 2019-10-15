@@ -2,15 +2,31 @@
     <v-app class="app">
         <v-toolbar style="flex: none;">
             <v-toolbar-items>
-                <v-btn @click="$refs.addNode.show()" text>Add node</v-btn>
+                <v-btn @click="$refs.addNode.show()" text>Add node(s)</v-btn> <!-- todo: or multiple nodes -->
+                <v-btn @click="showHidden" text>Load</v-btn>
+                <v-btn @click="showHidden" text>Save</v-btn>
+                <v-btn @click="showHidden" text>View all hidden nodes</v-btn>
                 <v-btn @click="expandAll" text>[Experimental] expand all</v-btn>
             </v-toolbar-items>
 
             <div class="flex-grow-1"></div>
 
             <v-toolbar-items>
+                <v-btn @click="$refs.configurationStylesheetDialog.show()" text>Language</v-btn>
                 <v-btn @click="$refs.configurationStylesheetDialog.show()" text>Change configuration and stylesheet</v-btn>
             </v-toolbar-items>
+
+            <template #extension> 
+                <span class="mr-2" v-if="!filter_active">No vertices were filtered out.</span>
+                <span class="mr-2" v-if="filter_active">Filtered by:</span>
+                <span class="filter-list" v-if="filter_active">
+                    <v-chip close><b>Degree</b>&nbsp;at least 5</v-chip>
+                    <v-chip close color="secondary" class="pa-5"> <v-chip close><b>Degree</b>&nbsp;at least 5</v-chip> OR <v-chip close><b>Degree</b>&nbsp;at least 5</v-chip></v-chip>
+                </span>
+                <v-toolbar-items>
+                <v-btn text>Add a new filter</v-btn>
+                </v-toolbar-items>
+            </template>
         </v-toolbar>
         <div class="d-flex flex-grow-1" style="overflow: hidden;">
             <graph-area ref="graphArea" :application-data="data" />
@@ -40,7 +56,8 @@ export default {
         return {
             configurationIRI: null as String,
             stylesheetIRI: null as String,
-            test: Object
+            test: Object,
+            filter_active: false,
         };
     },
     components: {
@@ -131,6 +148,13 @@ export default {
                     }
                 });
             });
+        },
+        showHidden: function() {
+            let graph: Graph = this.data.graph;
+            
+            for(let node of graph.getAllNodes()) {
+                node.userHidden = false;
+            }
         }
     }
 

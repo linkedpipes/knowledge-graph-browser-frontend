@@ -27,6 +27,8 @@
             <!-- TODO: Does node type depends on view? -->
         </div>
 
+        <v-btn @click="experimental_switch_visibility">Change visibility</v-btn>
+
         <div v-if="actualPreviewClasses" class="class-list mb-5">
                 <v-chip v-for="cls in actualPreviewClasses" :key="cls.label" :color="cls.color" class="mx-2">{{cls.label}}</v-chip>
         </div>
@@ -122,6 +124,7 @@ export interface DetailPanelData {
     remove: () => void,
     hidden: boolean,
     panelActive: boolean,
+    experimental_switch_visibility: () => void,
 }
 
 import { Node } from '../graph/Node';
@@ -145,6 +148,7 @@ export default {
 
             panelActive: false,
             visible: false,
+            experimental_switch_visibility: null,
             };
     },
     computed: {
@@ -248,6 +252,11 @@ export default {
                         label: viewSet.label,
                         views: viewsData 
                     });
+                }
+
+                // Visibility
+                data.experimental_switch_visibility = () => {
+                    node.userHidden = !node.userHidden;
                 }
 
             } else {
