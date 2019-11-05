@@ -46,6 +46,10 @@ module.exports = {
                         }
                     }
                 ]
+            },
+            {
+                test: /\.yaml$/,
+                use: 'js-yaml-loader',
             }
         ]
     },
@@ -75,7 +79,7 @@ module.exports = {
                 comments: false,
               },
             },
-        })] 
+        })]
     },
     stats: { children: false },
 };
