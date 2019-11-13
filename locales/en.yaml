@@ -1,0 +1,16 @@
+new_nodes:
+  title: Add new nodes
+  search:
+    title: Search nodes
+    hint: Enter the term you want to search
+  single:
+    title: Sigle node
+  multiple:
+    title: Multiple nodes
+  menu:
+    search: Search nodes
+    single: Single node
+    multiple: Multiple nodes
+  error_fetch: "Error occured while fetching the resource. See developers console for more detailed information.<br>Try to check the corectness of IRI."
+  cancel: Cancel
+  add: Add node | Add nodes
