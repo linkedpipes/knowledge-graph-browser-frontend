@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop, Watch, Mixins } from 'vue-property-decorator';
 import { Node, NodePreview } from '../interfaces/Node';
@@ -6,19 +5,36 @@ import NodeMixin from './NodeMixin';
 import { LoadViewRequest } from '../interfaces/LoadRequest';
 
 import Cytoscape from "cytoscape";
-
+import Vue from 'vue';
+import { readlinkSync } from 'fs';
 
 /**
- * Vue component representing Node in Cytoscape graph instance
+ * This is Vue component representing single node in graph. When a new node is loaded,
+ * the Vuex automatically creates a new instance of this class which registers node
+ * in the Cytoscape instance. Also any chages of the Node's data are automatically
+ * updated in the Cytoscape instance.
  */
 @Component
-export default class GraphElementNode extends Mixins(NodeMixin) {
+export default class GraphElementNode extends Vue {
+    /**
+     * Node's data passed by parent
+     */
     @Prop({type: Object as () => Node}) data: Node;
+
+    /**
+     * Cytoscape instance passed by parent where the node should be rendered
+     */
     @Prop({type: Object as () => Cytoscape.Core}) cy: Cytoscape.Core;
 
-    // This node in Cytoscape container
+    /**
+     * Reference to this node in the Cytoscape container
+     */
     element: Cytoscape.NodeSingular;
 
+    /**
+     * Vue method called after the creation of the object.
+     * Registers node in the Cytoscape instance
+     */
     mounted() {
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
@@ -33,9 +49,10 @@ export default class GraphElementNode extends Mixins(NodeMixin) {
     };
 
     /**
-     * Method called by ancestor component if doubleclick is registered
+     * Method called by ancestor component GraphArea when doubleclick is registered
      */
     async onDoubleClicked() {
+        // Use Vue's emit method to tell parents to fetch new data
         this.$emit("load-request", {
             node: this.data.IRI,
             view: this.data.currentView,
@@ -66,7 +83,7 @@ export default class GraphElementNode extends Mixins(NodeMixin) {
 
     @Watch('currentPreview', { immediate: true, deep: true })
     updatePreview(preview: NodePreview) {
-        this.element.data(preview);
+        this.element?.data(preview);
         console.log("Updated");
     }
 

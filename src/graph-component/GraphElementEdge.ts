@@ -18,7 +18,11 @@ export default class GraphElementEdge extends Vue {
     mounted() {
         this.element = <Cytoscape.EdgeSingular>this.cy.add({
             group: 'edges',
-            data: { source: this.data.source, target: this.data.target, label: this.data.type.label }
+            data: {
+                source: this.data.source.IRI,
+                target: this.data.target.IRI,
+                label: this.data.type.label
+            }
         });
     };
 
@@ -26,5 +30,5 @@ export default class GraphElementEdge extends Vue {
         this.cy.remove(this.element);
     };
 
-    render(): null {return null; }
+    render(): null {return null;}
 }

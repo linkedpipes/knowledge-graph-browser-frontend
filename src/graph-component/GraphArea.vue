@@ -12,8 +12,8 @@
 		:cy="cy"
 	/>
 	<graph-element-edge
-		v-for="edge in graph.edges"
-		:key="edge.source + ' ' + edge.target"
+		v-for="(edge, identifier) in graph.edges"
+		:key="identifier"
 		:data="edge"
 		:cy="cy"
 	/>
@@ -68,7 +68,8 @@ export default class GraphArea extends Vue {
 	}
 
 	/**
-	 * Called by Vue framework
+	 * Vue method called after the creation of the object.
+	 * Mounts the Cytoscape instance to HTML and registers basic events handlers
 	 */
 	mounted() {
 		// Mount Cytoscape instance to HTML element
@@ -88,6 +89,9 @@ export default class GraphArea extends Vue {
 		});
 	}
 
+	/**
+	 * Emits event from childrens (usually Node) to the parent
+	 */
 	loadRequest(data: LoadRequest) {
 		this.$emit('load-request', data);
 	}

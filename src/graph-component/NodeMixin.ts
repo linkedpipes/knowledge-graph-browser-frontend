@@ -13,12 +13,27 @@ import { ResponseElementType } from "../graph-fetcher/response-interfaces";
 export interface NodeType extends ResponseElementType {};
 
 /**
- * This is Vue Mixin.
+ * This is Vue Mixin - helper class for Vue components
+ * This class handles loadRequest calls from Node components and other parts
+ * of the application and properly loads and store new data from remote server.
  */
 @Component
 export default class NodeMixin extends Vue {
     graph: Graph;
     fetcher: DataGraphFetcher;
+
+    getEdgeIdentifier(edge: Edge) {
+        return edge.source.IRI + " " + edge.target.IRI + " " + edge.type.iri;
+    }
+
+    private ExtractTypes(types: ResponseElementType[]): Map<string, ResponseElementType> {
+        let result: Map<string, DetailType> = new Map();
+        for (let type of types) {
+            // ResponseElementType === DetailType
+            result.set(type.iri, type);
+        }
+        return result;
+    }
 
     loadRequest(data: LoadRequest) {
         console.log("Load request on Application component.", data);
@@ -97,13 +112,7 @@ export default class NodeMixin extends Vue {
         let result = await this.fetcher.getDetail(viewIRI, nodeIRI);
         let data = result.nodes.find(node => node.iri == nodeIRI).data;
 
-        // Process types
-        // TODO: this block is used on multiple locations
-        let types: Map<string, DetailType> = new Map();
-        for (let type of result.types) {
-            // ResponseElementType === DetailType
-            types.set(type.iri, type);
-        }
+        let types = this.ExtractTypes(result.types)
 
         view.detail = [];
         for (let IRI in data) {
@@ -128,12 +137,7 @@ export default class NodeMixin extends Vue {
 
         let result = await this.fetcher.getPreview(viewIRI, nodeIRI);
 
-        // Process types
-        let types: Map<string, NodeType> = new Map();
-        for (let type of result.types) {
-            // ResponseElementType === NodeType
-            types.set(type.iri, type);
-        }
+        let types = this.ExtractTypes(result.types)
 
         let preview = result.nodes.find(node => node.iri == nodeIRI);
 
@@ -149,20 +153,9 @@ export default class NodeMixin extends Vue {
         let view = this.graph.nodes[nodeIRI].views[viewIRI];
         let graph = this.graph;
 
-        // Expansion is a bit different. Because user can remove some nodes or
-        // edges, we need to enable to load the whole expansion again
-/*         if (!view.isExpansionPromiseFulfilled) {
-            return view.expansionPromise;
-        } */
-
-
         let expansionData = await this.fetcher.getExpansion(viewIRI, nodeIRI);
 
-        // Process types
-        let types: Map<string, ResponseElementType> = new Map();
-        for (let type of expansionData.types) {
-            types.set(type.iri, type);
-        }
+        let types = this.ExtractTypes(expansionData.types)
 
         // Create nodes
         for (let expansionNode of expansionData.nodes) {
@@ -179,7 +172,8 @@ export default class NodeMixin extends Vue {
                 node.views["#default"] = new View();
                 node.views["#default"].preview = nodePreview;
 
-                // Save Node to Vue store
+                // Save Node to the Vuex store
+                // This will automatically creates a node in Cytoscape graph
                 this.$set(graph.nodes, expansionNode.iri, node);
             }
         }
@@ -187,11 +181,13 @@ export default class NodeMixin extends Vue {
         // Create edges
         for (let expansionEdge of expansionData.edges) {
             let edge: Edge = {
-                ...expansionEdge,
+                source: this.graph.nodes[expansionEdge.source],
+                target: this.graph.nodes[expansionEdge.target],
                 type: types.get(expansionEdge.type)
             };
 
-            this.$set(this.graph.edges, expansionEdge.source + ' ' + expansionEdge.target, edge);
+            // Store edge to the Vuex container and draw it on the canvas
+            this.$set(this.graph.edges, this.getEdgeIdentifier(edge), edge);
         }
 
         return null;

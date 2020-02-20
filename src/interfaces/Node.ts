@@ -6,8 +6,8 @@ export interface Graph {
     },
 
     edges: {
-        [IRI: string]: Object;
-    }
+        [Edge_identifier: string]: Edge;
+    },
 }
 
 export class Node {
@@ -35,8 +35,8 @@ export class Node {
 }
 
 export interface Edge {
-    source: string;
-    target: string;
+    source: Node;
+    target: Node;
     type: EdgeType;
 }
 
