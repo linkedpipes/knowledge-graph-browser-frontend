@@ -1,64 +1,47 @@
-import { GraphData, Graph } from "./Graph";
-import { NodeViewSet } from "./NodeViewSet";
-import { NodeView, NodePreview } from "./NodeView";
-import Cytoscape from "cytoscape";
-
-import { ResponseElementType } from "../graph-fetcher/response-interfaces"
-
-/**
- * Information about the type of Node. Same as ResponseElementType
- */
-export interface NodeType extends ResponseElementType {};
+import { Graph } from "./Graph";
+import { ViewSet, View } from "../interfaces/Node";
 
 /**
  * Node as a part of graph. Each Node belongs to exactly one Graph.
  */
 export class Node {
     /**
-     * List of view sets
-     */
-    viewSets: {[viewSetIRI: string]: NodeViewSet} = null;
-
-    activeNodeView: NodeView = null;
-
-    activePreview: NodePreview;
-    
-    cyInstance: Cytoscape.NodeSingular;
-
-    /**
      * Each Node must belong to one and only one Graph. Every update is reported to the graph instance. Also provides fetcher.
      */
     graph: Graph;
 
     /**
-     * Helper variables used by Graph class
-     */
-    graphData: GraphData;
+     * Node unique identifier
+     * */
+    IRI: string;
 
-    /**
-     * IRI of the node
-     */
-    get IRI(): string {
-        return this.cyInstance.data('id');
+    constructor(IRI: string, graph: Graph) {
+        this.IRI = IRI;
+        this.graph = graph;
     }
 
     /**
-     * If node is explicitly hidden by the user.
-     * (It is still possible, that the node is hidden by filter)
+     * Whether the node is selected on the board
      */
-    get userHidden(): boolean {
-        return this.cyInstance.style('display') == "none";
-    }
+    selected: boolean = false;
+    visible: boolean = false;
 
-    set userHidden(hidden: boolean) {
-        this.cyInstance.style('display', hidden ? "none" : "element");
-    }
-    
-    async getViewSets() {
+    currentViewSet: string;
+    currentView: string;
+
+    viewSets: {
+        [IRI: string]: ViewSet;
+    } = {};
+
+    views: {
+        [IRI: string]: View;
+    } = {};
+
+/*    async getViewSets() {
         if (this.viewSets) return;
 
         let result = await this.graph.fetcher.getViewSets(this.IRI);
-        
+
         this.viewSets = {};
 
         let nodeViews: {[viewIRI:string]: NodeView} = {};
@@ -96,10 +79,5 @@ export class Node {
           }, {
             duration: 0
           });
-    }
-
-    constructor(graph: Graph) {
-        this.graph = graph;
-        this.graphData = new GraphData();
-    }
+    }*/
 }

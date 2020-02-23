@@ -1,23 +1,22 @@
 <template>
-  <div>
-	<h1>This is graph-area component</h1>
-	<div class="graph-area" ref="graphd" style="height: 10cm;"></div>
+	<div class="d-flex flex-grow-1">
+		<div class="flex-grow-1 graph-area" ref="graphd"></div>
 
-	<graph-element-node
-		@load-request="loadRequest"
+		<graph-element-node
+			@load-request="loadRequest"
 
-		v-for="node in graph.nodes"
-		:key="node.IRI"
-		:data="node"
-		:cy="cy"
-	/>
-	<graph-element-edge
-		v-for="(edge, identifier) in graph.edges"
-		:key="identifier"
-		:data="edge"
-		:cy="cy"
-	/>
-  </div>
+			v-for="node in graph.nodes"
+			:key="node.IRI"
+			:data="node"
+			:cy="cy"
+		/>
+		<graph-element-edge
+			v-for="(edge, identifier) in graph.edges"
+			:key="identifier"
+			:data="edge"
+			:cy="cy"
+		/>
+	</div>
 </template>
 
 <script lang="ts">
@@ -49,7 +48,7 @@ export default class GraphArea extends Vue {
 				{
 					selector: "node",
 					style: {
-						"background-color": "#666",
+						//"background-color": "#666",
 						label: "data(label)"
 					}
 				},
@@ -97,3 +96,8 @@ export default class GraphArea extends Vue {
 	}
 }
 </script>
+<style module>
+.graph-area {
+    flex: auto;
+}
+</style>

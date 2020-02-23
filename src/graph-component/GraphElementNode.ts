@@ -1,12 +1,10 @@
 import Component from 'vue-class-component';
 import { Prop, Watch, Mixins } from 'vue-property-decorator';
 import { Node, NodePreview } from '../interfaces/Node';
-import NodeMixin from './NodeMixin';
 import { LoadViewRequest } from '../interfaces/LoadRequest';
 
 import Cytoscape from "cytoscape";
 import Vue from 'vue';
-import { readlinkSync } from 'fs';
 
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,

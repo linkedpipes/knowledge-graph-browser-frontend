@@ -1,7 +1,7 @@
 import { Node } from "./Node";
-import Cytoscape from "cytoscape";
 
 import { ResponseElementType } from "../graph-fetcher/response-interfaces"
+import { Graph } from "./Graph";
 
 /**
  * Information about the type of Edge. Same as ResponseElementType
@@ -12,19 +12,17 @@ export interface EdgeType extends ResponseElementType {};
  * Represents oriented edge in the graph
  */
 export class Edge {
-    from: Node;
-    to: Node;
-    type: void; // todo
-    cyData: void; // todo
+    /**
+     * Each Node must belong to one and only one Graph. Every update is reported to the graph instance. Also provides fetcher.
+     */
+    graph: Graph;
 
-    cyInstance: Cytoscape.EdgeSingular;
-
-
-    show() {
-        this.cyInstance.removeStyle("display").style("opacity", '0').animate({
-            style: { opacity: 1 }
-          }, {
-            duration: 3000
-          });
+    // Todo: resolve how to identify edges
+    constructor (graph: Graph) {
+        this.graph = graph;
     }
+
+    source: Node;
+    target: Node;
+    type: EdgeType;
 }
