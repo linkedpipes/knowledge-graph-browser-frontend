@@ -1,10 +1,11 @@
 import Component from 'vue-class-component';
 import { Prop, Watch, Mixins } from 'vue-property-decorator';
-import { Node, NodePreview } from '../interfaces/Node';
 import { LoadViewRequest } from '../interfaces/LoadRequest';
+import { Node } from '../graph/Node';
 
 import Cytoscape from "cytoscape";
 import Vue from 'vue';
+import { NodePreview } from '../graph/NodeView';
 
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,
@@ -17,7 +18,7 @@ export default class GraphElementNode extends Vue {
     /**
      * Node's data passed by parent
      */
-    @Prop({type: Object as () => Node}) data: Node;
+    @Prop({type: Object as () => Node}) node: Node;
 
     /**
      * Cytoscape instance passed by parent where the node should be rendered
@@ -36,26 +37,23 @@ export default class GraphElementNode extends Vue {
     mounted() {
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
-            data: { id: this.data.IRI, label: this.data.IRI }
+            data: { ...this.node.currentView?.preview, id: this.node.IRI }
         });
 
         //this.element.css('display', 'none'); todo - for now its disabled
         this.element.scratch("_component", this);
 
-        this.element.on("select", () => this.data.selected = true);
-        this.element.on("unselect", () => this.data.selected = false);
+        this.element.on("select", () => this.node.selected = true);
+        this.element.on("unselect", () => this.node.selected = false);
     };
 
     /**
      * Method called by ancestor component GraphArea when doubleclick is registered
      */
     async onDoubleClicked() {
-        // Use Vue's emit method to tell parents to fetch new data
-        this.$emit("load-request", {
-            node: this.data.IRI,
-            view: this.data.currentView,
-            type: "expand"
-        } as LoadViewRequest);
+        if (this.node.currentView?.IRI) {
+            this.node.currentView.expand();
+        }
     }
 
     @Watch('data.selected') selectedChanged(val: boolean) {
@@ -75,14 +73,13 @@ export default class GraphElementNode extends Vue {
         });
     }
 
-    get currentPreview(): NodePreview {
-        return this.data.views[this.data.currentView]?.preview;
+    get previewData(): NodePreview {
+        return this.node.currentView?.preview;
     }
 
-    @Watch('currentPreview', { immediate: true, deep: true })
+    @Watch('previewData', { immediate: true, deep: true })
     updatePreview(preview: NodePreview) {
         this.element?.data(preview);
-        console.log("Updated");
     }
 
     beforeDestroy() {

@@ -3,6 +3,7 @@ import { Expansion } from "./Expansion";
 import { ResponseElementType, ResponseElementNode } from "../graph-fetcher/response-interfaces";
 import { Edge } from "./Edge";
 import { NodeType } from "./Node";
+import { NodeViewSet } from "./NodeViewSet";
 
 /**
  * Information about the type of detail. Same as ResponseElementType
@@ -33,7 +34,15 @@ export class NodeView {
      */
     label: string;
 
-    parentNode: Node;
+    /**
+     * Each view belongs to one Node
+     */
+    node: Node;
+
+    /**
+     * View is a member of NodeViewSet
+     */
+    viewSet: NodeViewSet;
 
     detail: DetailValue[] = null;
     preview: NodePreview = null;
@@ -47,13 +56,8 @@ export class NodeView {
      * Toggle this view as active view
      */
     async use() {
-        let preview = await this.getPreview();
-        this.parentNode.activeNodeView = this;
-        this.parentNode.activePreview = preview;
-        this.parentNode.cyInstance.data(preview); 
-
-        // Update classes list
-        this.parentNode.cyInstance.classes(preview.classes.join(" "));
+        //let preview = await this.getPreview();
+        this.node.currentView = this;
     }
 
     /**
@@ -61,8 +65,8 @@ export class NodeView {
      */
     async getDetail(): Promise<DetailValue[]> {
         if (!this.detail) {
-            let result = await this.parentNode.graph.fetcher.getDetail(this.IRI, this.parentNode.IRI);
-            let data = result.nodes.find(node => node.iri == this.parentNode.IRI).data;
+            let result = await this.node.graph.fetcher.getDetail(this.IRI, this.node.IRI);
+            let data = result.nodes.find(node => node.iri == this.node.IRI).data;
 
             // Process types
             // TODO: this block is used on multiple locations
@@ -88,9 +92,9 @@ export class NodeView {
     /**
      * Fetches and returns Nodes preview - data how to visualize the Node
      */
-    async getPreview(): Promise<NodePreview> {
+    async fetchPreview(): Promise<NodePreview> {
         if (!this.preview) {
-            let result = await this.parentNode.graph.fetcher.getPreview(this.IRI, this.parentNode.IRI);
+            let result = await this.node.graph.fetcher.getPreview(this.IRI, this.node.IRI);
 
             // Process types
             let types: Map<string, NodeType> = new Map();
@@ -99,7 +103,7 @@ export class NodeView {
                 types.set(type.iri, type);
             }
 
-            let preview = result.nodes.find(node => node.iri == this.parentNode.IRI);
+            let preview = result.nodes.find(node => node.iri == this.node.IRI);
 
             this.preview = {
                 ...preview,
@@ -112,14 +116,13 @@ export class NodeView {
 
     /**
      * Fetches expansion of the Node and returns it.
-     * All newly created nodes and edges are hidden by default.
      */
     async expand(): Promise<Expansion> {
         // Get the expansion
-        let expansionData = await this.parentNode.graph.fetcher.getExpansion(this.IRI, this.parentNode.IRI);
+        let expansionData = await this.node.graph.fetcher.getExpansion(this.IRI, this.node.IRI);
 
-        this.expansion = new Expansion(this.parentNode);
-        
+        this.expansion = new Expansion(this.node);
+
         // Process types
         let types: Map<string, ResponseElementType> = new Map();
         for (let type of expansionData.types) {
@@ -128,17 +131,16 @@ export class NodeView {
 
         // Create nodes
         for (let expansionNode of expansionData.nodes) {
-            let node = this.parentNode.graph.getNodeByIRI(expansionNode.iri);
+            let node = this.node.graph.getNodeByIRI(expansionNode.iri);
             if (!node) {
                 // We have to create a new one
-                node = this.parentNode.graph.registerNode(expansionNode.iri);
-                let nodePreview: NodePreview = {
+                node = this.node.graph.createNode(expansionNode.iri);
+                let view = new NodeView();
+                view.preview = {
                     ...expansionNode,
                     type: types.get(expansionNode.type)
                 };
-                node.cyInstance.data(nodePreview);
-                node.activePreview = nodePreview;
-                expansionNode.classes.forEach(cls => node.cyInstance.addClass(cls));
+                node.currentView = view;
             }
 
             this.expansion.nodes.push(node);
@@ -146,13 +148,9 @@ export class NodeView {
 
         // Create edges
         for (let expansionEdge of expansionData.edges) {
-            let data = {
-                type: expansionEdge.type,
-                label: types.get(expansionEdge.type).label
-            };
-            let edge = this.parentNode.graph.registerEdge(expansionEdge.source, expansionEdge.target, data);
-
-            this.expansion.edges.push(edge);
+            this.node.graph.createEdge(
+                this.node.graph.getNodeByIRI(expansionEdge.source),
+                this.node.graph.getNodeByIRI(expansionEdge.target), types.get(expansionEdge.type));
         }
 
         return this.expansion;

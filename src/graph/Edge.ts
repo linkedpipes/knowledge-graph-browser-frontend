@@ -1,5 +1,4 @@
 import { Node } from "./Node";
-
 import { ResponseElementType } from "../graph-fetcher/response-interfaces"
 import { Graph } from "./Graph";
 
@@ -17,12 +16,14 @@ export class Edge {
      */
     graph: Graph;
 
-    // Todo: resolve how to identify edges
-    constructor (graph: Graph) {
-        this.graph = graph;
-    }
-
     source: Node;
     target: Node;
     type: EdgeType;
+
+    constructor (source: Node, target: Node, type: EdgeType, graph: Graph) {
+        this.source = source;
+        this.target = target;
+        this.type = type;
+        this.graph = graph;
+    }
 }

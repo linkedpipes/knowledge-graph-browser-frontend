@@ -1,5 +1,6 @@
 import { Graph } from "./Graph";
-import { ViewSet, View } from "../interfaces/Node";
+import { NodeView } from "./NodeView";
+import { NodeViewSet } from "./NodeViewSet";
 
 /**
  * Node as a part of graph. Each Node belongs to exactly one Graph.
@@ -26,18 +27,13 @@ export class Node {
     selected: boolean = false;
     visible: boolean = false;
 
-    currentViewSet: string;
-    currentView: string;
+    currentView: NodeView = null;
 
     viewSets: {
-        [IRI: string]: ViewSet;
-    } = {};
+        [IRI: string]: NodeViewSet;
+    } = null;
 
-    views: {
-        [IRI: string]: View;
-    } = {};
-
-/*    async getViewSets() {
+    async fetchViewSets() {
         if (this.viewSets) return;
 
         let result = await this.graph.fetcher.getViewSets(this.IRI);
@@ -49,7 +45,7 @@ export class Node {
             let view = new NodeView();
             view.IRI = nv.iri;
             view.label = nv.label;
-            view.parentNode = this;
+            view.node = this;
             nodeViews[nv.iri] = view;
         }
 
@@ -64,20 +60,4 @@ export class Node {
             }
         }
     }
-
-    show() {
-        this.cyInstance.removeStyle("display").style("opacity", '0').animate({
-            style: { opacity: 1 }
-          }, {
-            duration: 500
-          });
-        this.graph.CyInstance.animate({
-            fit: {
-              eles: this.cyInstance,
-              padding: 50
-            }
-          }, {
-            duration: 0
-          });
-    }*/
 }

@@ -1,5 +1,5 @@
 <template>
-	<div class="d-flex flex-grow-1">
+	<div class="d-flex flex-grow-1" ref="wrapper">
 		<div class="flex-grow-1 graph-area" ref="graphd"></div>
 
 		<graph-element-node
@@ -7,13 +7,13 @@
 
 			v-for="node in graph.nodes"
 			:key="node.IRI"
-			:data="node"
+			:node="node"
 			:cy="cy"
 		/>
 		<graph-element-edge
 			v-for="(edge, identifier) in graph.edges"
 			:key="identifier"
-			:data="edge"
+			:edge="edge"
 			:cy="cy"
 		/>
 	</div>
@@ -99,5 +99,8 @@ export default class GraphArea extends Vue {
 <style module>
 .graph-area {
     flex: auto;
+}
+.wrapper {
+	overflow: hidden; /* Allows side panel to popup*/
 }
 </style>
