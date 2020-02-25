@@ -1,0 +1,21 @@
+_lang_local: čeština
+_lang_english: Czech
+new_nodes:
+  button: Přidat vrcholy
+  title: Přidání nových vrcholů
+  search:
+    title: Hledat
+    hint: Zadejte, co potřebujete najít
+  single:
+    title: Přidání jednoho vrcholu
+  multiple:
+    title: Přidání několika vrcholů
+  menu:
+    search: Najít vrcholy
+    single: Single node
+    multiple: Multiple nodes
+  error_fetch: "Error occured while fetching the resource. See developers console for more detailed information.<br>Try to check the corectness of IRI."
+  cancel: Cancel
+  add: Add node | Add nodes
+language: Jazyk
+change_configuration_and_stylesheet: Změnit konfiguraci a styly

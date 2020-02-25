@@ -1,4 +1,7 @@
+_lang_local: English
+_lang_english: English
 new_nodes:
+  button: Add node(s)
   title: Add new nodes
   search:
     title: Search nodes
@@ -14,3 +17,5 @@ new_nodes:
   error_fetch: "Error occured while fetching the resource. See developers console for more detailed information.<br>Try to check the corectness of IRI."
   cancel: Cancel
   add: Add node | Add nodes
+language: Language
+change_configuration_and_stylesheet: Change configuration and stylesheet

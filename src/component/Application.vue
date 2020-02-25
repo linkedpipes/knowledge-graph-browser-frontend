@@ -12,8 +12,17 @@
             <div class="flex-grow-1"></div>
 
             <v-toolbar-items>
-                <v-btn @click="$refs.configurationStylesheetDialog.show()" text>Language</v-btn>
-                <v-btn @click="$refs.configurationStylesheetDialog.show()" text>Change configuration and stylesheet</v-btn>
+                <v-menu offset-y>
+                    <template v-slot:activator="{ on }">
+                        <v-btn text v-on="on">{{ $t("_lang_local") }}</v-btn>
+                    </template>
+                    <v-list>
+                        <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code" @click="$root.$i18n.locale = code">
+                            <v-list-item-title>{{ messages['_lang_local'] }}</v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+                <v-btn click="$refs.configurationStylesheetDialog.show()" text>{{ $t("change_configuration_and_stylesheet") }}</v-btn>
             </v-toolbar-items>
 
             <template #extension> 
