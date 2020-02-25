@@ -3,9 +3,9 @@ const { VueLoaderPlugin } = require('vue-loader');
 const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+//const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+//var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 module.exports = {
     entry: './src/index.ts',
@@ -26,16 +26,16 @@ module.exports = {
             {
                 test: /\.css$/,
                 use: [
-                    MiniCssExtractPlugin.loader,
-                    // 'vue-style-loader',
+                    //MiniCssExtractPlugin.loader,
+                    'vue-style-loader',
                     'css-loader',
                 ]
             },
             {
                 test: /\.s(c|a)ss$/,
                 use: [
-                    MiniCssExtractPlugin.loader,
-                    // 'vue-style-loader',
+                    //MiniCssExtractPlugin.loader,
+                    'vue-style-loader',
                     'css-loader',
                     {
                         loader: 'sass-loader',
@@ -58,15 +58,15 @@ module.exports = {
     },
     plugins: [
         new VueLoaderPlugin(),
-        new VuetifyLoaderPlugin(),
-        new MiniCssExtractPlugin(),
-        new OptimizeCssAssetsPlugin({
+        new VuetifyLoaderPlugin()
+        //new MiniCssExtractPlugin(),
+        /* new OptimizeCssAssetsPlugin({
             cssProcessor: require('cssnano'),
             cssProcessorPluginOptions: {
               preset: ['default', { discardComments: { removeAll: true } }],
             },
             canPrint: true
-          })
+          }) */
     ],
     output: {
         filename: 'bundle.js',
