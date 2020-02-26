@@ -1,7 +1,6 @@
 import { Node } from "./Node";
 import { Expansion } from "./Expansion";
-import { ResponseElementType, ResponseElementNode } from "../graph-fetcher/response-interfaces";
-import { Edge } from "./Edge";
+import { ResponseElementType } from "../graph-fetcher/response-interfaces";
 import { NodeType } from "./Node";
 import { NodeViewSet } from "./NodeViewSet";
 
@@ -47,34 +46,42 @@ export class NodeView {
     detail: DetailValue[] = null;
     preview: NodePreview = null;
     expansion: Expansion;
-/*
-    private detailPromise: Promise<object> = null;
-    private previewPromise: Promise<ResponseElementNode> = null;
-    private expansionPromise: Promise<Expansion> = null;
-*/
+
+    private detailPromise: Promise<DetailValue[]> = null;
+    private previewPromise: Promise<NodePreview> = null;
+    // expansionPromise is not used because the user can remove the nodes
+    // and therefore the repeated expansion can actually change something
+
     /**
      * Toggle this view as active view
      */
     async use() {
-        //let preview = await this.getPreview();
         this.node.currentView = this;
+        await this.fetchPreview();
+    }
+
+    private ExtractTypes(types: ResponseElementType[]): Map<string, ResponseElementType> {
+        let result: Map<string, DetailType> = new Map();
+        for (let type of types) {
+            // ResponseElementType === DetailType
+            result.set(type.iri, type);
+        }
+        return result;
     }
 
     /**
      * Fetches and returns Node detail - additional information about the Node
      */
     async getDetail(): Promise<DetailValue[]> {
+        if (this.detailPromise) {
+            return this.detailPromise;
+        }
+
         if (!this.detail) {
             let result = await this.node.graph.fetcher.getDetail(this.IRI, this.node.IRI);
             let data = result.nodes.find(node => node.iri == this.node.IRI).data;
 
-            // Process types
-            // TODO: this block is used on multiple locations
-            let types: Map<string, DetailType> = new Map();
-            for (let type of result.types) {
-                // ResponseElementType === DetailType
-                types.set(type.iri, type);
-            }
+            let types = this.ExtractTypes(result.types);
 
             this.detail = [];
             for (let IRI in data) {
@@ -93,15 +100,14 @@ export class NodeView {
      * Fetches and returns Nodes preview - data how to visualize the Node
      */
     async fetchPreview(): Promise<NodePreview> {
+        if (this.previewPromise) {
+            return this.previewPromise;
+        }
+
         if (!this.preview) {
             let result = await this.node.graph.fetcher.getPreview(this.IRI, this.node.IRI);
 
-            // Process types
-            let types: Map<string, NodeType> = new Map();
-            for (let type of result.types) {
-                // ResponseElementType === NodeType
-                types.set(type.iri, type);
-            }
+            let types = this.ExtractTypes(result.types);
 
             let preview = result.nodes.find(node => node.iri == this.node.IRI);
 
@@ -119,18 +125,14 @@ export class NodeView {
      */
     async expand(): Promise<Expansion> {
         // Get the expansion
-        let expansionData = await this.node.graph.fetcher.getExpansion(this.IRI, this.node.IRI);
+        let result = await this.node.graph.fetcher.getExpansion(this.IRI, this.node.IRI);
 
         this.expansion = new Expansion(this.node);
 
-        // Process types
-        let types: Map<string, ResponseElementType> = new Map();
-        for (let type of expansionData.types) {
-            types.set(type.iri, type);
-        }
+        let types = this.ExtractTypes(result.types);
 
         // Create nodes
-        for (let expansionNode of expansionData.nodes) {
+        for (let expansionNode of result.nodes) {
             let node = this.node.graph.getNodeByIRI(expansionNode.iri);
             if (!node) {
                 // We have to create a new one
@@ -147,7 +149,7 @@ export class NodeView {
         }
 
         // Create edges
-        for (let expansionEdge of expansionData.edges) {
+        for (let expansionEdge of result.edges) {
             this.node.graph.createEdge(
                 this.node.graph.getNodeByIRI(expansionEdge.source),
                 this.node.graph.getNodeByIRI(expansionEdge.target), types.get(expansionEdge.type));

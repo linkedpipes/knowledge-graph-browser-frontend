@@ -1,6 +1,12 @@
 import { Graph } from "./Graph";
 import { NodeView } from "./NodeView";
 import { NodeViewSet } from "./NodeViewSet";
+import { ResponseElementType } from "../graph-fetcher/response-interfaces";
+
+/**
+ * Information about the type of Node. Same as ResponseElementType
+ */
+export interface NodeType extends ResponseElementType {};
 
 /**
  * Node as a part of graph. Each Node belongs to exactly one Graph.
