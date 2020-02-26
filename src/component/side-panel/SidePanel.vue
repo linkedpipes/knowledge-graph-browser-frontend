@@ -65,8 +65,8 @@ export default class SidePanel extends Vue {
 <style>
 .side-panel {
     padding: .5cm;
-    width: 0%;
-    background-color: red;
+    width: 30%;
+    background-color: white;
     transition: .5s ease width;
 }
 .side-panel-detail, .side-panel-list {

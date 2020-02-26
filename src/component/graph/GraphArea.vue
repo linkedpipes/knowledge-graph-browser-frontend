@@ -26,7 +26,6 @@ import GraphElementNode from "./GraphElementNode";
 import GraphElementEdge from "./GraphElementEdge";
 import Cytoscape from "cytoscape";
 import { Prop } from "vue-property-decorator";
-import { LoadRequest } from "../interfaces/LoadRequest";
 
 @Component({
 	components: {
@@ -86,13 +85,6 @@ export default class GraphArea extends Vue {
 				(<GraphElementNode>event.target.scratch("_component")).onDoubleClicked();
 			}
 		});
-	}
-
-	/**
-	 * Emits event from childrens (usually Node) to the parent
-	 */
-	loadRequest(data: LoadRequest) {
-		this.$emit('load-request', data);
 	}
 }
 </script>

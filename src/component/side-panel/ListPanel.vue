@@ -14,5 +14,6 @@ import { Node } from '../../graph/Node';
 @Component
 export default class ListPanel extends Vue {
     @Prop(Object) nodes: Node[];
+    @Prop(Object) mode: string;
 }
 </script>

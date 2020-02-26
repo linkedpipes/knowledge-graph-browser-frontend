@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import Cytoscape from "cytoscape";
-import { Edge } from '../graph/Edge';
+import { Edge } from '../../graph/Edge';
 
 /**
  * Vue component representing edge in Cytoscape graph instance
