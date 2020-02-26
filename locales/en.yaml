@@ -14,8 +14,21 @@ new_nodes:
     search: Search nodes
     single: Single node
     multiple: Multiple nodes
-  error_fetch: "Error occured while fetching the resource. See developers console for more detailed information.<br>Try to check the corectness of IRI."
+  error_fetch: Error occured while fetching the resource. See developers console for more detailed information.<br>Try to check the corectness of IRI.
   cancel: Cancel
   add: Add node | Add nodes
 language: Language
 change_configuration_and_stylesheet: Change configuration and stylesheet
+side_panel:
+  detail_panel:
+    loading: loading
+    views: Avaiable views
+    expand: Expand
+    use: Switch
+    no_views: Server responded with no views. You should check your configuration.
+    fetching_views: Fetching views...
+    detail: Detail
+    please_select_view: Select the view first to show detailed information.
+    fetching_detail: Fetching detailed information...
+    key: Key
+    value: Value

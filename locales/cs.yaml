@@ -19,3 +19,16 @@ new_nodes:
   add: Add node | Add nodes
 language: Jazyk
 change_configuration_and_stylesheet: Změnit konfiguraci a styly
+side_panel:
+  detail_panel:
+    loading: načítání
+    views: Pohledy
+    expand: Expandovat
+    use: Použít
+    no_views: Vzdálený server odpověděl, ale nedodal žádné pohledy. Měli byste zkontrolovat konfiguraci serveru.
+    fetching_views: Stahování pohledů...
+    detail: Detail
+    please_select_view: Zvolte nejprve pohled pro zobrazení detailu o zdroji.
+    fetching_detail: Stahování detailu...
+    key: Položka
+    value: Hodnota
