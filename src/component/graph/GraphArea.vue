@@ -6,13 +6,13 @@
 			@load-request="loadRequest"
 
 			v-for="node in graph.nodes"
-			:key="node.IRI"
+			:key="node.IRI.replace(/\./, '_')"
 			:node="node"
 			:cy="cy"
 		/>
 		<graph-element-edge
 			v-for="(edge, identifier) in graph.edges"
-			:key="identifier"
+			:key="identifier.replace(/\./, '_')"
 			:edge="edge"
 			:cy="cy"
 		/>
