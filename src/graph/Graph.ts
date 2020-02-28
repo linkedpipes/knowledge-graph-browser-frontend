@@ -88,7 +88,7 @@ export class Graph {
                 throw new Error("Server responded, but no view sets returned. Probably wrong IRI specified.");
             }
         } catch(error) { // The node is removed and error is rethrowed
-            this.removeNode(IRI);
+            this._removeNode(node);
             node = null;
             throw(error);
         }
