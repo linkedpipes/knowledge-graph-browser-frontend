@@ -15,16 +15,22 @@ localesContext.keys().forEach(function(key: string){
 });
 
 // Configure i18n
-export const i18n = new VueI18n({
+const i18n = new VueI18n({
     locale: 'en',
     fallbackLocale: 'en',
     messages: locales
+});
+
+const vuetify = new Vuetify({
+    icons: {
+        iconfont: 'mdiSvg', // 'mdi' || 'mdiSvg' || 'md' || 'fa' || 'fa4' || 'faSvg'
+    },
 });
 
 // Create a vue instance
 new Vue({
     el: '#app',
     i18n,
-    vuetify: new Vuetify(),
+    vuetify,
     render: createElement => createElement(Application)
 });
