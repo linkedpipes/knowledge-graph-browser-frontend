@@ -50,7 +50,7 @@ export default class GraphElementNode extends Vue {
      * Method called by ancestor component GraphArea when doubleclick is registered
      */
     async onDoubleClicked() {
-        if (this.node.currentView?.IRI) {
+        if (this.node.currentView) {
             this.node.currentView.expand();
         }
     }

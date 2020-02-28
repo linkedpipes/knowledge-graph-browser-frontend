@@ -3,8 +3,6 @@
 		<div class="flex-grow-1 graph-area" ref="graphd"></div>
 
 		<graph-element-node
-			@load-request="loadRequest"
-
 			v-for="node in graph.nodes"
 			:key="node.IRI.replace(/\./, '_')"
 			:node="node"

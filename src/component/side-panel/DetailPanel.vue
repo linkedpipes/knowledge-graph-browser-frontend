@@ -18,7 +18,11 @@
         </v-carousel>
 
         <div>
-            <h1 v-if="node.currentView">{{node.currentView.label}}</h1><h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
+            <v-btn color="red" @click="node.remove()">{{ $t("side_panel.detail_panel.remove") }}</v-btn>
+        </div>
+
+        <div>
+            <h1 v-if="node.currentView && node.currentView.preview">{{node.currentView.preview.label}}</h1><h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
             <a :href="node.IRI">{{node.IRI}}</a>
         </div>
 
@@ -45,8 +49,8 @@
                             <tr v-for="view in viewSet.views" :key="view.IRI">
                                 <td>{{view.label}}</td>
                                 <td>
-                                    <v-btn color="red" @click="view.expand">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
-                                    <v-btn @click="view.use">{{ $t("side_panel.detail_panel.use") }}</v-btn>
+                                    <v-btn color="red" @click="view.expand()">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
+                                    <v-btn @click="view.use()">{{ $t("side_panel.detail_panel.use") }}</v-btn>
                                 </td>
                             </tr>
                         </template>
@@ -66,7 +70,7 @@
             <v-card-text v-if="!node.currentView">{{ $t("side_panel.detail_panel.please_select_view") }}</v-card-text>
             <v-card-text v-else-if="!node.currentView.detail">{{ $t("side_panel.detail_panel.fetching_detail") }}</v-card-text>
             <template v-else>
-                <v-card-text><a :href="actualView.IRI">{{node.currentView.label}}</a></v-card-text>
+                <v-card-text><a :href="node.currentView.IRI">{{node.currentView.label}}</a></v-card-text>
                 <v-simple-table>
                     <thead>
                         <tr>
@@ -78,7 +82,6 @@
                         <tr v-for="detail in node.currentView.detail" :key="detail.IRI">
                             <td><a :href="detail.IRI">{{detail.type.label}}</a></td>
                             <td>
-<!--                                 <v-img v-if="['.jpg', '.png', '.bmp'].includes(detail.value.substr(detail.value.length - 4))" :src="detail.value" /> -->
                                 <span>{{detail.value}}</span>
                             </td>
                         </tr>
@@ -90,7 +93,7 @@
 </template>
 <script lang="ts">
 import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
 import { NodeViewSet } from '../../graph/NodeViewSet';
 import { DetailValue } from '../../graph/NodeView';
@@ -140,6 +143,24 @@ export default class DetailPanel extends Vue {
         let result = this.node.currentView.detail.filter(detail => ['.jpg', '.png', '.bmp'].includes(detail.value.substr(detail.value.length - 4)));
 
         return result.length ? result : null;
+    }
+
+    mounted() {
+        console.log("mounted", this.node);
+        this.nodeChanged();
+    }
+
+    @Watch('node')
+    async nodeChanged() {
+        if (!this.node.viewSets) await this.node.fetchViewSets();
+        if (!this.node.currentView?.IRI) await this.node.useDefaultView(); // Current view could have been obtained from expansion (in this case it won't contain IRI) and therefore it also needs to be replaced
+        if (!this.node.currentView?.preview) await this.node.currentView.fetchPreview();
+        this.currentViewChanged();
+    }
+
+    @Watch('node.currentView')
+    async currentViewChanged() {
+        if (this.node.currentView?.IRI) await this.node.currentView.getDetail();
     }
 }
 </script>

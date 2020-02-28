@@ -45,8 +45,12 @@ export class Graph {
         return node;
     }
 
-    removeNode(IRI: string) {
-
+    /**
+     * Internal method for Node to remove itself from the graph
+     * @param node Node to be removed
+     */
+    _removeNode(node: Node) {
+        Vue.delete(this.nodes, node.IRI);
     }
 
     private getEdgeIdentifier(edge: Edge) {

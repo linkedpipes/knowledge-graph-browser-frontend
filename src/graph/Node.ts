@@ -39,6 +39,11 @@ export class Node {
         [IRI: string]: NodeViewSet;
     } = null;
 
+    remove() {
+        console.warn("This function works partially only. The node is still contained in expansion for example.");
+        this.graph._removeNode(this);
+    }
+
     async fetchViewSets() {
         if (this.viewSets) return;
 
@@ -63,7 +68,15 @@ export class Node {
             viewSet.defaultView = nodeViews[vs.defaultView];
             for (let nv of vs.views) {
                 viewSet.views[nv] = nodeViews[nv];
+                viewSet.views[nv].viewSet = viewSet;
             }
         }
+    }
+
+    async useDefaultView(): Promise<NodeView> {
+        await this.fetchViewSets();
+        let vs = this.viewSets[Object.keys(this.viewSets)[0]];
+        this.currentView = vs.views[Object.keys(vs.views)[0]];
+        return this.currentView;
     }
 }
