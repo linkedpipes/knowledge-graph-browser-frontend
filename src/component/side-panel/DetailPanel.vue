@@ -17,17 +17,38 @@
             </v-carousel-item>
         </v-carousel>
 
-        <div>
-            <v-btn color="red" @click="node.remove()">{{ $t("side_panel.detail_panel.remove") }}</v-btn>
+        <div class="v-btn-toggle float-right ml-3 mb-3">
+            <v-tooltip bottom>
+                <template v-slot:activator="{ on }">
+                    <v-btn v-on="on" color="red" @click="node.remove()"><v-icon>{{ trash }}</v-icon></v-btn>
+                </template>
+                <span>{{ $t("side_panel.detail_panel.remove_desc") }}</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+                <template v-slot:activator="{ on }">
+                    <v-btn v-on="on" @click="nodeRefresh()"><v-icon>{{ refresh }}</v-icon></v-btn>
+                </template>
+                <span>{{ $t("side_panel.detail_panel.refresh_desc") }}</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+                <template v-slot:activator="{ on }">
+                    <v-btn v-on="on"><v-icon>{{ locate }}</v-icon></v-btn>
+                </template>
+                <span>{{ $t("side_panel.detail_panel.locate_desc") }}</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+                <template v-slot:activator="{ on }">
+                    <v-btn v-on="on" @click="node.visible = !node.visible"><v-icon>{{ visibility[node.visible ? 1 : 0] }}</v-icon></v-btn>
+                </template>
+                <span>{{ $t("side_panel.detail_panel.visible_desc") }}</span>
+            </v-tooltip>
         </div>
 
-        <div>
-            <h1 v-if="node.currentView && node.currentView.preview">{{node.currentView.preview.label}}</h1><h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
-            <a :href="node.IRI">{{node.IRI}}</a>
-        </div>
-
-        <div v-if="previewClasses" class="class-list mb-5">
+        <div class="mb-5">
+            <h1 v-if="node.currentView && node.currentView.preview">{{node.currentView.preview.label}}
                 <v-chip v-for="cls in previewClasses" :key="cls.label" :color="cls.color" class="mx-2">{{cls.label}}</v-chip>
+                </h1><h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
+            <a :href="node.IRI" target="_blank"><code>{{node.IRI}}</code></a>
         </div>
 
         <v-card v-if="node.currentView && node.currentView.preview" class="mb-5">
@@ -35,27 +56,26 @@
                 <div>
                     <b>{{node.currentView.preview.type.label}}</b> <span v-if="node.currentView.preview.type.description">(<i>{{node.currentView.preview.type.description}}</i>)</span>
                 </div>
-                <a :href="node.currentView.preview.type.iri">{{node.currentView.preview.type.iri}}</a>
+                <a :href="node.currentView.preview.type.iri" target="_blank"><code>{{node.currentView.preview.type.iri}}</code></a>
             </v-card-text>
         </v-card>
 
-        <v-card :loading="!viewSets" class="mb-5">
+        <v-card :loading="viewSets === null" class="mb-5">
             <v-card-title>{{ $t("side_panel.detail_panel.views") }}</v-card-title>
-            <template v-if="viewSets">
-                <v-simple-table v-if="viewSets.length">
-                    <tbody>
+            <template v-if="viewSets !== null">
+                <v-list v-if="viewSets.length">
+                    <v-list-item-group v-model="currentViewIRI" mandatory color="blue">
                         <template v-for="viewSet in viewSets">
-                            <tr :key="viewSet.IRI"><th colspan="2">{{viewSet.label}}</th></tr>
-                            <tr v-for="view in viewSet.views" :key="view.IRI">
-                                <td>{{view.label}}</td>
-                                <td>
-                                    <v-btn color="red" @click="view.expand()">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
-                                    <v-btn @click="view.use()">{{ $t("side_panel.detail_panel.use") }}</v-btn>
-                                </td>
-                            </tr>
+                            <v-list-item :key="viewSet.IRI" disabled>{{viewSet.label}}</v-list-item>
+                            <v-list-item v-for="view in viewSet.views" :key="view.IRI" :value="view.IRI" @click="view.use()">
+                                <v-list-item-content>
+                                    <v-list-item-title style="flex-basis: auto;" class="flex-grow-1">{{view.label}}</v-list-item-title>
+                                    <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="red" @click.stop="view.expand()">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
+                                </v-list-item-content>
+                            </v-list-item>
                         </template>
-                    </tbody>
-                </v-simple-table>
+                    </v-list-item-group>
+                </v-list>
                 <v-alert v-else dense outlined type="error" class="mx-5">
                     {{ $t("side_panel.detail_panel.no_views") }}
                 </v-alert>
@@ -69,25 +89,16 @@
             <v-card-title>{{ $t("side_panel.detail_panel.detail") }}</v-card-title>
             <v-card-text v-if="!node.currentView">{{ $t("side_panel.detail_panel.please_select_view") }}</v-card-text>
             <v-card-text v-else-if="!node.currentView.detail">{{ $t("side_panel.detail_panel.fetching_detail") }}</v-card-text>
-            <template v-else>
-                <v-card-text><a :href="node.currentView.IRI">{{node.currentView.label}}</a></v-card-text>
-                <v-simple-table>
-                    <thead>
-                        <tr>
-                            <td>{{ $t("side_panel.detail_panel.key") }}</td>
-                            <td>{{ $t("side_panel.detail_panel.value") }}</td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="detail in node.currentView.detail" :key="detail.IRI">
-                            <td><a :href="detail.IRI">{{detail.type.label}}</a></td>
-                            <td>
-                                <span>{{detail.value}}</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </v-simple-table>
-            </template>
+            <v-simple-table v-else>
+                <tbody>
+                    <tr v-for="detail in node.currentView.detail" :key="detail.IRI">
+                        <td>
+                            <div><b>{{detail.type.label}}</b> <a :href="detail.IRI" target="_blank"><code>{{detail.IRI}}</code></a></div>
+                            <div>{{detail.value}}</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </v-simple-table>
         </v-card>
     </div>
 </template>
@@ -98,9 +109,18 @@ import { Node } from '../../graph/Node';
 import { NodeViewSet } from '../../graph/NodeViewSet';
 import { DetailValue } from '../../graph/NodeView';
 
+import { mdiTrashCanOutline, mdiRefresh, mdiCrosshairsGps, mdiEye, mdiEyeOff  } from '@mdi/js';
+
 @Component
 export default class DetailPanel extends Vue {
     @Prop(Object) node: Node;
+
+    trash = mdiTrashCanOutline;
+    refresh = mdiRefresh;
+    locate = mdiCrosshairsGps;
+    visibility = [mdiEyeOff, mdiEye];
+
+    currentViewIRI: string = null;
 
     /**
      * Returns classes list with deterministic color based on name
@@ -124,7 +144,8 @@ export default class DetailPanel extends Vue {
     /**
      * Converts viewSets to array
      */
-    get viewSets(): NodeViewSet[] {
+    get viewSets(): NodeViewSet[]|null {
+        if (this.node.viewSets === null) return null;
         let sets: NodeViewSet[] = [];
         for (let IRI in this.node.viewSets) {
             sets.push(this.node.viewSets[IRI]);
@@ -150,6 +171,15 @@ export default class DetailPanel extends Vue {
         this.nodeChanged();
     }
 
+    /**
+     * This functionality should remove all fetchable node information and download them again
+     */
+    nodeRefresh() {
+        this.node.viewSets = null;
+        this.node.currentView = null;
+        this.nodeChanged();
+    }
+
     @Watch('node')
     async nodeChanged() {
         if (!this.node.viewSets) await this.node.fetchViewSets();
@@ -160,6 +190,7 @@ export default class DetailPanel extends Vue {
 
     @Watch('node.currentView')
     async currentViewChanged() {
+        this.currentViewIRI = this.node.currentView?.IRI;
         if (this.node.currentView?.IRI) await this.node.currentView.getDetail();
     }
 }
