@@ -55,7 +55,7 @@ export default class GraphElementNode extends Vue {
         }
     }
 
-    @Watch('data.selected') selectedChanged(val: boolean) {
+    @Watch('node.selected') selectedChanged(val: boolean) {
         if (val) {
             this.element.select();
         } else {
@@ -63,8 +63,7 @@ export default class GraphElementNode extends Vue {
         }
     }
 
-    @Watch('data.visible') visibilityChanged(visible: boolean) {
-        console.log("Changing visibility");
+    @Watch('node.visible') visibilityChanged(visible: boolean) {
         this.element.style("display", visible ? "element" : "none").style("opacity", visible ? 0 : 1).animate({
             style: { opacity: visible ? 1 : 0 }
         }, {
@@ -76,9 +75,16 @@ export default class GraphElementNode extends Vue {
         return this.node.currentView?.preview;
     }
 
+    /**
+     * When node changes the current view and preview is not fetched yet,
+     * this function is called with empty preview and therefore the old
+     * values saved in Cy instance are not overwritten.
+     * @param preview Preview by which the node will be rendered
+     */
     @Watch('previewData', { immediate: true, deep: true })
     updatePreview(preview: NodePreview) {
         this.element?.data(preview);
+        this.element?.toggleClass("_preview_loading", preview === null);
     }
 
     beforeDestroy() {

@@ -50,6 +50,12 @@ export default class GraphArea extends Vue {
 					}
 				},
 				{
+					selector: "node._preview_loading",
+					style: {
+						opacity: 0.5
+					}
+				},
+				{
 					selector: "edge",
 					style: {
 						width: 3,
