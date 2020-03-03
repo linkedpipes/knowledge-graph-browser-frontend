@@ -1,10 +1,10 @@
 <template>
-    <div style="overflow: auto;" :class="{'side-panel': true, 'side-panel-detail': panelMode == 1, 'side-panel-list': panelMode == 2}">
+    <v-navigation-drawer v-model="active" color="white" absolute right width="650">
         <div class="detail-panel pa-5">
             <detail-panel :node="detailNode" v-if="panelMode == 1" />
             <list-panel :nodes="selectedNodes" v-if="panelMode == 2" />
         </div>
-    </div>
+    </v-navigation-drawer>
 </template>
 <script lang="ts">
 import Vue from 'vue';
@@ -29,7 +29,7 @@ enum PanelModeEnum {
 })
 export default class SidePanel extends Vue {
     @Prop(Object) graph: Graph;
-
+    active: boolean = false;
 
     get selectedNodes() {
         let selected: Node[] = [];
@@ -57,6 +57,11 @@ export default class SidePanel extends Vue {
 
     get detailNode(): Node {
         return (this.panelMode == PanelModeEnum.SingleDetail) ? this.selectedNodes[0] : null;
+    }
+
+    @Watch("panelMode")
+    panelModeChanged(mode: PanelModeEnum) {
+        this.active = mode != PanelModeEnum.Nothing;
     }
 
 }
