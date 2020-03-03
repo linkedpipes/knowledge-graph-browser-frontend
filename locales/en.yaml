@@ -32,3 +32,19 @@ side_panel:
     fetching_detail: Fetching detailed information...
     key: Key
     value: Value
+filter_dialog:
+  title: Filter nodes
+  tab_graph: Graph properties
+  degree: Degree of the resource
+  degree_description: You can choose to show only those resources having a degree in a specific range. This is usefull for example to filter out most connected nodes to cleanup graph.
+  indegree: Incomming degree of the resource
+  indegree_description: Counts only those edges pointing into the resource.
+  outdegree: Outcomming degree of the resource
+  outdegree_description: Counts only those edges pointing out from the resource.
+  tab_type: Type
+  type: Type of the resource
+  type_description: Choose which resources should be filtered by type.
+  type_exclude: Hide (filter out) new types which are not currently in the table by default
+  cancel: Cancel
+  save: Apply filter
+
