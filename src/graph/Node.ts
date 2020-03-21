@@ -22,6 +22,11 @@ export class Node {
      * */
     IRI: string;
 
+    /**
+     * Represents results of a different filters
+     */
+    filters: {[filter: string]: boolean} = {}
+
     constructor(IRI: string, graph: Graph) {
         this.IRI = IRI;
         this.graph = graph;
@@ -31,7 +36,7 @@ export class Node {
      * Whether the node is selected on the board
      */
     selected: boolean = false;
-    visible: boolean = false;
+    visible: boolean = true;
 
     currentView: NodeView = null;
 

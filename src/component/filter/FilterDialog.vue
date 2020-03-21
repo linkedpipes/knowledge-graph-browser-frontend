@@ -9,6 +9,7 @@
         <v-tabs vertical>
             <v-tab><v-icon left>{{graphIcon}}</v-icon><v-badge color="red" dot :value="false">{{ $t("filter_dialog.tab_graph") }}</v-badge></v-tab>
             <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="true">{{ $t("filter_dialog.tab_type") }}</v-badge></v-tab>
+            <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="true">EXPERIMENTAL</v-badge></v-tab>
 
             <v-tab-item>
                 <v-card flat>
@@ -24,45 +25,33 @@
                 </v-card>
             </v-tab-item>
 
+            <!-- Types -->
             <v-tab-item>
-                <v-card flat>
-                    <v-card-text>
-                        <v-card outlined class="mb-3">
-                            <v-card-text>
-                                <v-card-title class="text--primary">{{ $t("filter_dialog.type") }}</v-card-title>
-                                <p>{{ $t("filter_dialog.type_description") }}</p>
-                                <v-checkbox color="red" class="black--label" :label="$t('filter_dialog.type_exclude')"></v-checkbox>
-                                <v-list max-height="400" style="overflow-y: scroll;">
-                                    <v-list-item-group v-model="selectedItems" multiple>
-                                        <v-list-item v-for="(item, i) in items" :key="`item-${i}`" :value="item" class="item-invert" active-class="item-invert-selected">
-                                            <template v-slot:default="{ active, toggle }">
-                                                <v-list-item-content>
-                                                    <v-list-item-title v-text="item"></v-list-item-title>
-                                                </v-list-item-content>
-
-                                                <v-list-item-action>
-                                                    <v-checkbox
-                                                    :input-value="active"
-                                                    :true-value="item"
-                                                    @click="toggle"
-                                                    ></v-checkbox>
-                                                </v-list-item-action>
-                                            </template>
-                                        </v-list-item>
-                                    </v-list-item-group>
-                                </v-list>
-                            </v-card-text>
-                        </v-card>
-                    </v-card-text>
-                </v-card>
+                <property-enum-tab :avaiable-items="selectedItems" v-model="mod" :equality-comparator="eqcmp">
+                    <p>{{ $t("filter_dialog.type_description") }}</p>
+                    <template v-slot:title>{{ $t("filter_dialog.type") }}</template>
+                    <template v-slot:item="item">{{item.item}}</template>
+                </property-enum-tab>
             </v-tab-item>
+
+            <!-- Classes -->
+            <v-tab-item>
+                <property-enum-tab :avaiable-items="avalIt" v-model="mod" :equality-comparator="eqcmp">
+                    <p>Choose which resources should be filtered by class.</p>
+                    <template v-slot:title>Titulek</template>
+                    <template v-slot:item="item">gucci - {{item.item}}</template>
+                </property-enum-tab>
+            </v-tab-item>
+
         </v-tabs>
+
 
         <v-card-actions>
           <div class="flex-grow-1"></div>
           <v-btn color="primary" text @click="dialog = false">{{ $t("filter_dialog.cancel") }}</v-btn>
           <v-btn color="primary" text @click="confirmed()">{{ $t("filter_dialog.save") }}</v-btn>
         </v-card-actions>
+
       </v-card>
     </v-dialog>
 </template>
@@ -73,6 +62,8 @@ import { Component, Prop } from 'vue-property-decorator';
 import { Graph } from '../../graph/Graph';
 
 import { mdiGraphql, mdiFormatListBulletedType } from '@mdi/js';
+import PropertyEnumTab from './PropertyEnumTab.vue';
+import { EnumPropertyFilter } from '../../filters/PropertyFilter';
 
 interface RangeFilter {
     active: boolean;
@@ -84,40 +75,29 @@ interface FilterNames {
     filter: RangeFilter
 }
 
-@Component
+@Component({
+	components: {
+		PropertyEnumTab
+	}
+})
 export default class FilterDialog extends Vue {
+    avalIt = ['ahoj', 'jak', 'je'];
+    mod = {
+        active: false,
+        items: ['jak'],
+        modeListed: false,
+    } as EnumPropertyFilter<string>;
+
+    eqcmp = (a: string, b: string) => a == b;
+
+
+
     graphIcon = mdiGraphql;
     semanticIcon = mdiFormatListBulletedType;
 
     graphFilters: FilterNames[] = [];
 
     selectedItems: string[] = [];
-    items = [
-      'Dog Photos',
-      'Cat Photos',
-      'Potatoes',
-      'Carrots',
-      "Doreen Gorham",
-"Emile Debellis",
-"Madalyn Leicht",
-"Betsey Corella",
-"Nicol Cromartie",
-"Tanesha Weed",
-"Taisha Cadorette",
-"Shante Haven",
-"Kellie Camarena",
-"Lamonica Liska",
-"Johnathan Vartanian",
-"Gordon Fitzpatrick",
-"Treena Hoppes",
-"Ossie Yokley",
-"Glory Tellez",
-"Sixta Mungin",
-"Jessenia Pope",
-"Gidget Parrett",
-"Billie Vandervort",
-"Trey Emberton",
-    ];
 
     constructor() {
         super();
@@ -183,14 +163,5 @@ export default class FilterDialog extends Vue {
 <style scoped>
 .v-tab {
     justify-content: left;
-}
-.item-invert:before {
-    opacity: 0 !important;
-}
-.item-invert:not(.item-invert-selected) .v-list-item__content {
-    text-decoration: line-through;
-}
-.black--label /deep/ label {
-    color: black;
 }
 </style>

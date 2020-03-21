@@ -3,8 +3,10 @@ import { Prop, Watch, Mixins } from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
 
 import Cytoscape from "cytoscape";
-import Vue from 'vue';
+import Vue, { CreateElement, VNode, VNodeChildren } from 'vue';
 import { NodePreview } from '../../graph/NodeView';
+import Filter from '../../filters/Filter';
+//import DegreeFilterComponent from '../../filters/DegreeFilterComponent';
 
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,
@@ -50,8 +52,11 @@ export default class GraphElementNode extends Vue {
      * Method called by ancestor component GraphArea when doubleclick is registered
      */
     async onDoubleClicked() {
+        if (!this.node.currentView) {
+            await this.node.useDefaultView();
+        }
         if (this.node.currentView) {
-            this.node.currentView.expand();
+            await this.node.currentView.expand();
         }
     }
 
@@ -63,7 +68,32 @@ export default class GraphElementNode extends Vue {
         }
     }
 
-    @Watch('node.visible') visibilityChanged(visible: boolean) {
+    get shownByFilters(): boolean {
+        let show = true;
+        for(let filter in this.node.filters) {
+            if (!this.node.filters[filter]) {
+                show = false;
+                break;
+            }
+        }
+
+        return show;
+    }
+
+    ExshownByFilters(): boolean {
+        let show = true;
+        for(let filter in this.node.filters) {
+            if (!this.node.filters[filter]) {
+                show = false;
+                break;
+            }
+        }
+
+        return show;
+    }
+
+    @Watch('node.visible') @Watch('shownByFilters') visibilityChanged() {
+        let visible = this.node.visible && this.shownByFilters;
         this.element.style("display", visible ? "element" : "none").style("opacity", visible ? 0 : 1).animate({
             style: { opacity: visible ? 1 : 0 }
         }, {

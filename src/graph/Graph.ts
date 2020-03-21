@@ -1,4 +1,4 @@
-import { Node } from "./Node";
+import { Node, NodeType } from "./Node";
 import { Edge, EdgeType } from "./Edge";
 import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 
@@ -71,6 +71,41 @@ export class Graph {
 
     removeEdge() {
 
+    }
+
+    /**
+     * Returns all types of nodes currently presented in the graph.
+     *
+     * Every type is presented only once.
+     */
+    getAllTypes(): Set<NodeType> {
+        let map = new Map<string, NodeType>();
+        for (let node_iri in this.nodes) {
+            let type = this.nodes[node_iri].currentView?.preview?.type;
+            if (type) {
+                map.set(type.iri, type);
+            }
+        }
+        return new Set(map.values());
+    }
+
+    /**
+     * Returns all classes of nodes currently presented int the graph.
+     *
+     * Every class is presented only once.
+     */
+    getAllClasses(): Set<string> {
+        let classes = new Set<string>();
+        for (let node_iri in this.nodes) {
+            let nodeClasses = this.nodes[node_iri].currentView?.preview?.classes;
+            if (nodeClasses) {
+                for (let cls of nodeClasses) {
+                    classes.add(cls);
+                }
+            }
+        }
+
+        return classes;
     }
 
     /**
