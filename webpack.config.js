@@ -2,6 +2,8 @@ const path = require('path');
 const { VueLoaderPlugin } = require('vue-loader');
 const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+var ProgressBarPlugin = require('progress-bar-webpack-plugin');
+const chalk = require('chalk');
 
 //const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
@@ -58,7 +60,12 @@ module.exports = {
     },
     plugins: [
         new VueLoaderPlugin(),
-        new VuetifyLoaderPlugin()
+        new VuetifyLoaderPlugin(),
+        new ProgressBarPlugin({
+            format: '  build [:bar] ' + chalk.green.bold(':percent') + ' (:elapsed seconds)',
+            clear: false,
+            width: 60
+          }),
         //new MiniCssExtractPlugin(),
         /* new OptimizeCssAssetsPlugin({
             cssProcessor: require('cssnano'),
