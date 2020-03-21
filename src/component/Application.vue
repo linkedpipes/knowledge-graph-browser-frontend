@@ -1,6 +1,6 @@
 <template>
     <v-app class="app">
-        <v-toolbar style="flex: none;">
+        <v-toolbar class="toolbar" style="flex: none;">
             <v-toolbar-items>
                 <v-btn @click="$refs.addNode.show()" text>{{ $t("new_nodes.button") }}</v-btn>
                 <v-btn text>{{ $t("load_dialog.button") }}</v-btn>
@@ -31,16 +31,60 @@
                     <v-chip close color="secondary" class="pa-5"> <v-chip close><b>Degree</b>&nbsp;at least 5</v-chip> OR <v-chip close><b>Degree</b>&nbsp;at least 5</v-chip></v-chip>
                 </span>
                 <v-toolbar-items>
-                <v-btn text>Add a new filter</v-btn>
+                <v-btn @click="$refs.filterDialog.show()" text>Add a new filter</v-btn>
                 </v-toolbar-items>
             </template>
         </v-toolbar>
-        <div class="d-flex flex-grow-1" style="overflow: hidden;">
+        <v-content class="d-flex flex-grow-1" style="overflow: hidden; background: greenů">
+
+        <v-navigation-drawer
+          v-model="drawer"
+          color="red"
+          expand-on-hover
+          absolute
+          dark
+        >
+          <v-list
+            dense
+            nav
+            class="py-0"
+          >
+            <v-list-item two-line>
+              <v-list-item-avatar>
+                <img src="https://randomuser.me/api/portraits/men/81.jpg">
+              </v-list-item-avatar>
+
+              <v-list-item-content>
+                <v-list-item-title>Application</v-list-item-title>
+                <v-list-item-subtitle>Subtext</v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-divider></v-divider>
+
+            <v-list-item
+              v-for="item in items"
+              :key="item.title"
+              link
+            >
+              <v-list-item-icon>
+                <v-icon>{{ item.icon }}</v-icon>
+              </v-list-item-icon>
+
+              <v-list-item-content>
+                <v-list-item-title>{{ item.title }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-navigation-drawer>
+
+
             <graph-area :graph="graph" />
             <side-panel :graph="graph"/>
-        </div>
+        </v-content>
 
         <add-node ref="addNode" :graph="graph" />
+        <filter-dialog ref="filterDialog" :graph="graph" />
         <save-dialog ref="saveDialog" />
         <configuration-stylesheet-dialog
             ref="configurationStylesheetDialog"
@@ -48,6 +92,7 @@
             :oldStylesheet="stylesheetIRI"
             @changed="configurationStylesheetUpdated"
         />
+        <filter-component :graph="graph" :filter="filter" />
     </v-app>
 </template>
 
@@ -59,22 +104,43 @@ import { DataGraphFetcher } from '../graph-fetcher/DataGraphFetcher';
 import { Graph } from '../graph/Graph';
 import SidePanel from './side-panel/SidePanel.vue';
 import SaveDialog from './SaveDialog.vue';
+import FilterDialog from './filter/FilterDialog.vue';
+import FilterComponent from './../filters/FilterComponent';
+import Filter from './../filters/Filter';
+import PropertyFilterComponent, { PropertyFilterData } from './../filters/PropertyFilter';
 
 export default {
     data: function() {
-        let fetcher = new DataGraphFetcher("http://localhost:3000/", "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/psp");
+        let fetcher = new DataGraphFetcher("http://wsl.local:3000/", "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/psp");
         let graph = new Graph(fetcher);
 
         graph.createNode("https://psp.opendata.cz/zdroj/osoba/5914").useDefaultView().then((view) => view.fetchPreview());
         graph.createNode("https://psp.opendata.cz/zdroj/osoba/5915").useDefaultView().then((view) => view.fetchPreview());
 
+        let filter: Filter[] = [
+            {
+                component: PropertyFilterComponent,
+                data: new PropertyFilterData()
+            }
+        ];
+
         return {
+            filter,
             configurationIRI: null as String,
             stylesheetIRI: null as String,
-            remoteURL: "http://localhost:3000/",
+            remoteURL: "http://wsl.local:3000/",
             graph: graph,
             filter_active: false,
-            truefalse: false
+            truefalse: false,
+            items: [
+        { title: 'Add node', icon: 'mdi-view-dashboard' },
+        { title: 'Load', icon: 'mdi-view-dashboard' },
+        { title: 'Save', icon: 'mdi-view-dashboard' },
+        { title: 'Change configuration', icon: 'mdi-view-dashboard' },
+        { title: 'Filter', icon: 'mdi-view-dashboard' },
+        { title: 'Language', icon: 'mdi-image' },
+        { title: 'About', icon: 'mdi-help-box' },
+      ]
         };
     },
     created: function () {
@@ -109,6 +175,9 @@ export default {
         SidePanel,
         ConfigurationStylesheetDialog,
         SaveDialog,
+        FilterDialog,
+
+        FilterComponent
     },
     mounted: function() {
         this.$refs.configurationStylesheetDialog.show();
@@ -134,5 +203,13 @@ html {
     bottom: 0;
     left: 0;
     right: 0;
+}
+
+.v-content__wrap {
+    display: flex;
+}
+
+.toolbar {
+    z-index: 10;
 }
 </style>
