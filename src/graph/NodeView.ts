@@ -49,8 +49,12 @@ export class NodeView {
 
     private detailPromise: Promise<DetailValue[]> = null;
     private previewPromise: Promise<NodePreview> = null;
+    //private expansionPromise: Promise<Expansion> = null;
     // expansionPromise is not used because the user can remove the nodes
     // and therefore the repeated expansion can actually change something
+
+    // experimental
+    expansionInProgress: boolean = false;
 
     /**
      * Toggle this view as active view
@@ -124,6 +128,8 @@ export class NodeView {
      * Fetches expansion of the Node and returns it.
      */
     async expand(): Promise<Expansion> {
+        this.expansionInProgress = true;
+
         // Get the expansion
         let result = await this.node.graph.fetcher.getExpansion(this.IRI, this.node.IRI);
 
@@ -155,6 +161,7 @@ export class NodeView {
                 this.node.graph.getNodeByIRI(expansionEdge.target), types.get(expansionEdge.type));
         }
 
+        this.expansionInProgress = false;
         return this.expansion;
     }
 }
