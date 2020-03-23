@@ -9,7 +9,7 @@
         <v-tabs vertical>
             <v-tab><v-icon left>{{graphIcon}}</v-icon><v-badge color="red" dot :value="false">{{ $t("filter_dialog.tab_graph") }}</v-badge></v-tab>
             <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="true">{{ $t("filter_dialog.tab_type") }}</v-badge></v-tab>
-            <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="true">EXPERIMENTAL</v-badge></v-tab>
+            <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="true">Class</v-badge></v-tab>
 
             <v-tab-item>
                 <v-card flat>
@@ -27,19 +27,19 @@
 
             <!-- Types -->
             <v-tab-item>
-                <property-enum-tab :avaiable-items="selectedItems" v-model="mod" :equality-comparator="eqcmp">
+                <property-enum-tab :available-items="graphData.types" v-model="this.filter[0].data.type" :equality-comparator="NodeTypeCompare">
                     <p>{{ $t("filter_dialog.type_description") }}</p>
                     <template v-slot:title>{{ $t("filter_dialog.type") }}</template>
-                    <template v-slot:item="item">{{item.item}}</template>
+                    <template v-slot:item="item">{{item.item.label}} <i>{{item.item.description}}</i></template>
                 </property-enum-tab>
             </v-tab-item>
 
             <!-- Classes -->
             <v-tab-item>
-                <property-enum-tab :avaiable-items="avalIt" v-model="mod" :equality-comparator="eqcmp">
+                <property-enum-tab :available-items="graphData.classes" v-model="this.filter[0].data.class" :equality-comparator="eqcmp">
                     <p>Choose which resources should be filtered by class.</p>
-                    <template v-slot:title>Titulek</template>
-                    <template v-slot:item="item">gucci - {{item.item}}</template>
+                    <template v-slot:title>Classes</template>
+                    <template v-slot:item="item">{{item.item}}</template>
                 </property-enum-tab>
             </v-tab-item>
 
@@ -63,7 +63,10 @@ import { Graph } from '../../graph/Graph';
 
 import { mdiGraphql, mdiFormatListBulletedType } from '@mdi/js';
 import PropertyEnumTab from './PropertyEnumTab.vue';
-import { EnumPropertyFilter } from '../../filters/PropertyFilter';
+import FilterDataEnum from "../../filter/FilterDataEnum";
+import {NodeType} from "../../graph/Node";
+import Filter from "../../filter/Filter";
+import PropertyFilterData from "../../filter/filters/PropertyFilter/PropertyFilterData";
 
 interface RangeFilter {
     active: boolean;
@@ -86,8 +89,9 @@ export default class FilterDialog extends Vue {
         active: false,
         items: ['jak'],
         modeListed: false,
-    } as EnumPropertyFilter<string>;
+    } as FilterDataEnum<string>;
 
+    NodeTypeCompare = (a: NodeType, b: NodeType) => a.iri == b.iri;
     eqcmp = (a: string, b: string) => a == b;
 
 
@@ -120,15 +124,29 @@ export default class FilterDialog extends Vue {
     loading: boolean = false;
     error: boolean = false;
 
-    @Prop({type: Object as () => Graph}) graph: Graph;
+    @Prop() filter: Filter[];
+    filterData: PropertyFilterData = null;
+
+    @Prop() graph: Graph;
+    graphData = {
+        classes: [] as string[],
+        types: [] as NodeType[],
+    };
 
     show(predefinedIRI: string = null) {
+        this.updateData();
         this.dialog = true;
         this.error = false;
         this.loading = false;
         if (predefinedIRI) {
             this.IRI = predefinedIRI;
         }
+    }
+
+    updateData() {
+        this.graphData.classes = Array.from(this.graph.getAllClasses());
+        this.graphData.types = Array.from(this.graph.getAllTypes());
+        this.filterData = <PropertyFilterData>this.filter[0].data;
     }
 
     async confirmed() {

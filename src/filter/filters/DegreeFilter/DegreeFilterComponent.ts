@@ -1,8 +1,8 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import Vue from 'vue';
-import { Node } from '../graph/Node';
-import Filters from './Filter';
+import { Node } from '../../../graph/Node';
+import Filters from '../../Filter';
 
 @Component
 export default class DegreeFilterComponent extends Vue {

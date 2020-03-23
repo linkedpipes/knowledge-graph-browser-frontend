@@ -84,7 +84,7 @@
         </v-content>
 
         <add-node ref="addNode" :graph="graph" />
-        <filter-dialog ref="filterDialog" :graph="graph" />
+        <filter-dialog ref="filterDialog" :graph="graph" :filter="filter" />
         <save-dialog ref="saveDialog" />
         <configuration-stylesheet-dialog
             ref="configurationStylesheetDialog"
@@ -92,7 +92,7 @@
             :oldStylesheet="stylesheetIRI"
             @changed="configurationStylesheetUpdated"
         />
-        <filter-component :graph="graph" :filter="filter" />
+        <vue-filter-component-creator :graph="graph" :filter="filter" />
     </v-app>
 </template>
 
@@ -105,9 +105,10 @@ import { Graph } from '../graph/Graph';
 import SidePanel from './side-panel/SidePanel.vue';
 import SaveDialog from './SaveDialog.vue';
 import FilterDialog from './filter/FilterDialog.vue';
-import FilterComponent from './../filters/FilterComponent';
-import Filter from './../filters/Filter';
-import PropertyFilterComponent, { PropertyFilterData } from './../filters/PropertyFilter';
+import VueFilterComponentCreator from '../filter/VueFilterComponentCreator';
+import Filter from '../filter/Filter';
+import PropertyFilterComponent from '../filter/filters/PropertyFilter/PropertyFilter';
+import PropertyFilterData from "../filter/filters/PropertyFilter/PropertyFilterData";
 
 export default {
     data: function() {
@@ -117,8 +118,10 @@ export default {
         graph.createNode("https://psp.opendata.cz/zdroj/osoba/5914").useDefaultView().then((view) => view.fetchPreview());
         graph.createNode("https://psp.opendata.cz/zdroj/osoba/5915").useDefaultView().then((view) => view.fetchPreview());
 
+        // This contains filter data
         let filter: Filter[] = [
             {
+                name: "PropertyFilter",
                 component: PropertyFilterComponent,
                 data: new PropertyFilterData()
             }
@@ -166,6 +169,7 @@ export default {
         }
     },
     components: {
+        VueFilterComponentCreator,
         GraphArea,
 
         // Component responsible for window where user can add new nodes
@@ -177,7 +181,7 @@ export default {
         SaveDialog,
         FilterDialog,
 
-        FilterComponent
+        FilterComponent: VueFilterComponentCreator
     },
     mounted: function() {
         this.$refs.configurationStylesheetDialog.show();

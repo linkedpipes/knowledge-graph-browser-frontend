@@ -1,38 +1,9 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import Vue from 'vue';
-import { Node, NodeType } from '../graph/Node';
-import { FilterData } from './Filter';
-
-/**
- * Specifies one enum property of node of type T which can be filtered.
- */
-export class EnumPropertyFilter<T> extends FilterData {
-    /**
-     * Specifies filter mode.
-     *
-     * True = show only those nodes that are listed
-     *
-     * False = hide nodes that are listed
-     */
-    modeListed = false;
-    items: T[] = [];
-}
-
-/**
- * Holds informaion which properties should be filtered out
- */
-export class PropertyFilterData {
-    /**
-     * Type of the node (for example: person, animal, ...)
-     */
-    type: EnumPropertyFilter<NodeType> = new EnumPropertyFilter<NodeType>();
-
-    /**
-     * Class of the node
-     */
-    class: EnumPropertyFilter<string> = new EnumPropertyFilter<string>();
-}
+import { Node, NodeType } from '../../../graph/Node';
+import PropertyFilterData from "./PropertyFilterData";
+import FilterDataEnum from "../../FilterDataEnum";
 
 @Component
 export default class PropertyFilterComponent extends Vue {
@@ -46,6 +17,11 @@ export default class PropertyFilterComponent extends Vue {
      */
     @Prop() data: PropertyFilterData;
 
+    /**
+     * Filter name.
+     */
+    @Prop() name: string;
+
     @Watch('node.currentView.preview.type.iri') @Watch('data', { deep: true })
     valueChanged() {
         let show = true;
@@ -57,7 +33,7 @@ export default class PropertyFilterComponent extends Vue {
         // This watcher updates data inside the Vuex container which is
         // generally a bad practise because it can go into a loop or cause
         // worse performance. But it is ok.
-        this.$set(this.node.filters, "propertyFilter", show);
+        this.$set(this.node.filters, this.name, show);
     }
 
     /**
@@ -65,7 +41,7 @@ export default class PropertyFilterComponent extends Vue {
      * @param node Node on which process the filter
      * @param filter Filter data
      */
-    private filterType(node: Node, filter: EnumPropertyFilter<NodeType>): boolean {
+    private filterType(node: Node, filter: FilterDataEnum<NodeType>): boolean {
         if (!filter.active) return true;
 
         let found = false;
@@ -84,7 +60,7 @@ export default class PropertyFilterComponent extends Vue {
      * @param node Node on which process the filter
      * @param filter Filter data
      */
-    private filterClass(node: Node, filter: EnumPropertyFilter<string>): boolean {
+    private filterClass(node: Node, filter: FilterDataEnum<string>): boolean {
         if (!filter.active) return true;
 
         let found = false;
