@@ -32,19 +32,32 @@ side_panel:
     fetching_detail: Stahování detailu...
     key: Položka
     value: Hodnota
+
+# Dialog to filter nodes
 filter_dialog:
-  title: Filter nodes
-  tab_graph: Graph properties
-  degree: Degree of the resource
-  degree_description: You can choose to show only those resources having a degree in a specific range. This is usefull for example to filter out most connected nodes to cleanup graph.
-  indegree: Incomming degree of the resource
-  indegree_description: Counts only those edges pointing into the resource.
-  outdegree: Outcomming degree of the resource
-  outdegree_description: Counts only those edges pointing out from the resource.
-  tab_type: Type
-  type: Type of the resource
-  type_description: Choose which resources should be filtered by type.
+  title: Filtrování uzlů
   only_selected: Skrýt vrcholy které budou přidány a nesplňují aktuální podmínky dané filtrem.
   only_selected_description: Pokud není políčko zatrhnuté, jakákoli možnost co není v seznamu bude automaticky povolena.
-  cancel: Cancel
-  save: Apply filter
+  close: Zavřít
+
+# Translation to different filters
+filters:
+  # Degree of the nodes
+  degreeFilter:
+    title: Grafové vlastnosti
+    sumDegree: Stupeň vrcholu
+    sumDegree_description: Můžete si zvolit filtrování pouze těch vrcholů jež mají celkový grafový stupeň (tedy počet sousedů) v určitém rozmezí. Toto se hodí na odfiltrování vrcholů které mají spoustu sousedů a znepřehledňují graf.
+    inDegree: Vstupní stupeň vrcholu
+    inDegree_description: Počítá pouze ty hrany které do vrcholu vstupují.
+    outDegree: Odchozí stupeň vrcholu
+    outDegree_description: Počítá pouze ty hrany které z vrcholu vystupují.
+  # Nodes properties
+  propertyFilter:
+    type:
+      tab: Typ
+      title: Typ vrcholu
+      description: Můžete skrýt vrcholy podle typu.
+    class:
+      tab: Třída
+      title: Třída vrcholu
+      description: Můžete skrýt vrcholy mající určité třídy.

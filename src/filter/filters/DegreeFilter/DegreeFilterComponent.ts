@@ -2,7 +2,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import Vue from 'vue';
 import { Node } from '../../../graph/Node';
-import Filters from '../../Filter';
+import DegreeFilterData from "./DegreeFilterData";
 
 @Component
 export default class DegreeFilterComponent extends Vue {
@@ -14,10 +14,15 @@ export default class DegreeFilterComponent extends Vue {
     /**
      * Data to this filter
      */
-    @Prop() data: any;
+    @Prop() data: DegreeFilterData;
+
+    /**
+     * Filter name.
+     */
+    @Prop() name: string;
 
     @Watch('data', { deep: true })
-    @Watch('data')
+    @Watch('node')
     valueChanged() {
         console.log("Reporting that the value has been changed ;)");
     }

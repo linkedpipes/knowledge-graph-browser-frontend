@@ -7,49 +7,44 @@
         </v-toolbar>
 
         <v-tabs vertical>
-            <v-tab><v-icon left>{{graphIcon}}</v-icon><v-badge color="red" dot :value="false">{{ $t("filter_dialog.tab_graph") }}</v-badge></v-tab>
-            <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="true">{{ $t("filter_dialog.tab_type") }}</v-badge></v-tab>
-            <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="true">Class</v-badge></v-tab>
+            <v-tab><v-icon left>{{graphIcon}}</v-icon><v-badge color="red" dot :value="filtersMapped.degreeFilter.data.active">{{ $t("filters.degreeFilter.title") }}</v-badge></v-tab>
+            <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="filtersMapped.propertyFilter.data.type.active">{{ $t("filters.propertyFilter.type.tab") }}</v-badge></v-tab>
+            <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="filtersMapped.propertyFilter.data.class.active">{{ $t("filters.propertyFilter.class.tab") }}</v-badge></v-tab>
 
             <v-tab-item>
                 <v-card flat>
                     <v-card-text>
-                        <v-card outlined class="mb-3" v-for="filter in graphFilters" :key="filter.name">
-                            <v-card-text>
-                                <v-checkbox color="red" v-model="filter.filter.active" class="black--label" :label="$t('filter_dialog.' + filter.name)"></v-checkbox>
-                                <p>{{ $t("filter_dialog." + filter.name + "_description") }}</p>
-                                <v-range-slider color="red" track-color="red lighten-1" :disabled="!filter.filter.active" v-model="filter.filter.range" min="0" :max="100" hide-details class="align-center" thumb-label="always"></v-range-slider>
-                            </v-card-text>
-                        </v-card>
+                        <range-card v-for="filterName in graphFiltersNamesOrder" :key="filterName" v-model="filtersMapped.degreeFilter.data[filterName]">
+                            <template v-slot:title>{{ $t('filters.degreeFilter.' + filterName) }}</template>
+                            <p>{{ $t("filters.degreeFilter." + filterName + "_description") }}</p>
+                        </range-card>
                     </v-card-text>
                 </v-card>
             </v-tab-item>
 
             <!-- Types -->
             <v-tab-item>
-                <property-enum-tab :available-items="graphData.types" v-model="this.filter[0].data.type" :equality-comparator="NodeTypeCompare">
-                    <p>{{ $t("filter_dialog.type_description") }}</p>
-                    <template v-slot:title>{{ $t("filter_dialog.type") }}</template>
+                <enum-tab :available-items="graphData.types" v-model="filtersMapped.propertyFilter.data.type" :equality-comparator="NodeTypeComparer">
+                    <p>{{ $t("filters.propertyFilter.type.description") }}</p>
+                    <template v-slot:title>{{ $t("filters.propertyFilter.type.title") }}</template>
                     <template v-slot:item="item">{{item.item.label}} <i>{{item.item.description}}</i></template>
-                </property-enum-tab>
+                </enum-tab>
             </v-tab-item>
 
             <!-- Classes -->
             <v-tab-item>
-                <property-enum-tab :available-items="graphData.classes" v-model="this.filter[0].data.class" :equality-comparator="eqcmp">
-                    <p>Choose which resources should be filtered by class.</p>
-                    <template v-slot:title>Classes</template>
+                <enum-tab :available-items="graphData.classes" v-model="filtersMapped.propertyFilter.data.class" :equality-comparator="EqualityComparer">
+                    <p>{{ $t("filters.propertyFilter.class.description") }}</p>
+                    <template v-slot:title>{{ $t("filters.propertyFilter.class.title") }}</template>
                     <template v-slot:item="item">{{item.item}}</template>
-                </property-enum-tab>
+                </enum-tab>
             </v-tab-item>
 
         </v-tabs>
 
-
         <v-card-actions>
           <div class="flex-grow-1"></div>
-          <v-btn color="primary" text @click="dialog = false">{{ $t("filter_dialog.cancel") }}</v-btn>
-          <v-btn color="primary" text @click="confirmed()">{{ $t("filter_dialog.save") }}</v-btn>
+          <v-btn color="primary" text @click="close()">{{ $t("filter_dialog.close") }}</v-btn>
         </v-card-actions>
 
       </v-card>
@@ -62,10 +57,11 @@ import { Component, Prop } from 'vue-property-decorator';
 import { Graph } from '../../graph/Graph';
 
 import { mdiGraphql, mdiFormatListBulletedType } from '@mdi/js';
-import PropertyEnumTab from './PropertyEnumTab.vue';
-import FilterDataEnum from "../../filter/FilterDataEnum";
+import EnumTab from './EnumTab.vue';
 import {NodeType} from "../../graph/Node";
 import Filter from "../../filter/Filter";
+import RangeCard from "./RangeCard.vue";
+import DegreeFilterData from "../../filter/filters/DegreeFilter/DegreeFilterData";
 import PropertyFilterData from "../../filter/filters/PropertyFilter/PropertyFilterData";
 
 interface RangeFilter {
@@ -80,102 +76,72 @@ interface FilterNames {
 
 @Component({
 	components: {
-		PropertyEnumTab
+        RangeCard,
+		EnumTab
 	}
 })
 export default class FilterDialog extends Vue {
-    avalIt = ['ahoj', 'jak', 'je'];
-    mod = {
-        active: false,
-        items: ['jak'],
-        modeListed: false,
-    } as FilterDataEnum<string>;
-
-    NodeTypeCompare = (a: NodeType, b: NodeType) => a.iri == b.iri;
-    eqcmp = (a: string, b: string) => a == b;
-
-
+    NodeTypeComparer = (a: NodeType, b: NodeType) => a.iri == b.iri;
+    EqualityComparer = (a: string, b: string) => a == b;
 
     graphIcon = mdiGraphql;
     semanticIcon = mdiFormatListBulletedType;
 
-    graphFilters: FilterNames[] = [];
+    graphFiltersNamesOrder = [
+        "sumDegree",
+        "inDegree",
+        "outDegree",
+    ];
 
-    selectedItems: string[] = [];
-
-    constructor() {
-        super();
-        let names = ['degree', 'indegree', 'outdegree'];
-        for (let name of names) {
-            this.graphFilters.push({
-                name,
-                filter: {
-                    active: false,
-                    range: [0,50]
-                }
-            });
-        }
-    }
-
-    multipleEntry: boolean = false;
-    IRI: string = "";
-    IRIs: string = "";
     dialog: boolean = false;
-    loading: boolean = false;
-    error: boolean = false;
 
+    /**
+     * List of filters and their data
+     */
     @Prop() filter: Filter[];
-    filterData: PropertyFilterData = null;
 
+    // Temporary workaround, converts array filter into object
+    filtersMapped: {
+        degreeFilter?: {
+            name: string,
+            data: DegreeFilterData,
+        },
+        propertyFilter?: {
+            name: string,
+            data: PropertyFilterData,
+        },
+    } = {};
+
+    /**
+     * Reference to graph instance because we need to ask some data...
+     */
     @Prop() graph: Graph;
     graphData = {
         classes: [] as string[],
         types: [] as NodeType[],
     };
 
-    show(predefinedIRI: string = null) {
+    created() {
+        this.filtersMapped = {};
+        for (let filter of this.filter) {
+            // @ts-ignore
+            this.filtersMapped[filter.name] = filter;
+        }
+    }
+
+    show() {
         this.updateData();
         this.dialog = true;
-        this.error = false;
-        this.loading = false;
-        if (predefinedIRI) {
-            this.IRI = predefinedIRI;
-        }
     }
 
     updateData() {
         this.graphData.classes = Array.from(this.graph.getAllClasses());
         this.graphData.types = Array.from(this.graph.getAllTypes());
-        this.filterData = <PropertyFilterData>this.filter[0].data;
     }
 
-    async confirmed() {
-        let node = this.graph.getNodeByIRI(this.IRI);
-
-        // The node not exists yet
-        if (!node) {
-            try {
-                this.loading = true;
-                this.error = false;
-                node = await this.graph.fetchNode(this.IRI);
-
-                // Asynchronously fetch view sets, use default view and fetch preview
-                node.useDefaultView().then((view) => view.fetchPreview());
-            } catch (error) {
-                node = null;
-                this.error = true;
-                console.error("Error occurred while fetching a new node. Probably the user specified wrong IRI or there is a problem on server side.", error);
-            }
-            this.loading = false;
-        }
-
-        if (node) {
-            this.IRI = "";
-            this.dialog = false; // Close
-        }
-
+    close() {
+        this.dialog = false;
     }
-
 }
 </script>
 <style scoped>

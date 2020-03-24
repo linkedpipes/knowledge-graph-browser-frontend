@@ -2,7 +2,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch, Mixins } from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
 
-import Cytoscape from "cytoscape";
+import Cytoscape, {CollectionAnimation} from "cytoscape";
 import Vue, { CreateElement, VNode, VNodeChildren } from 'vue';
 import { NodePreview } from '../../graph/NodeView';
 import Filter from '../../filter/Filter';
@@ -11,7 +11,7 @@ import Filter from '../../filter/Filter';
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,
  * the Vuex automatically creates a new instance of this class which registers node
- * in the Cytoscape instance. Also any chages of the Node's data are automatically
+ * in the Cytoscape instance. Also any changes of the Node's data are automatically
  * updated in the Cytoscape instance.
  */
 @Component
@@ -80,25 +80,31 @@ export default class GraphElementNode extends Vue {
         return show;
     }
 
-    ExshownByFilters(): boolean {
-        let show = true;
-        for(let filter in this.node.filters) {
-            if (!this.node.filters[filter]) {
-                show = false;
-                break;
-            }
-        }
+    visibilityAnimation: CollectionAnimation;
 
-        return show;
+    get isVisible(): boolean {
+        return this.node.visible && this.shownByFilters;
     }
 
-    @Watch('node.visible') @Watch('shownByFilters') visibilityChanged() {
-        let visible = this.node.visible && this.shownByFilters;
-        this.element.style("display", visible ? "element" : "none").style("opacity", visible ? 0 : 1).animate({
-            style: { opacity: visible ? 1 : 0 }
-        }, {
-            duration: 500
-        });
+    @Watch('isVisible') visibilityChanged() {
+        console.log("Visibility updating");
+        let visible = this.isVisible;
+
+        if (this.visibilityAnimation) this.visibilityAnimation.stop(true, false);
+
+        if (visible) {
+            this.visibilityAnimation = this.element.style("display", "element").animate({
+                style: { opacity: 1 }
+            }, {
+                duration: 300
+            });
+        } else {
+            this.visibilityAnimation = this.element.animate({
+                style: { opacity: 0 }
+            }, {
+                duration: 300
+            }).animate({style: {display: "none"}});
+        }
     }
 
     get previewData(): NodePreview {

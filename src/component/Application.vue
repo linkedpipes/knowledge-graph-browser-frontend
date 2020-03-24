@@ -38,7 +38,6 @@
         <v-content class="d-flex flex-grow-1" style="overflow: hidden; background: greenů">
 
         <v-navigation-drawer
-          v-model="drawer"
           color="red"
           expand-on-hover
           absolute
@@ -107,8 +106,10 @@ import SaveDialog from './SaveDialog.vue';
 import FilterDialog from './filter/FilterDialog.vue';
 import VueFilterComponentCreator from '../filter/VueFilterComponentCreator';
 import Filter from '../filter/Filter';
-import PropertyFilterComponent from '../filter/filters/PropertyFilter/PropertyFilter';
+import PropertyFilterComponent from '../filter/filters/PropertyFilter/PropertyFilterComponent';
 import PropertyFilterData from "../filter/filters/PropertyFilter/PropertyFilterData";
+import DegreeFilterComponent from "../filter/filters/DegreeFilter/DegreeFilterComponent";
+import DegreeFilterData from "../filter/filters/DegreeFilter/DegreeFilterData";
 
 export default {
     data: function() {
@@ -121,7 +122,12 @@ export default {
         // This contains filter data
         let filter: Filter[] = [
             {
-                name: "PropertyFilter",
+                name: "degreeFilter",
+                component: DegreeFilterComponent,
+                data: new DegreeFilterData(),
+            },
+            {
+                name: "propertyFilter",
                 component: PropertyFilterComponent,
                 data: new PropertyFilterData()
             }
