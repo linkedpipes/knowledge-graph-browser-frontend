@@ -2,11 +2,12 @@ import { Graph } from "./Graph";
 import { NodeView } from "./NodeView";
 import { NodeViewSet } from "./NodeViewSet";
 import { ResponseElementType } from "../graph-fetcher/response-interfaces";
+import {Edge} from "./Edge";
 
 /**
  * Information about the type of Node. Same as ResponseElementType
  */
-export interface NodeType extends ResponseElementType {};
+export interface NodeType extends ResponseElementType {}
 
 /**
  * Node as a part of graph. Each Node belongs to exactly one Graph.
@@ -23,9 +24,14 @@ export class Node {
     IRI: string;
 
     /**
+     * List of edges connected to this Node
+     */
+    edges: Edge[] = [];
+
+    /**
      * Represents results of a different filters
      */
-    filters: {[filter: string]: boolean} = {}
+    filters: {[filter: string]: boolean} = {};
 
     constructor(IRI: string, graph: Graph) {
         this.IRI = IRI;

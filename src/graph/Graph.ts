@@ -65,12 +65,14 @@ export class Graph {
      */
     createEdge(source: Node, target: Node, type: EdgeType): Edge {
         let edge = new Edge(source, target, type, this);
+        source.edges.push(edge);
+        target.edges.push(edge);
         Vue.set(this.edges, this.getEdgeIdentifier(edge), edge);
         return edge;
     }
 
     removeEdge() {
-
+        // todo
     }
 
     /**
