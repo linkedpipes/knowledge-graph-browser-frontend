@@ -1,30 +1,32 @@
 <template>
     <v-dialog v-model="dialog" max-width="800">
         <v-card>
-            <v-card-title>Configuration and stylesheet</v-card-title>
+            <v-toolbar flat color="primary" dark class="mb-5">
+                <v-toolbar-title>{{ $t("configuration_and_stylesheet_dialog.title") }}</v-toolbar-title>
+            </v-toolbar>
 
             <v-card-text>
-                <v-select return-object v-model="predefinedSelected" :items="predefined" :item-text="i=>i.label" label="Predefined configurations and stylesheets"></v-select>
+                <v-select return-object v-model="predefinedSelected" :items="predefined" :item-text="i=>i.name.en" :label="$t('configuration_and_stylesheet_dialog.predefined')"></v-select>
                 <v-divider></v-divider>
 
-                <v-text-field v-model="config" label="Configuration IRI"></v-text-field>
+                <v-text-field v-model="config" :label="$t('configuration_and_stylesheet_dialog.config')"></v-text-field>
 
-                <v-text-field v-model="stylesheet" label="Stylesheet IRI"></v-text-field>
+                <v-text-field v-model="stylesheet" :label="$t('configuration_and_stylesheet_dialog.stylesheet')"></v-text-field>
                 
-                <v-alert v-if="oldConfiguration && oldConfiguration != config" dense outlined type="warning">
-                    By changing the configuration IRI the whole graph will be destroyed. You will be asked to save changes.
+                <v-alert v-if="oldConfiguration && oldConfiguration !== config" dense outlined type="warning">
+                    {{ $t("configuration_and_stylesheet_dialog.destroy_warning") }}
                 </v-alert>
             </v-card-text>
 
             <v-card-actions>
                 <div class="flex-grow-1"></div>
 
-                <v-btn color="green darken-1" text @click="dialog= false">Cancel</v-btn>
-                <v-btn color="green darken-1" text @click="update()" :disabled="!config || !stylesheet || (oldConfiguration === config && oldStylesheet === stylesheet)">
-                    <span v-if="oldConfiguration === null">Load</span>
-                    <span v-else-if="oldConfiguration !== config">Update</span>
-                    <span v-else-if="oldStylesheet !== stylesheet">Update stylesheet</span>
-                    <span v-else>Update</span>
+                <v-btn color="primary" text @click="dialog= false">Cancel</v-btn>
+                <v-btn color="primary" text @click="update()" :disabled="!config || !stylesheet || (oldConfiguration === config && oldStylesheet === stylesheet)">
+                    <span v-if="oldConfiguration === null">{{ $t("configuration_and_stylesheet_dialog.load") }}</span>
+                    <span v-else-if="oldConfiguration !== config">{{ $t("configuration_and_stylesheet_dialog.update") }}</span>
+                    <span v-else-if="oldStylesheet !== stylesheet">{{ $t("configuration_and_stylesheet_dialog.update_stylesheet") }}</span>
+                    <span v-else>{{ $t("configuration_and_stylesheet_dialog.update_general") }}</span>
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -32,91 +34,63 @@
 </template>
 
 <script lang="ts">
-import { Graph } from '../graph/Graph';
-export default {
-    data() {
-        return {
-            config: "",
-            stylesheet: "",
+import {Prop, Watch} from "vue-property-decorator";
+import Vue from 'vue';
+import {DataSource} from "../DataSource";
+import Component from "vue-class-component";
+const dataSources = require("../../data/DataSources.yaml");
 
-            predefinedSelected: null as string,
+@Component
+export default class ConfigurationStylesheetDialog extends Vue {
+    @Prop() oldConfiguration: string;
+    @Prop() oldStylesheet: string;
 
-            predefined: [
-                {
-                    label: "rpp",
-                    configuration: "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/rpp",
-                    stylesheet: "https://linked.opendata.cz/resource/knowledge-graph-browser/rpp/style-sheet",
-                    resource: "https://rpp-opendata.egon.gov.cz/odrpp/zdroj/agenda/A116",
-                },
-                {
-                    label: "psp",
-                    configuration: "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/psp",
-                    stylesheet: "https://linked.opendata.cz/resource/knowledge-graph-browser/psp/style-sheet",
-                    resource: "https://psp.opendata.cz/zdroj/osoba/5914",
-                },
-                {
-                    label: "ssp",
-                    configuration: "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/sgov",
-                    stylesheet: "https://linked.opendata.cz/resource/knowledge-graph-browser/sgov/style-sheet",
-                    resource: "https://slovník.gov.cz/legislativní/sbírka/111/2009/pojem/orgán-veřejné-moci",
-                },
-                {
-                    label: "wda",
-                    configuration: "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/wikidata/animals",
-                    stylesheet: "https://linked.opendata.cz/resource/knowledge-graph-browser/wikidata/animals/style-sheet",
-                    resource: "http://www.wikidata.org/entity/Q135022",
-                }
-            ],
-            multipleEntry: false,
-            IRI: "",
-            IRIs: "",
-            dialog: false,
-            loading: false,
-            error: false,
-        };
-    },
+    config: string = "";
+    stylesheet: string = "";
 
-    watch: {
-        // todo, potrebuji prenest udalost
-        predefinedSelected: function() {
-            if (this.predefinedSelected) {
-                this.config = this.predefinedSelected.configuration;
-                this.stylesheet = this.predefinedSelected.stylesheet;
-            }
-        },
-        config: function() {
-            if (this.predefinedSelected && this.config != this.predefinedSelected.configuration) {
-                this.predefinedSelected = null;
-            }
-        },
-        stylesheet: function() {
-            if (this.predefinedSelected && this.stylesheet != this.predefinedSelected.stylesheet) {
-                this.predefinedSelected = null;
-            }
-        },
-    },
+    predefinedSelected: DataSource = null;
+    predefined: DataSource[] = dataSources;
 
-    props: {
-        oldConfiguration: String,
-        oldStylesheet: String,
-    },
-    
-    methods: {
-        show: function() {
-            this.dialog = true;
-        },
+    dialog: boolean = false;
 
-        close: function() {
-            this.dialog = false;
-        },
+    public show() {
+        this.config = this.oldConfiguration;
+        this.stylesheet = this.oldStylesheet;
+        this.dialog = true;
+    }
 
-        update: function() {
-            this.$emit('changed', {
-                configuration: this.config,
-                stylesheet: this.stylesheet,
-                predefinedStartedNodeIRI: this.predefinedSelected ? this.predefinedSelected.resource : null
-            });
-            this.dialog = false;
+    close() {
+        this.dialog = false;
+    }
+
+    update() {
+        this.$emit('changed', {
+            configuration: this.config,
+            stylesheet: this.stylesheet,
+            predefinedStartedNodeIRI: this.predefinedSelected ? this.predefinedSelected.resource : null
+        });
+        this.dialog = false;
+    }
+
+    @Watch('predefinedSelected')
+    predefinedSelectedChanged() {
+        if (this.predefinedSelected) {
+            this.config = this.predefinedSelected.configuration;
+            this.stylesheet = this.predefinedSelected.stylesheet;
+        }
+    }
+
+    @Watch('config')
+    configChanged() {
+        if (this.predefinedSelected && this.config !== this.predefinedSelected.configuration) {
+            this.predefinedSelected = null;
+        }
+    }
+
+    @Watch('stylesheet')
+    stylesheetChanged() {
+        if (this.predefinedSelected && this.stylesheet !== this.predefinedSelected.stylesheet) {
+            this.predefinedSelected = null;
         }
     }
 }

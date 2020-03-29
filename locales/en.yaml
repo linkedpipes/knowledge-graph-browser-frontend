@@ -1,22 +1,5 @@
 _lang_local: English
 _lang_english: English
-new_nodes:
-  button: Add node(s)
-  title: Add new nodes
-  search:
-    title: Search nodes
-    hint: Enter the term you want to search
-  single:
-    title: Sigle node
-  multiple:
-    title: Multiple nodes
-  menu:
-    search: Search nodes
-    single: Single node
-    multiple: Multiple nodes
-  error_fetch: Error occured while fetching the resource. See developers console for more detailed information.<br>Try to check the corectness of IRI.
-  cancel: Cancel
-  add: Add node | Add nodes
 language: Language
 change_configuration_and_stylesheet: Change configuration and stylesheet
 side_panel:
@@ -32,6 +15,42 @@ side_panel:
     fetching_detail: Fetching detailed information...
     key: Key
     value: Value
+
+# Dialog to add new nodes
+add_node_dialog:
+  title: Add new nodes
+  iri: IRI of the resource
+  error_fetch: Error occured while fetching the resource. See developers console for more detailed information. Try to check the corectness of IRI.
+  cancel: Cancel
+  add: Add node | Add nodes
+  # Unsupported fight now
+  search:
+    title: Search nodes
+    hint: Enter the term you want to search
+  single:
+    title: Sigle node
+    input: IRI of the resource
+  multiple:
+    title: Multiple nodes
+    hint: Insert each IRI in separate line.
+    input: IRIs of the resources
+  menu:
+    search: Search nodes
+    single: Single node
+    multiple: Multiple nodes
+
+# Dialog to change configuration and stylesheet
+configuration_and_stylesheet_dialog:
+  title: Configuration and stylesheet
+  predefined: Predefined configurations and stylesheets
+  config: Configuration IRI
+  stylesheet: Stylesheet IRI
+  destroy_warning: By changing the configuration IRI the whole graph will be destroyed. You will be asked to save changes.
+  cancel: Cancel
+  load: Load # Fresh start
+  update: Update # Changing configuration
+  update_stylesheet: Update stylesheet # Updating only stylesheet
+  update_general: Update # Text when button is disabled
 
 # Dialog to filter nodes
 filter_dialog:

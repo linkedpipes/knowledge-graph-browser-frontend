@@ -23,7 +23,10 @@ import Component from "vue-class-component";
 import GraphElementNode from "./GraphElementNode";
 import GraphElementEdge from "./GraphElementEdge";
 import Cytoscape from "cytoscape";
-import { Prop } from "vue-property-decorator";
+import {Prop, Watch} from "vue-property-decorator";
+import {ResponseStylesheet} from "../../graph-fetcher/response-interfaces";
+import {Graph} from "../../graph/Graph";
+import clone from 'clone';
 
 @Component({
 	components: {
@@ -32,41 +35,51 @@ import { Prop } from "vue-property-decorator";
 	}
 })
 export default class GraphArea extends Vue {
-	@Prop(Object) graph: Object;
+	@Prop() graph: Graph;
+	@Prop() stylesheet: ResponseStylesheet;
 
-	cy: Cytoscape.Core;
+	/**
+	 * Cytoscape instance
+	 * @non-reactive
+	 */
+	cy !: Cytoscape.Core;
+
+	@Watch('stylesheet')
+	stylesheetUpdated() {
+		let style = [
+			{
+				selector: "node",
+				style: {
+					label: "data(label)"
+				}
+			},
+			{
+				selector: "edge",
+				style: {
+					width: 3,
+					"line-color": "#ccc",
+					"target-arrow-color": "#ccc",
+					"target-arrow-shape": "triangle",
+					"label": "data(label)"
+				}
+			},
+			...this.stylesheet.styles.map(style => {return {selector: style.selector, style: clone(style.properties)}}),
+			{
+				selector: "node._preview_loading",
+				style: {
+					opacity: 0.5
+				}
+			}
+		];
+		this.cy.style(style);
+	}
 
 	/**
 	 * Called by Vue framework
 	 */
 	created() {
-		this.cy = Cytoscape({
-			style: [
-				{
-					selector: "node",
-					style: {
-						//"background-color": "#666",
-						label: "data(label)"
-					}
-				},
-				{
-					selector: "node._preview_loading",
-					style: {
-						opacity: 0.5
-					}
-				},
-				{
-					selector: "edge",
-					style: {
-						width: 3,
-						"line-color": "#ccc",
-						"target-arrow-color": "#ccc",
-						"target-arrow-shape": "triangle",
-						"label": "data(label)"
-					}
-				}
-			]
-		});
+		this.cy = Cytoscape();
+		this.stylesheetUpdated();
 	}
 
 	/**

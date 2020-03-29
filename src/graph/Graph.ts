@@ -46,7 +46,8 @@ export class Graph {
     }
 
     /**
-     * Internal method for Node to remove itself from the graph
+     * Internal method only for Node to remove itself from the graph
+     * @internal
      * @param node Node to be removed
      */
     _removeNode(node: Node) {
@@ -71,8 +72,13 @@ export class Graph {
         return edge;
     }
 
-    removeEdge() {
-        // todo
+    /**
+     * Internal method only for Edge to properly unregister itself
+     * @internal
+     */
+    _removeEdge(edge: Edge) {
+        Vue.delete(edge.source.edges, edge.source.edges.indexOf(edge));
+        Vue.delete(edge.target.edges, edge.target.edges.indexOf(edge));
     }
 
     /**
@@ -131,8 +137,10 @@ export class Graph {
         }
 
         if (node) {
-            node.viewSets[Object.keys(node.viewSets)[0]].defaultView.use();
+            await node.useDefaultView();
+            await node.currentView.fetchPreview();
         }
+
         return node;
     }
 }

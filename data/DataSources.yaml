@@ -1,0 +1,28 @@
+- name:
+    en: rpp
+  description:
+    en: rpp
+  configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/rpp
+  stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/rpp/style-sheet
+  resource: https://rpp-opendata.egon.gov.cz/odrpp/zdroj/agenda/A116
+- name:
+    en: psp
+  description:
+    en: psp
+  configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/psp
+  stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/psp/style-sheet
+  resource: https://psp.opendata.cz/zdroj/osoba/5914
+- name:
+    en: ssp
+  description:
+    en: ssp
+  configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/sgov
+  stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/sgov/style-sheet
+  resource: https://slovník.gov.cz/legislativní/sbírka/111/2009/pojem/orgán-veřejné-moci
+- name:
+    en: Wikidata animals
+  description:
+    en: Browse all the animals on the the free encyclopedia wikipedia.org.
+  configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/wikidata/animals
+  stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/wikidata/animals/style-sheet
+  resource: http://www.wikidata.org/entity/Q135022

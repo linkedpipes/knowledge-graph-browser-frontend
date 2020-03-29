@@ -1,22 +1,5 @@
 _lang_local: čeština
 _lang_english: Czech
-new_nodes:
-  button: Přidat vrcholy
-  title: Přidání nových vrcholů
-  search:
-    title: Hledat
-    hint: Zadejte, co potřebujete najít
-  single:
-    title: Přidání jednoho vrcholu
-  multiple:
-    title: Přidání několika vrcholů
-  menu:
-    search: Najít vrcholy
-    single: Single node
-    multiple: Multiple nodes
-  error_fetch: "Error occured while fetching the resource. See developers console for more detailed information.<br>Try to check the corectness of IRI."
-  cancel: Cancel
-  add: Add node | Add nodes
 language: Jazyk
 change_configuration_and_stylesheet: Změnit konfiguraci a styly
 side_panel:
@@ -32,6 +15,27 @@ side_panel:
     fetching_detail: Stahování detailu...
     key: Položka
     value: Hodnota
+
+# Dialog to add new nodes
+add_node_dialog:
+  title: Přidání nových vrcholů
+  iri: IRI vrcholu/zdroje
+  error_fetch: Při stahování vrcholu došlo k chybě. Více informací najdete ve vývojářské konzoli prohlížeče. Zkontrolujte správnost IRI.
+  cancel: Zrušit
+  add: Přidat uzel | Přidat uzly
+
+# Dialog to change configuration and stylesheet
+configuration_and_stylesheet_dialog:
+  title: Konfigurace a styly
+  predefined: Předdefinované konfigurace a styly
+  config: IRI konfigurace
+  stylesheet: IRI stylesheetu
+  destroy_warning: Změnou konfigurace dojde ke smazání celého grafu. Bude vám nabídnuto uložení změn.
+  cancel: Zrušit
+  load: Načíst # Fresh start
+  update: Změnit # Changing configuration
+  update_stylesheet: Změnit stylesheet # Updating only stylesheet
+  update_general: Změnit # Text when button is disabled
 
 # Dialog to filter nodes
 filter_dialog:
