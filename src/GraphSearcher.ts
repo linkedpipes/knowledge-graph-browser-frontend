@@ -37,6 +37,8 @@ export default class GraphSearcher {
 }
 
 export class GraphSearcherQuery {
+    private MAX_RESULTS_PER_SEARCHER = 30;
+
     private readonly graphSearcher: GraphSearcher;
     private readonly query: string;
     private readonly callback: (query: string, result: SearcherResult[], stillInProgress: boolean) => void;
@@ -59,6 +61,8 @@ export class GraphSearcherQuery {
                 // Not a promise
                 let inCategoryIndex = 0;
                 for (let [IRI, node] of searcherResult) {
+                    if (this.MAX_RESULTS_PER_SEARCHER && inCategoryIndex >= this.MAX_RESULTS_PER_SEARCHER) break;
+
                     // Because the searchers are ordered from the most important, all we need to do is to look if the
                     // node is already in the map.
                     if (!this.nodes.has(IRI)) this.nodes.set(IRI, {
@@ -77,6 +81,8 @@ export class GraphSearcherQuery {
                     this.promiseCount--;
                     let inCategoryIndex = 0;
                     for (let [IRI, node] of searcherResultNodes) {
+                        if (this.MAX_RESULTS_PER_SEARCHER && inCategoryIndex >= this.MAX_RESULTS_PER_SEARCHER) break;
+
                         if (!this.nodes.has(IRI)) this.nodes.set(IRI, {
                             index,
                             result: node,

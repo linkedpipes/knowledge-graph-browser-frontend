@@ -2,6 +2,15 @@
 	<div class="d-flex flex-grow-1" ref="wrapper">
 		<div class="flex-grow-1 graph-area" ref="graphd"></div>
 
+		<v-toolbar dense floating class="ma-3 toolbar" :style="leftStyle">
+<!--			<v-text-field
+					hide-details
+					:prepend-icon="zoomIcon"
+					single-line
+			></v-text-field>-->
+			<search-component :graph="graph"></search-component>
+		</v-toolbar>
+
 		<graph-element-node
 			v-for="node in graph.nodes"
 			:key="node.IRI.replace(/\./, '_')"
@@ -27,9 +36,12 @@ import {Prop, Watch} from "vue-property-decorator";
 import {ResponseStylesheet} from "../../graph-fetcher/response-interfaces";
 import {Graph} from "../../graph/Graph";
 import clone from 'clone';
+import { mdiMagnify } from '@mdi/js';
+import SearchComponent from "../SearchComponent.vue";
 
 @Component({
 	components: {
+		SearchComponent,
 		GraphElementNode,
 		GraphElementEdge
 	}
@@ -37,12 +49,19 @@ import clone from 'clone';
 export default class GraphArea extends Vue {
 	@Prop() graph: Graph;
 	@Prop() stylesheet: ResponseStylesheet;
+	@Prop() barSize: number;
+
+	zoomIcon = mdiMagnify;
 
 	/**
 	 * Cytoscape instance
 	 * @non-reactive
 	 */
 	cy !: Cytoscape.Core;
+
+	get leftStyle(): string {
+		return 'left: ' + this.barSize + 'px;';
+	}
 
 	@Watch('stylesheet')
 	stylesheetUpdated() {
@@ -109,7 +128,11 @@ export default class GraphArea extends Vue {
 .graph-area {
     flex: auto;
 }
-.wrapper {
-	overflow: hidden; /* Allows side panel to popup*/
+.toolbar {
+	position: absolute;
+	left: 56px;
+}
+.toolbar.toolbar-move {
+	left: 256px;
 }
 </style>

@@ -22,8 +22,13 @@
   resource: https://slovník.gov.cz/legislativní/sbírka/111/2009/pojem/orgán-veřejné-moci
 - name:
     en: Wikidata animals
+    cs: Zvířata ve Wikipedii
   description:
     en: Browse all the animals on the the free encyclopedia wikipedia.org.
+    cs: Procházejte veškeré tvory ze zvířecí říše na wikipedia.org.
   configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/wikidata/animals
   stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/wikidata/animals/style-sheet
   resource: http://www.wikidata.org/entity/Q135022
+  iri_by_id:
+    template: ["http://www.wikidata.org/entity/", ""]
+    id_structure: ^Q[1-9][0-9]*$

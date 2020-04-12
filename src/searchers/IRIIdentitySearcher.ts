@@ -12,7 +12,7 @@ export default class IRIIdentitySearcher implements Searcher {
     query(query: string): Map<string, SearcherResult> {
         if (!query) return new Map<string, SearcherResult>();
 
-        let valid = this.regex.test(query);
+        let valid = !this.regex || this.regex.test(query);
         return new Map<string, SearcherResult>([
             [query, {
                 IRI: query,

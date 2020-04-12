@@ -3,6 +3,7 @@ import { Edge, EdgeType } from "./Edge";
 import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 
 import Vue from 'vue';
+import {DataSource} from "../DataSource";
 
 /**
  * Graph class represents graph as a whole structure with additional methods for linking to
@@ -17,14 +18,11 @@ export class Graph {
     } = {};
 
     fetcher: DataGraphFetcher = null;
-    //readonly configurationIRI: string = null;
+    dataSource: DataSource;
 
-/*     constructor(configurationIRI: string) {
-        this.configurationIRI = configurationIRI;
-    } */
-
-    constructor(fetcher: DataGraphFetcher) {
+    constructor(fetcher: DataGraphFetcher, dataSource: DataSource) {
         this.fetcher = fetcher;
+        this.dataSource = dataSource;
     }
 
     /**

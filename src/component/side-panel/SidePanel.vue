@@ -1,5 +1,5 @@
 <template>
-    <v-navigation-drawer v-model="active" color="white" absolute right width="650">
+    <v-navigation-drawer v-model="active" color="white" absolute right width="650" :permanent="active">
         <div class="detail-panel pa-5">
             <detail-panel :node="detailNode" v-if="panelMode == 1" />
             <list-panel :nodes="selectedNodes" v-if="panelMode == 2" />

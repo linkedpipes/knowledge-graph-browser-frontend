@@ -1,6 +1,6 @@
 <template>
     <v-app class="app">
-        <v-toolbar class="toolbar" style="flex: none;">
+        <v-toolbar v-if="false" class="toolbar" style="flex: none;">
             <v-toolbar-items>
                 <v-btn @click="$refs.addNode.show()" text>{{ $t("new_nodes.button") }}</v-btn>
                 <v-btn text>{{ $t("load_dialog.button") }}</v-btn>
@@ -35,51 +35,60 @@
                 </v-toolbar-items>
             </template>
         </v-toolbar>
-        <v-content class="d-flex flex-grow-1" style="overflow: hidden; background: greenů">
+        <v-content class="d-flex flex-grow-1" style="overflow: hidden;">
+            <graph-area :graph="graph" :stylesheet="stylesheet" :barSize="leftBarSize"/>
+            <side-panel :graph="graph"/>
 
-            <v-navigation-drawer
-                    color="red"
-                    expand-on-hover
-                    absolute
-                    dark
-            >
-                <v-list
-                        dense
-                        nav
-                        class="py-0"
-                >
+            <v-navigation-drawer color="red" expand-on-hover absolute dark permanent ref="bar">
+                <v-list dense nav class="py-0">
                     <v-list-item two-line>
                         <v-list-item-avatar>
-                            <img src="https://randomuser.me/api/portraits/men/81.jpg">
+                            KG<br>VB
                         </v-list-item-avatar>
 
                         <v-list-item-content>
-                            <v-list-item-title>Application</v-list-item-title>
-                            <v-list-item-subtitle>Subtext</v-list-item-subtitle>
+                            <v-list-item-title>KGVisualBrowser</v-list-item-title>
+                            <v-list-item-subtitle>By Štěpán Stenchlák</v-list-item-subtitle>
                         </v-list-item-content>
                     </v-list-item>
 
                     <v-divider></v-divider>
 
-                    <v-list-item
-                            v-for="item in items"
-                            :key="item.title"
-                            link
-                    >
-                        <v-list-item-icon>
-                            <v-icon>{{ item.icon }}</v-icon>
-                        </v-list-item-icon>
+                    <v-list-item link @click="$refs.addNode.show()"><v-list-item-icon><v-icon>{{ icons.add }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("new_nodes.button") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.filterDialog.show()"><v-list-item-icon><v-icon>{{ icons.filter }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>Add a new filter</v-list-item-title></v-list-item-content></v-list-item>
 
-                        <v-list-item-content>
-                            <v-list-item-title>{{ item.title }}</v-list-item-title>
-                        </v-list-item-content>
-                    </v-list-item>
+                    <v-divider></v-divider>
+
+                    <v-list-item link><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("load_dialog.button") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.saveDialog.show()"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("save_dialog.button") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.configurationStylesheetDialog.show()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("change_configuration_and_stylesheet") }}</v-list-item-title></v-list-item-content></v-list-item>
+
+                    <v-divider></v-divider>
+
+                    <v-list-group :prepend-icon="icons.language">
+                        <template v-slot:activator>
+                            <v-list-item-title>{{ $t("_lang_local") }}</v-list-item-title>
+                        </template>
+
+                        <v-list>
+                            <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code" @click="$root.$i18n.locale = code">
+                                <v-list-item-title>{{ messages['_lang_local'] }}</v-list-item-title>
+                            </v-list-item>
+                        </v-list>
+                    </v-list-group>
+
+<!--                    <v-menu offset-y>
+                        <template v-slot:activator="{ on }">
+                            <v-list-item v-on="on" link><v-list-item-icon><v-icon>{{ icons.language }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("_lang_local") }}</v-list-item-title></v-list-item-content></v-list-item>
+                        </template>
+                        <v-list>
+                            <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code" @click="$root.$i18n.locale = code">
+                                <v-list-item-title>{{ messages['_lang_local'] }}</v-list-item-title>
+                            </v-list-item>
+                        </v-list>
+                    </v-menu>-->
                 </v-list>
             </v-navigation-drawer>
-
-
-            <graph-area :graph="graph" :stylesheet="stylesheet"/>
-            <side-panel :graph="graph"/>
         </v-content>
 
         <add-node ref="addNode" :graph="graph" />
@@ -87,8 +96,8 @@
         <save-dialog ref="saveDialog" />
         <configuration-stylesheet-dialog
                 ref="configurationStylesheetDialog"
-                :oldConfiguration="configurationIRI"
-                :oldStylesheet="stylesheetIRI"
+                :oldConfiguration="dataSource ? dataSource.configuration : null"
+                :oldStylesheet="dataSource ? dataSource.stylesheet : null"
                 @changed="configurationStylesheetUpdated"
         />
         <vue-filter-component-creator :graph="graph" :filter="filter" />
@@ -115,6 +124,9 @@
     import Vue from 'vue';
     import {Ref, Watch} from "vue-property-decorator";
     import {ResponseStylesheet} from "../graph-fetcher/response-interfaces";
+    import {DataSource} from "../DataSource";
+
+    import { mdiPlusThick, mdiFileUploadOutline, mdiFileDownloadOutline, mdiTranslate, mdiEthernetCable, mdiFilterOutline   } from '@mdi/js';
 
     @Component({
         components: {
@@ -128,12 +140,22 @@
         }
     })
     export default class Application extends Vue {
-        graph: Graph = new Graph(null);
+        graph: Graph = new Graph(null, null);
 
         @Ref() readonly addNode !: AddNode;
         @Ref() readonly filterDialog !: FilterDialog;
         @Ref() readonly saveDialog !: SaveDialog;
         @Ref() readonly configurationStylesheetDialog : ConfigurationStylesheetDialog;
+        @Ref() readonly bar !: any;
+
+        icons = {
+            add: mdiPlusThick,
+            load: mdiFileUploadOutline,
+            save: mdiFileDownloadOutline,
+            language: mdiTranslate,
+            configuration: mdiEthernetCable,
+            filter: mdiFilterOutline
+        };
 
         filter: Filter[] = [
             {
@@ -150,32 +172,26 @@
 
         translations: {text: LocaleMessage, value: string}[] = [];
 
-        remoteURL: string = "http://wsl.local:3000/";
-        configurationIRI: string = null;
-        stylesheetIRI: string = null;
+        //remoteURL: string = "http://wsl.local:3000/";
+        remoteURL: string = "http://localhost:3000/";
+/*        configurationIRI: string = null;
+        stylesheetIRI: string = null;*/
         stylesheet: ResponseStylesheet = {
             styles: []
         };
+        private dataSource: DataSource = null;
 
-        items = [
-            { title: 'Add node', icon: 'mdi-view-dashboard' },
-            { title: 'Load', icon: 'mdi-view-dashboard' },
-            { title: 'Save', icon: 'mdi-view-dashboard' },
-            { title: 'Change configuration', icon: 'mdi-view-dashboard' },
-            { title: 'Filter', icon: 'mdi-view-dashboard' },
-            { title: 'Language', icon: 'mdi-image' },
-            { title: 'About', icon: 'mdi-help-box' },
-        ];
+        private leftBarSize: number = 56; // Collapsed width of Vuetify v-navigation-drawer
 
-        @Watch('configurationIRI')
+        @Watch('dataSource.configuration')
         createGraph() {
-            let fetcher = new DataGraphFetcher(this.remoteURL, this.configurationIRI);
-            this.graph = new Graph(fetcher);
+            let fetcher = new DataGraphFetcher(this.remoteURL, this.dataSource.configuration);
+            this.graph = new Graph(fetcher, this.dataSource);
         }
 
-        @Watch('stylesheetIRI')
+        @Watch('dataSource.stylesheet')
         async stylesheetUpdate() {
-            this.stylesheet = await this.graph.fetcher.getStylesheet(this.stylesheetIRI);
+            this.stylesheet = await this.graph.fetcher.getStylesheet(this.dataSource.stylesheet);
         }
 
         /**
@@ -201,13 +217,17 @@
          */
         mounted() {
             this.configurationStylesheetDialog.show();
+
+            // Add watcher after the components are mounted
+            this.$watch(
+                () => {return this.bar.computedWidth},
+                (val) => {this.leftBarSize = val;}
+            );
         }
 
-        configurationStylesheetUpdated(update: { configuration: string, stylesheet: string, predefinedStartedNodeIRI: string }) {
-            this.configurationIRI = update.configuration;
-            this.stylesheetIRI = update.stylesheet;
-
-            this.addNode.show(update.predefinedStartedNodeIRI);
+        configurationStylesheetUpdated(update: { configuration: string, stylesheet: string, resource: string } | DataSource) {
+            this.dataSource = update;
+            if (update.resource) this.addNode.show(update.resource);
         }
     }
 </script>

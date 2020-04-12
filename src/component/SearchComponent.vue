@@ -12,6 +12,10 @@
                 no-filter
                 auto-select-first
                 @input="onSelect"
+
+                hide-details
+                :prepend-icon="zoomIcon"
+                single-line
         >
             <template v-slot:item="data">
                 <v-list-item-avatar>
@@ -22,31 +26,47 @@
                     <v-list-item-subtitle v-html="data.item.IRI"></v-list-item-subtitle>
                 </v-list-item-content>
             </template>
-            <template v-slot:selection="data"></template>
+            <template v-slot:selection></template>
         </v-autocomplete>
     </div>
 </template>
 
 <script lang="ts">
-import {Component, Watch} from "vue-property-decorator";
+    import {Component, Prop, Watch} from "vue-property-decorator";
 import Vue from "vue";
 import GraphSearcher from "../GraphSearcher";
-import {SearcherResult} from "../searchers/Searcher";
+import Searcher, {SearcherResult} from "../searchers/Searcher";
 import IRIIdentitySearcher from "../searchers/IRIIdentitySearcher";
 import IRIConstructorSearcher from "../searchers/IRIConstructorSearcher";
 import SimpleJsonSearcher from "../searchers/SimpleJsonSearcher";
+import {mdiMagnify} from "@mdi/js";
+    import {Graph} from "../graph/Graph";
+    import LocalGraphSearcher from "../searchers/LocalGraphSearcher";
 
 @Component
 export default class SearchComponent extends Vue {
+    @Prop() graph: Graph;
+
     loading: boolean = false;
     input: string = "";
     items: SearcherResult[] = []; // todo
+    zoomIcon = mdiMagnify;
 
-    graphSearcher: GraphSearcher = new GraphSearcher([
-        new SimpleJsonSearcher("https://raw.githubusercontent.com/martinnec/kgbrowser/master/configurations/rpp-autocomplete.json"),
-        new IRIConstructorSearcher(["https://rpp-opendata.egon.gov.cz/odrpp/zdroj/agenda/", ""], /^A[0-9]+$/),
-        new IRIIdentitySearcher(/^https:\/\/rpp-opendata\.egon\.gov\.cz\/odrpp\/zdroj\//)
-    ]);
+    graphSearcher: GraphSearcher = null;
+
+    @Watch('graph')
+    private graphChanged() {
+        if (this.graph) {
+            let searchers: Searcher[] = [];
+
+            searchers.push(new LocalGraphSearcher(this.graph));
+            if (this.graph.dataSource.autocomplete) searchers.push(new SimpleJsonSearcher(this.graph.dataSource.autocomplete));
+            if (this.graph.dataSource.iri_by_id) searchers.push(new IRIConstructorSearcher(this.graph.dataSource.iri_by_id.template, new RegExp(this.graph.dataSource.iri_by_id.id_structure)));
+            searchers.push(new IRIIdentitySearcher(this.graph.dataSource.iri_structure ? new RegExp(this.graph.dataSource.iri_structure) : null));
+
+            this.graphSearcher = new GraphSearcher(searchers);
+        }
+    }
 
     @Watch('input')
     inputChanged() {
