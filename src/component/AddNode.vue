@@ -37,7 +37,7 @@
                     <v-tab-item>
                         <v-card flat>
                             <v-card-text>
-                                Not supported yet
+                                <search-component></search-component>
                             </v-card-text>
                         </v-card>
                     </v-tab-item>
@@ -55,10 +55,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import {Component, Prop, Watch} from 'vue-property-decorator';
 import { Graph } from '../graph/Graph';
-
-@Component
+import SearchComponent from "./SearchComponent.vue";
+@Component({
+    components: {SearchComponent}
+})
 export default class AddNode extends Vue {
     multipleEntry: boolean = false;
     IRI: string = "";

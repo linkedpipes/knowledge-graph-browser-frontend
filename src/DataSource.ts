@@ -4,4 +4,5 @@ export interface DataSource {
     configuration: string,
     stylesheet: string,
     resource: string,
+    autocomplete?: string,
 }

@@ -64,11 +64,15 @@ export default class ConfigurationStylesheetDialog extends Vue {
     }
 
     update() {
-        this.$emit('changed', {
-            configuration: this.config,
-            stylesheet: this.stylesheet,
-            predefinedStartedNodeIRI: this.predefinedSelected ? this.predefinedSelected.resource : null
-        });
+        if (this.predefinedSelected) {
+            this.$emit('changed', this.predefinedSelected);
+        } else {
+            this.$emit('changed', {
+                configuration: this.config,
+                stylesheet: this.stylesheet,
+                resource: this.predefinedSelected ? this.predefinedSelected.resource : null
+            });
+        }
         this.dialog = false;
     }
 

@@ -5,6 +5,7 @@
   configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/rpp
   stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/rpp/style-sheet
   resource: https://rpp-opendata.egon.gov.cz/odrpp/zdroj/agenda/A116
+  autocomplete: https://raw.githubusercontent.com/martinnec/kgbrowser/master/configurations/rpp-autocomplete.json
 - name:
     en: psp
   description:

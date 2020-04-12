@@ -11,6 +11,7 @@
     "types": ["vuetify", "node", "webpack-env"],
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "downlevelIteration": true
   }
 }
