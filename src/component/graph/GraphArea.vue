@@ -8,17 +8,17 @@
 
 		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
 			<div class="my-2">
-				<v-btn color="red" fab small dark @click="manipulator.zoomIn()">
+				<v-btn color="red" fab small dark @click="graph.manipulator.zoomIn()">
 					<v-icon>mdi-plus</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="red" fab small dark @click="manipulator.zoomOut()">
+				<v-btn color="red" fab small dark @click="graph.manipulator.zoomOut()">
 					<v-icon>mdi-minus</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="red" fab small dark @click="manipulator.fit()">
+				<v-btn color="red" fab small dark @click="graph.manipulator.fit()">
 					<v-icon>mdi-arrow-expand-all</v-icon>
 				</v-btn>
 			</div>
@@ -74,18 +74,17 @@ export default class GraphArea extends Vue {
 	 */
 	cy !: Cytoscape.Core;
 
-	/**
-	 * Graph area manipulator instance
-	 * @non-reactive
-	 */
-	manipulator !: GraphAreaManipulator;
-
 	get leftStyle(): string {
 		return 'left: ' + this.leftOffset + 'px;';
 	}
 
 	get rightStyle(): string {
 		return 'right: ' + this.rightOffset + 'px;';
+	}
+
+	@Watch('graph')
+	graphChanged() {
+		this.graph.manipulator = new GraphAreaManipulator(this.cy, this.graph);
 	}
 
 	@Watch('stylesheet')
@@ -123,7 +122,6 @@ export default class GraphArea extends Vue {
 	 */
 	created() {
 		this.cy = Cytoscape();
-		this.manipulator = new GraphAreaManipulator(this.cy, this.graph);
 		this.stylesheetUpdated();
 	}
 

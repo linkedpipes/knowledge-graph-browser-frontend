@@ -32,7 +32,7 @@
             </v-tooltip>
             <v-tooltip bottom>
                 <template v-slot:activator="{ on }">
-                    <v-btn v-on="on"><v-icon>{{ locate }}</v-icon></v-btn>
+                    <v-btn v-on="on" @click="node.graph.manipulator.fit(node)" :disabled="!node.isVisible"><v-icon>{{ locate }}</v-icon></v-btn>
                 </template>
                 <span>{{ $t("side_panel.detail_panel.locate_desc") }}</span>
             </v-tooltip>

@@ -19,6 +19,15 @@ side_panel:
       ffut: The node is hidden by a filter. To show it, change filter options.
       ftuf: The node is hidden. To show it, change its visibility.
       ffuf: The node is hidden both by filter and user. To show it, change filter options and visibility of the node.
+  list_panel:
+    title: List of nodes
+    remove: Remove
+    remove_desc: Removes all the nodes
+    hide: Hide
+    hide_desc: Makes all nodes hidden
+    show: Show
+    show_desc: Makes all nodes visible
+    number_items: 1 resource | {n} resources
 
 # Dialog to add new nodes
 add_node_dialog:

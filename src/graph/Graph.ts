@@ -4,6 +4,7 @@ import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 
 import Vue from 'vue';
 import {DataSource} from "../DataSource";
+import GraphAreaManipulator from "../graph-area/GraphAreaManipulator";
 
 /**
  * Graph class represents graph as a whole structure with additional methods for linking to
@@ -19,6 +20,11 @@ export class Graph {
 
     fetcher: DataGraphFetcher = null;
     dataSource: DataSource;
+
+    /**
+     * @non-reactive
+     */
+    manipulator !: GraphAreaManipulator;
 
     constructor(fetcher: DataGraphFetcher, dataSource: DataSource) {
         this.fetcher = fetcher;

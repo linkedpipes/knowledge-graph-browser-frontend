@@ -49,11 +49,12 @@ export default class GraphAreaManipulator {
         if (nds === null) {
             collection = this.cy.nodes();
         } else {
+            collection = this.cy.collection();
             for (let node of nds) {
                 if (node instanceof Node) {
-                    collection.add(node.element.element);
+                    collection.merge(node.element.element);
                 } else {
-                    collection.add(this.graph.getNodeByIRI(node).element.element);
+                    collection.merge(this.graph.getNodeByIRI(node).element.element);
                 }
             }
         }
