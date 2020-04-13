@@ -46,6 +46,8 @@ export default class GraphElementNode extends Vue {
 
         this.element.on("select", () => this.node.selected = true);
         this.element.on("unselect", () => this.node.selected = false);
+
+        this.node.element = this;
     };
 
     /**

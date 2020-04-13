@@ -3,6 +3,7 @@ import { NodeView } from "./NodeView";
 import { NodeViewSet } from "./NodeViewSet";
 import { ResponseElementType } from "../graph-fetcher/response-interfaces";
 import {Edge} from "./Edge";
+import GraphElementNode from "../component/graph/GraphElementNode";
 
 /**
  * Information about the type of Node. Same as ResponseElementType
@@ -17,6 +18,8 @@ export class Node {
      * Each Node must belong to one and only one Graph. Every update is reported to the graph instance. Also provides fetcher.
      */
     graph: Graph;
+
+    element: GraphElementNode = null;
 
     /**
      * Node unique identifier
