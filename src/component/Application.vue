@@ -36,7 +36,7 @@
             </template>
         </v-toolbar>
         <v-content class="d-flex flex-grow-1" style="overflow: hidden;">
-            <graph-area :graph="graph" :stylesheet="stylesheet" leftOffset="leftBarSize" :right-offset="rightOffset"/>
+            <graph-area :graph="graph" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset"/>
             <side-panel :graph="graph" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
             <v-navigation-drawer color="red" expand-on-hover absolute dark permanent ref="bar">
@@ -149,6 +149,7 @@
         @Ref() readonly bar !: any;
 
         rightOffset: number = 0;
+        private leftOffset: number = 56; // Collapsed width of Vuetify v-navigation-drawer
 
         icons = {
             add: mdiPlusThick,
@@ -183,7 +184,6 @@
         };
         private dataSource: DataSource = null;
 
-        private leftBarSize: number = 56; // Collapsed width of Vuetify v-navigation-drawer
 
         @Watch('dataSource.configuration')
         createGraph() {
@@ -223,7 +223,7 @@
             // Add watcher after the components are mounted
             this.$watch(
                 () => {return this.bar.computedWidth},
-                (val) => {this.leftBarSize = val;}
+                (val) => {this.leftOffset = val;}
             );
         }
 

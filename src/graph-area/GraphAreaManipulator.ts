@@ -8,6 +8,7 @@ import {Graph} from "../graph/Graph";
 export default class GraphAreaManipulator {
     animateOptions: AnimateOptions = {duration: 300};
     manualZoomScale: number = 2;
+    nodeZoom: number = 5;
 
     /**
      * Cytoscape instance
@@ -45,12 +46,14 @@ export default class GraphAreaManipulator {
             nds = nodes;
         }
 
+        let count = 0;
         let collection: Cytoscape.NodeCollection;
         if (nds === null) {
             collection = this.cy.nodes();
         } else {
             collection = this.cy.collection();
             for (let node of nds) {
+                count++;
                 if (node instanceof Node) {
                     collection.merge(node.element.element);
                 } else {
@@ -58,12 +61,24 @@ export default class GraphAreaManipulator {
                 }
             }
         }
-        this.cy.animate({
-            fit: {
-                eles: collection,
-                padding: 100,
-            }
-        }, this.animateOptions);
+
+        if (count == 1) {
+            this.cy.animate({
+                center: {
+                    eles: collection,
+                },
+                // @ts-ignore zoom accepts number
+                zoom: this.nodeZoom,
+            }, this.animateOptions);
+        } else {
+            this.cy.animate({
+                fit: {
+                    eles: collection,
+                    padding: 100,
+                }
+            }, this.animateOptions);
+        }
+
     }
 
 

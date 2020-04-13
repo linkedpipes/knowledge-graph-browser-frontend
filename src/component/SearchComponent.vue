@@ -85,11 +85,18 @@ export default class SearchComponent extends Vue {
         });
     }
 
-    onSelect(IRI: string) {
+    async onSelect(IRI: string) {
         if (IRI == "" || IRI === null) return;
-        console.log("Selected", IRI);
-
         this.input = null;
+
+        Object.values(this.graph.nodes).forEach(node => {node.selected = false});
+        let node = this.graph.getNodeByIRI(IRI);
+        if (!node) {
+            node = await this.graph.fetchNode(IRI);
+            node.useDefaultView().then((view) => view.fetchPreview());
+        }
+        node.selected = true;
+        this.graph.manipulator.fit(node);
     }
 }
 </script>
