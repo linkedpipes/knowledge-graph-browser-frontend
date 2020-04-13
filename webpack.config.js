@@ -34,7 +34,7 @@ module.exports = {
                 ]
             },
             {
-                test: /\.s(c|a)ss$/,
+                test: /\.s[ca]ss$/,
                 use: [
                     //MiniCssExtractPlugin.loader,
                     'vue-style-loader',
@@ -44,7 +44,6 @@ module.exports = {
                         options: {
                             implementation: require('sass'),
                             fiber: require('fibers'),
-                            indentedSyntax: true // optional
                         }
                     }
                 ]

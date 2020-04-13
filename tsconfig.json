@@ -9,6 +9,10 @@
     "allowJs": true,
     "lib": ["es2015", "dom"],
     "types": ["vuetify", "node", "webpack-env"],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./node_modules/vuetify/types"
+    ],
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,

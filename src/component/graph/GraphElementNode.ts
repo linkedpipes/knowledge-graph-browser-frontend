@@ -68,27 +68,11 @@ export default class GraphElementNode extends Vue {
         }
     }
 
-    get shownByFilters(): boolean {
-        let show = true;
-        for(let filter in this.node.filters) {
-            if (!this.node.filters[filter]) {
-                show = false;
-                break;
-            }
-        }
-
-        return show;
-    }
-
     visibilityAnimation: CollectionAnimation;
 
-    get isVisible(): boolean {
-        return this.node.visible && this.shownByFilters;
-    }
-
-    @Watch('isVisible') visibilityChanged() {
+    @Watch('node.isVisible') visibilityChanged() {
         console.log("Visibility updating");
-        let visible = this.isVisible;
+        let visible = this.node.isVisible;
 
         if (this.visibilityAnimation) this.visibilityAnimation.stop(true, false);
 

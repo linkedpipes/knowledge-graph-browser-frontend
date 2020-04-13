@@ -3,13 +3,26 @@
 		<div class="flex-grow-1 graph-area" ref="graphd"></div>
 
 		<v-toolbar dense floating class="ma-3 toolbar" :style="leftStyle">
-<!--			<v-text-field
-					hide-details
-					:prepend-icon="zoomIcon"
-					single-line
-			></v-text-field>-->
 			<search-component :graph="graph"></search-component>
 		</v-toolbar>
+
+		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
+			<div class="my-2">
+				<v-btn color="red" fab small dark>
+					<v-icon>mdi-plus</v-icon>
+				</v-btn>
+			</div>
+			<div class="my-2">
+				<v-btn color="red" fab small dark>
+					<v-icon>mdi-minus</v-icon>
+				</v-btn>
+			</div>
+			<div class="my-2">
+				<v-btn color="red" fab small dark>
+					<v-icon>mdi-arrow-expand-all</v-icon>
+				</v-btn>
+			</div>
+		</div>
 
 		<graph-element-node
 			v-for="node in graph.nodes"
@@ -49,7 +62,8 @@ import SearchComponent from "../SearchComponent.vue";
 export default class GraphArea extends Vue {
 	@Prop() graph: Graph;
 	@Prop() stylesheet: ResponseStylesheet;
-	@Prop() barSize: number;
+	@Prop() leftOffset: number;
+	@Prop() rightOffset: number;
 
 	zoomIcon = mdiMagnify;
 
@@ -60,7 +74,11 @@ export default class GraphArea extends Vue {
 	cy !: Cytoscape.Core;
 
 	get leftStyle(): string {
-		return 'left: ' + this.barSize + 'px;';
+		return 'left: ' + this.leftOffset + 'px;';
+	}
+
+	get rightStyle(): string {
+		return 'right: ' + this.rightOffset + 'px;';
 	}
 
 	@Watch('stylesheet')
@@ -124,7 +142,7 @@ export default class GraphArea extends Vue {
 	}
 }
 </script>
-<style module>
+<style lang="scss" scoped>
 .graph-area {
     flex: auto;
 }
@@ -134,5 +152,11 @@ export default class GraphArea extends Vue {
 }
 .toolbar.toolbar-move {
 	left: 256px;
+}
+
+.buttons {
+	position: absolute;
+	bottom: 0;
+	box-shadow: none;
 }
 </style>

@@ -33,6 +33,22 @@ export class Node {
      */
     filters: {[filter: string]: boolean} = {};
 
+    get shownByFilters(): boolean {
+        let show = true;
+        for(let filter in this.filters) {
+            if (!this.filters[filter]) {
+                show = false;
+                break;
+            }
+        }
+
+        return show;
+    }
+
+    get isVisible(): boolean {
+        return this.visible && this.shownByFilters;
+    }
+
     constructor(IRI: string, graph: Graph) {
         this.IRI = IRI;
         this.graph = graph;

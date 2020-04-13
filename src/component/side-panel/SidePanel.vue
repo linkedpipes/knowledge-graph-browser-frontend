@@ -1,5 +1,5 @@
 <template>
-    <v-navigation-drawer v-model="active" color="white" absolute right width="650" :permanent="active">
+    <v-navigation-drawer v-model="active" color="white" absolute right width="650" :permanent="active" ref="panel">
         <div class="detail-panel pa-5">
             <detail-panel :node="detailNode" v-if="panelMode == 1" />
             <list-panel :nodes="selectedNodes" v-if="panelMode == 2" />
@@ -10,7 +10,7 @@
 import Vue from 'vue';
 import { Graph } from '../../graph/Graph';
 import { Node } from '../../graph/Node';
-import { Prop, Watch } from 'vue-property-decorator';
+import {Emit, Prop, Ref, Watch} from 'vue-property-decorator';
 import Component from "vue-class-component";
 import DetailPanel from './DetailPanel.vue';
 import ListPanel from './ListPanel.vue';
@@ -29,6 +29,7 @@ enum PanelModeEnum {
 })
 export default class SidePanel extends Vue {
     @Prop(Object) graph: Graph;
+    @Ref() readonly panel !: any;
     active: boolean = false;
 
     get selectedNodes() {
@@ -39,6 +40,20 @@ export default class SidePanel extends Vue {
             }
         }
         return selected;
+    }
+
+    mounted () {
+        // Add watcher after the components are mounted
+        this.$watch(
+            () => {return this.panel.computedWidth},
+            this.widthChanged
+        );
+    }
+
+    @Watch('active')
+    @Emit()
+    widthChanged() {
+        return this.active ? Number(this.panel.computedWidth) : 0;
     }
 
     /**

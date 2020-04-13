@@ -36,12 +36,12 @@
             </template>
         </v-toolbar>
         <v-content class="d-flex flex-grow-1" style="overflow: hidden;">
-            <graph-area :graph="graph" :stylesheet="stylesheet" :barSize="leftBarSize"/>
-            <side-panel :graph="graph"/>
+            <graph-area :graph="graph" :stylesheet="stylesheet" leftOffset="leftBarSize" :right-offset="rightOffset"/>
+            <side-panel :graph="graph" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
             <v-navigation-drawer color="red" expand-on-hover absolute dark permanent ref="bar">
                 <v-list dense nav class="py-0">
-                    <v-list-item two-line>
+                    <v-list-item two-line style="padding-left: 0;">
                         <v-list-item-avatar>
                             KG<br>VB
                         </v-list-item-avatar>
@@ -147,6 +147,8 @@
         @Ref() readonly saveDialog !: SaveDialog;
         @Ref() readonly configurationStylesheetDialog : ConfigurationStylesheetDialog;
         @Ref() readonly bar !: any;
+
+        rightOffset: number = 0;
 
         icons = {
             add: mdiPlusThick,

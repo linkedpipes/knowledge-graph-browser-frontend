@@ -15,6 +15,10 @@ side_panel:
     fetching_detail: Fetching detailed information...
     key: Key
     value: Value
+    hidden:
+      ffut: The node is hidden by a filter. To show it, change filter options.
+      ftuf: The node is hidden. To show it, change its visibility.
+      ffuf: The node is hidden both by filter and user. To show it, change filter options and visibility of the node.
 
 # Dialog to add new nodes
 add_node_dialog:

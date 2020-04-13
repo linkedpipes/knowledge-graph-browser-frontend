@@ -51,6 +51,8 @@
             <a :href="node.IRI" target="_blank"><code>{{node.IRI}}</code></a>
         </div>
 
+        <v-alert v-if="!node.isVisible" type="warning" dense text>{{ $t("side_panel.detail_panel.hidden.f" + (node.shownByFilters ? "t" : "f") + "u" + (node.visible ? "t" : "f")) }}</v-alert>
+
         <v-card v-if="node.currentView && node.currentView.preview" class="mb-5">
             <v-card-text>
                 <div>
