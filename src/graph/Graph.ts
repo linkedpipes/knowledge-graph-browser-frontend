@@ -4,12 +4,14 @@ import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 
 import Vue from 'vue';
 import {DataSource} from "../DataSource";
-import GraphAreaManipulator from "../graph-area/GraphAreaManipulator";
+import GraphAreaManipulator from "./GraphAreaManipulator";
 
 /**
  * Graph class represents graph as a whole structure with additional methods for linking to
  */
 export class Graph {
+    layout?: any;
+
     nodes: {
         [IRI: string]: Node;
     } = {};

@@ -39,7 +39,7 @@
             <graph-area :graph="graph" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset"/>
             <side-panel :graph="graph" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
-            <v-navigation-drawer color="red" expand-on-hover absolute dark permanent ref="bar">
+            <v-navigation-drawer color="red" expand-on-hover absolute dark permanent stateless ref="bar">
                 <v-list dense nav class="py-0">
                     <v-list-item two-line style="padding-left: 0;">
                         <v-list-item-avatar>
@@ -90,6 +90,21 @@
                 </v-list>
             </v-navigation-drawer>
         </v-content>
+
+        <v-footer
+                dark
+                padless
+        >
+            <v-card
+                    class="flex"
+                    flat
+                    tile
+            >
+                <v-card-text class="py-2 white--text">
+                    <v-progress-circular color="white" indeterminate size="16" width="2" class="mr-1"></v-progress-circular> <strong>Fetching resources...</strong> [5 left]
+                </v-card-text>
+            </v-card>
+        </v-footer>
 
         <add-node ref="addNode" :graph="graph" />
         <filter-dialog ref="filterDialog" :graph="graph" :filter="filter" />

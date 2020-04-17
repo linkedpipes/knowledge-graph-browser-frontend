@@ -1,6 +1,6 @@
 import Cytoscape, {AnimateOptions} from "cytoscape";
-import {Node} from "../graph/Node";
-import {Graph} from "../graph/Graph";
+import {Node} from "./Node";
+import {Graph} from "./Graph";
 
 /**
  * This class performs basic operations with graph area like zooming, animations etc.
@@ -8,7 +8,7 @@ import {Graph} from "../graph/Graph";
 export default class GraphAreaManipulator {
     animateOptions: AnimateOptions = {duration: 300};
     manualZoomScale: number = 2;
-    nodeZoom: number = 5;
+    nodeZoom: number = 4;
 
     /**
      * Cytoscape instance
@@ -17,9 +17,15 @@ export default class GraphAreaManipulator {
 
     graph: Graph;
 
-    constructor(cy: Cytoscape.Core, graph: Graph) {
+    /**
+     * How much of the graph area is covered by panels.
+     */
+    private readonly offsetArray: [number, number, number, number];
+
+    constructor(cy: Cytoscape.Core, graph: Graph, offsetArray: [number, number, number, number]) {
         this.cy = cy;
         this.graph = graph;
+        this.offsetArray = offsetArray;
     }
 
     zoomIn() {
@@ -64,11 +70,15 @@ export default class GraphAreaManipulator {
 
         if (count == 1) {
             this.cy.animate({
-                center: {
+               /* center: {
                     eles: collection,
-                },
-                // @ts-ignore zoom accepts number
+                },*/
+                // @ts-ignore
                 zoom: this.nodeZoom,
+                pan: {
+                    x: -(collection[0].position().x * this.nodeZoom - (this.cy.container().clientWidth - this.offsetArray[1] - this.offsetArray[3]) / 2 - this.offsetArray[3]),
+                    y: -(collection[0].position().y * this.nodeZoom - (this.cy.container().clientHeight - this.offsetArray[0] - this.offsetArray[2]) / 2 - this.offsetArray[0]),
+                },
             }, this.animateOptions);
         } else {
             this.cy.animate({

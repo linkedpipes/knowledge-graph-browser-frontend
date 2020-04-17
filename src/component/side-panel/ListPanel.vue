@@ -57,6 +57,9 @@ import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
 import { Node, NodeType } from '../../graph/Node';
 
+// Stylesheet
+import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
+
 import { mdiClose, mdiInformationOutline, mdiTrashCanOutline, mdiEye, mdiEyeOff } from '@mdi/js';
 
 interface NodeTypeGroup {

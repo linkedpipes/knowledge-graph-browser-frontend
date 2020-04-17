@@ -110,6 +110,8 @@ import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
 import { NodeViewSet } from '../../graph/NodeViewSet';
 import { DetailValue } from '../../graph/NodeView';
+// Stylesheet
+import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
 
 import { mdiTrashCanOutline, mdiRefresh, mdiCrosshairsGps, mdiEye, mdiEyeOff  } from '@mdi/js';
 

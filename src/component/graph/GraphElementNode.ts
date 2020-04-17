@@ -24,7 +24,7 @@ export default class GraphElementNode extends Vue {
     /**
      * Cytoscape instance passed by parent where the node should be rendered
      */
-    @Prop({type: Object as () => Cytoscape.Core}) cy: Cytoscape.Core;
+    cy !: Cytoscape.Core;
 
     /**
      * Reference to this node in the Cytoscape container
@@ -36,10 +36,17 @@ export default class GraphElementNode extends Vue {
      * Registers node in the Cytoscape instance
      */
     mounted() {
+        // @ts-ignore
+        this.cy = this.$parent.cy;
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
             data: { ...this.node.currentView?.preview, id: this.node.IRI }
         });
+
+        //this.node.graph.layout?.stop();
+
+        // @ts-ignore because of wrong type definitions
+        //this.node.graph.layout = this.element.cy().layout({name: "cola", fit: false, infinite: true}).run();
 
         //this.element.css('display', 'none'); todo - for now its disabled
         this.element.scratch("_component", this);
@@ -48,6 +55,8 @@ export default class GraphElementNode extends Vue {
         this.element.on("unselect", () => this.node.selected = false);
 
         this.node.element = this;
+
+        this.visibilityChanged();
     };
 
     /**
@@ -73,7 +82,6 @@ export default class GraphElementNode extends Vue {
     visibilityAnimation: CollectionAnimation;
 
     @Watch('node.isVisible') visibilityChanged() {
-        console.log("Visibility updating");
         let visible = this.node.isVisible;
 
         if (this.visibilityAnimation) this.visibilityAnimation.stop(true, false);

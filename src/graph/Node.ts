@@ -106,7 +106,12 @@ export class Node {
     async useDefaultView(): Promise<NodeView> {
         await this.fetchViewSets();
         let vs = this.viewSets[Object.keys(this.viewSets)[0]];
-        this.currentView = vs.views[Object.keys(vs.views)[0]];
+        let view = vs.views[Object.keys(vs.views)[0]];
+
+        // Fetching preview before the view is actually changed prevents time period when labels and class are unavailable
+        await view.fetchPreview();
+
+        this.currentView = view;
         return this.currentView;
     }
 }

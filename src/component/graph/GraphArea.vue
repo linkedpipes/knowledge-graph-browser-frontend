@@ -1,5 +1,5 @@
 <template>
-	<div class="d-flex flex-grow-1" ref="wrapper">
+	<div class="d-flex flex-grow-1 wrapper" ref="wrapper">
 		<div class="flex-grow-1 graph-area" ref="graphd"></div>
 
 		<v-toolbar dense floating class="ma-3 toolbar" :style="leftStyle">
@@ -22,19 +22,27 @@
 					<v-icon>mdi-arrow-expand-all</v-icon>
 				</v-btn>
 			</div>
+			<div class="my-2">
+				<v-btn color="red" fab small dark @click="layout()">
+					<v-icon>mdi-star-outline</v-icon>
+				</v-btn>
+			</div>
+			<div class="my-2">
+				<v-btn color="red" fab small dark @click="circle()">
+					<v-icon>mdi-vector-circle</v-icon>
+				</v-btn>
+			</div>
 		</div>
 
 		<graph-element-node
 			v-for="node in graph.nodes"
 			:key="node.IRI.replace(/\./, '_')"
 			:node="node"
-			:cy="cy"
 		/>
 		<graph-element-edge
 			v-for="(edge, identifier) in graph.edges"
 			:key="identifier.replace(/\./, '_')"
 			:edge="edge"
-			:cy="cy"
 		/>
 	</div>
 </template>
@@ -51,7 +59,8 @@ import {Graph} from "../../graph/Graph";
 import clone from 'clone';
 import { mdiMagnify } from '@mdi/js';
 import SearchComponent from "../SearchComponent.vue";
-import GraphAreaManipulator from "../../graph-area/GraphAreaManipulator";
+import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
+import cola from 'cytoscape-cola';
 
 @Component({
 	components: {
@@ -66,6 +75,14 @@ export default class GraphArea extends Vue {
 	@Prop() leftOffset: number;
 	@Prop() rightOffset: number;
 
+	/**
+	 * How much of the graph area is covered by panels. This array is readonly so it could be passed by reference.
+	 * top, right, bottom, left
+	 * Currently only right and left is supported
+	 * @readonly
+	 */
+	private readonly offset: [number, number, number, number] = [0, 0, 0, 0];
+
 	zoomIcon = mdiMagnify;
 
 	/**
@@ -73,6 +90,16 @@ export default class GraphArea extends Vue {
 	 * @non-reactive
 	 */
 	cy !: Cytoscape.Core;
+
+	layout() {
+		// @ts-ignore
+		this.cy.layout({name: "cola", nodeDimensionsIncludeLabels: true}).run();
+	}
+
+	circle() {
+		// @ts-ignore
+		this.cy.layout({name: "circle"}).run();
+	}
 
 	get leftStyle(): string {
 		return 'left: ' + this.leftOffset + 'px;';
@@ -84,7 +111,7 @@ export default class GraphArea extends Vue {
 
 	@Watch('graph')
 	graphChanged() {
-		this.graph.manipulator = new GraphAreaManipulator(this.cy, this.graph);
+		this.graph.manipulator = new GraphAreaManipulator(this.cy, this.graph, this.offset);
 	}
 
 	@Watch('stylesheet')
@@ -121,6 +148,7 @@ export default class GraphArea extends Vue {
 	 * Called by Vue framework
 	 */
 	created() {
+		Cytoscape.use(cola);
 		this.cy = Cytoscape();
 		this.stylesheetUpdated();
 	}
@@ -146,11 +174,24 @@ export default class GraphArea extends Vue {
 			}
 		});
 	}
+
+	@Watch('leftOffset', {immediate: true})
+	@Watch('rightOffset', {immediate: true})
+	private offsetChanged() {
+		this.offset[1] = this.rightOffset;
+		this.offset[3] = this.leftOffset;
+	}
 }
 </script>
 <style lang="scss" scoped>
 .graph-area {
     flex: auto;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+.wrapper {
+	position: relative;
 }
 .toolbar {
 	position: absolute;

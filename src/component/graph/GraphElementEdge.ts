@@ -10,7 +10,7 @@ import { Edge } from '../../graph/Edge';
 @Component
 export default class GraphElementEdge extends Vue {
     @Prop({type: Object as () => Edge}) edge: Edge;
-    @Prop({type: Object as () => Cytoscape.Core}) cy: Cytoscape.Core;
+    cy!: Cytoscape.Core;
 
     /**
      * Edge represented in the Cytoscape core
@@ -18,6 +18,8 @@ export default class GraphElementEdge extends Vue {
     element: Cytoscape.EdgeSingular;
 
     mounted() {
+        // @ts-ignore
+        this.cy = this.$parent.cy;
         this.element = <Cytoscape.EdgeSingular>this.cy.add({
             group: 'edges',
             data: {

@@ -15,5 +15,7 @@ localesContext.keys().forEach(function(key: string){
 export default new VueI18n({
     locale: 'en',
     fallbackLocale: 'en',
-    messages: locales
+    messages: locales,
+    silentTranslationWarn: true,
+    silentFallbackWarn: true,
 });
