@@ -3,6 +3,7 @@ _lang_english: Czech
 menu:
   add_nodes: Přidat vrcholy
   filter: Filtrování
+  view_options: Možnosti pohledu
   load: Načíst ze souboru
   save: Uložit do souboru
   configuration: Konfigurace zdroje
@@ -80,3 +81,15 @@ filters:
       tab: Třída
       title: Třída vrcholu
       description: Můžete skrýt vrcholy mající určité třídy.
+view_options:
+  title: Možnosti pohledu
+  nodes:
+    title: Uzly
+    full: Vše
+    hide: Skrýt text
+    dot: Pouze tečka
+  edges:
+    title: Hrany
+    full: Vše
+    hide_text: Skrýt text
+    hide: Skrýt

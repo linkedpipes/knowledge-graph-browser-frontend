@@ -36,7 +36,7 @@
             </template>
         </v-toolbar>
         <v-content class="d-flex flex-grow-1" style="overflow: hidden;">
-            <graph-area :graph="graph" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset"/>
+            <graph-area :graph="graph" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset" :view-options="viewOptions"/>
             <side-panel :graph="graph" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
             <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
@@ -56,6 +56,7 @@
 
                     <v-list-item link @click="$refs.addNode.show()"><v-list-item-icon><v-icon>{{ icons.add }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.add_nodes") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="$refs.filterDialog.show()"><v-list-item-icon><v-icon>{{ icons.filter }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.viewOptionsDialog.show()"><v-list-item-icon><v-badge dot :value="viewOptionsActive"><v-icon>{{ icons.viewOptions }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.view_options") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
 
@@ -119,6 +120,7 @@
                 @changed="configurationStylesheetUpdated"
         />
         <vue-filter-component-creator :graph="graph" :filter="filter" />
+        <view-options-dialog :options="viewOptions" ref="viewOptionsDialog"></view-options-dialog>
         <settings-dialog
                 :remote-url.sync="remoteURL"
                 ref="settingsDialog"
@@ -158,14 +160,17 @@
         mdiTranslate,
         mdiEthernetCable,
         mdiFilterOutline,
-        mdiCogs
+        mdiCogs, mdiEye
     } from '@mdi/js';
     import {VListGroup} from "vuetify/lib";
     import SettingsDialog from "./SettingsDialog.vue";
     import Settings from "./Settings";
+    import ViewOptionsDialog from "./ViewOptionsDialog.vue";
+    import ViewOptions from "../graph/ViewOptions";
 
     @Component({
         components: {
+            ViewOptionsDialog,
             Settings,
             SettingsDialog,
             VueFilterComponentCreator,
@@ -208,7 +213,17 @@
             configuration: mdiEthernetCable,
             filter: mdiFilterOutline,
             settings: mdiCogs,
+            viewOptions: mdiEye,
         };
+
+        viewOptions: ViewOptions = {
+            edge: "full",
+            node: "full",
+        }
+
+        get viewOptionsActive() {
+            return this.viewOptions.edge !== "full" || this.viewOptions.node !== "full";
+        }
 
         filter: Filter[] = [
             {

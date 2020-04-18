@@ -61,6 +61,7 @@ import { mdiMagnify } from '@mdi/js';
 import SearchComponent from "../SearchComponent.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import cola from 'cytoscape-cola';
+import ViewOptions from "../../graph/ViewOptions";
 
 @Component({
 	components: {
@@ -74,6 +75,7 @@ export default class GraphArea extends Vue {
 	@Prop() stylesheet: ResponseStylesheet;
 	@Prop() leftOffset: number;
 	@Prop() rightOffset: number;
+	@Prop() viewOptions: ViewOptions;
 
 	/**
 	 * How much of the graph area is covered by panels. This array is readonly so it could be passed by reference.
@@ -115,7 +117,31 @@ export default class GraphArea extends Vue {
 	}
 
 	@Watch('stylesheet')
+	@Watch('viewOptions', {deep: true})
 	stylesheetUpdated() {
+		let viewOptionsStyles = [];
+
+		switch (this.viewOptions.node) {
+			case "hide":
+				viewOptionsStyles.push({selector: "node",
+					style: {label: ""}
+				});
+				break;
+		}
+
+		switch (this.viewOptions.edge) {
+			case "hide":
+				viewOptionsStyles.push({selector: "edge",
+					style: {display: "none"}
+				});
+				break;
+			case "hide_text":
+				viewOptionsStyles.push({selector: "edge",
+					style: {label: ""}
+				});
+				break;
+		}
+
 		let style = [
 			{
 				selector: "node",
@@ -134,6 +160,7 @@ export default class GraphArea extends Vue {
 				}
 			},
 			...this.stylesheet.styles.map(style => {return {selector: style.selector, style: clone(style.properties)}}),
+			...viewOptionsStyles,
 			{
 				selector: "node._preview_loading",
 				style: {

@@ -3,6 +3,7 @@ _lang_english: English
 menu:
   add_nodes: Add nodes
   filter: Filters
+  view_options: View options
   load: Load graph
   save: Save graph
   configuration: Source configuration
@@ -109,3 +110,15 @@ filters:
       tab: Class
       title: Class of the resource
       description: Choose which resources should be filtered by type.
+view_options:
+  title: View options
+  nodes:
+    title: Nodes
+    full: Full
+    hide: Hide text
+    dot: Dot
+  edges:
+    title: Edges
+    full: Full
+    hide_text: Hide text
+    hide: Hide
