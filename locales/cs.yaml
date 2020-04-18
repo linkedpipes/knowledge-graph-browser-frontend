@@ -1,7 +1,22 @@
 _lang_local: čeština
 _lang_english: Czech
-language: Jazyk
-change_configuration_and_stylesheet: Změnit konfiguraci a styly
+menu:
+  add_nodes: Přidat vrcholy
+  filter: Filtrování
+  load: Načíst ze souboru
+  save: Uložit do souboru
+  configuration: Konfigurace zdroje
+  language: Jazyk
+  settings: Nastavení
+settings:
+  title: Nastavení
+  permanent:
+    title: Trvalé změny
+    content: Veškeré změny budou uloženy do paměti local storage vašeho prohlížeče.
+  language: Jazyk aplikace
+  remote_url: Vzdálený API server
+search:
+  label: Zadejte IRI, název uzlu, kód...
 side_panel:
   detail_panel:
     loading: načítání

@@ -4,12 +4,13 @@
                 :items="items"
                 :search-input.sync="input"
                 color="blue-grey lighten-2"
-                label="Select"
+                :label="$t('search.label')"
                 item-text="IRI"
                 item-value="IRI"
                 :loading="loading"
                 clearable
                 no-filter
+                hide-no-data
                 auto-select-first
                 @input="onSelect"
 
@@ -27,6 +28,7 @@
                 </v-list-item-content>
             </template>
             <template v-slot:selection></template>
+            <template v-slot:no-data></template>
         </v-autocomplete>
     </div>
 </template>

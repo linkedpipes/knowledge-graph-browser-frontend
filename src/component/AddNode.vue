@@ -1,7 +1,7 @@
 <template>
     <v-dialog v-model="dialog" max-width="800">
         <v-card>
-            <v-toolbar flat color="primary" dark>
+            <v-toolbar flat color="secondary" dark>
                 <v-toolbar-title>{{ $t("add_node_dialog.title") }}</v-toolbar-title>
             </v-toolbar>
 

@@ -1,6 +1,6 @@
 <template>
     <v-app class="app">
-        <v-toolbar v-if="false" class="toolbar" style="flex: none;">
+        <v-toolbar color="secondary" v-if="false" class="toolbar" style="flex: none;">
             <v-toolbar-items>
                 <v-btn @click="$refs.addNode.show()" text>{{ $t("new_nodes.button") }}</v-btn>
                 <v-btn text>{{ $t("load_dialog.button") }}</v-btn>
@@ -39,7 +39,7 @@
             <graph-area :graph="graph" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset"/>
             <side-panel :graph="graph" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
-            <v-navigation-drawer color="red" expand-on-hover absolute dark permanent stateless ref="bar">
+            <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
                 <v-list dense nav class="py-0">
                     <v-list-item two-line style="padding-left: 0;">
                         <v-list-item-avatar>
@@ -54,39 +54,42 @@
 
                     <v-divider></v-divider>
 
-                    <v-list-item link @click="$refs.addNode.show()"><v-list-item-icon><v-icon>{{ icons.add }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("new_nodes.button") }}</v-list-item-title></v-list-item-content></v-list-item>
-                    <v-list-item link @click="$refs.filterDialog.show()"><v-list-item-icon><v-icon>{{ icons.filter }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>Add a new filter</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.addNode.show()"><v-list-item-icon><v-icon>{{ icons.add }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.add_nodes") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.filterDialog.show()"><v-list-item-icon><v-icon>{{ icons.filter }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
 
-                    <v-list-item link><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("load_dialog.button") }}</v-list-item-title></v-list-item-content></v-list-item>
-                    <v-list-item link @click="$refs.saveDialog.show()"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("save_dialog.button") }}</v-list-item-title></v-list-item-content></v-list-item>
-                    <v-list-item link @click="$refs.configurationStylesheetDialog.show()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("change_configuration_and_stylesheet") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.saveDialog.show()"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.save") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.configurationStylesheetDialog.show()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
 
-                    <v-list-group :prepend-icon="icons.language">
+                    <v-list-group :prepend-icon="icons.language" :color="null" ref="languageMenu">
                         <template v-slot:activator>
-                            <v-list-item-title>{{ $t("_lang_local") }}</v-list-item-title>
+                            <v-list-item-title>{{ $t("menu.language") }}</v-list-item-title>
                         </template>
 
                         <v-list>
-                            <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code" @click="$root.$i18n.locale = code">
+                            <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code" @click="menuLanguageSelected(code)">
                                 <v-list-item-title>{{ messages['_lang_local'] }}</v-list-item-title>
                             </v-list-item>
                         </v-list>
                     </v-list-group>
 
-<!--                    <v-menu offset-y>
-                        <template v-slot:activator="{ on }">
-                            <v-list-item v-on="on" link><v-list-item-icon><v-icon>{{ icons.language }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("_lang_local") }}</v-list-item-title></v-list-item-content></v-list-item>
-                        </template>
-                        <v-list>
-                            <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code" @click="$root.$i18n.locale = code">
-                                <v-list-item-title>{{ messages['_lang_local'] }}</v-list-item-title>
-                            </v-list-item>
-                        </v-list>
-                    </v-menu>-->
+                    <v-list-item link @click="$refs.settingsDialog.show()"><v-list-item-icon><v-icon>{{ icons.settings }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.settings") }}</v-list-item-title></v-list-item-content></v-list-item>
+
+
+                    <!--                    <v-menu offset-y>
+                                            <template v-slot:activator="{ on }">
+                                                <v-list-item v-on="on" link><v-list-item-icon><v-icon>{{ icons.language }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("_lang_local") }}</v-list-item-title></v-list-item-content></v-list-item>
+                                            </template>
+                                            <v-list>
+                                                <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code" @click="$root.$i18n.locale = code">
+                                                    <v-list-item-title>{{ messages['_lang_local'] }}</v-list-item-title>
+                                                </v-list-item>
+                                            </v-list>
+                                        </v-menu>-->
                 </v-list>
             </v-navigation-drawer>
         </v-content>
@@ -116,6 +119,13 @@
                 @changed="configurationStylesheetUpdated"
         />
         <vue-filter-component-creator :graph="graph" :filter="filter" />
+        <settings-dialog
+                :remote-url.sync="remoteURL"
+                ref="settingsDialog"
+        ></settings-dialog>
+        <settings
+                :remote-url.sync="remoteURL"
+        ></settings>
     </v-app>
 </template>
 
@@ -141,10 +151,23 @@
     import {ResponseStylesheet} from "../graph-fetcher/response-interfaces";
     import {DataSource} from "../DataSource";
 
-    import { mdiPlusThick, mdiFileUploadOutline, mdiFileDownloadOutline, mdiTranslate, mdiEthernetCable, mdiFilterOutline   } from '@mdi/js';
+    import {
+        mdiPlusThick,
+        mdiFileUploadOutline,
+        mdiFileDownloadOutline,
+        mdiTranslate,
+        mdiEthernetCable,
+        mdiFilterOutline,
+        mdiCogs
+    } from '@mdi/js';
+    import {VListGroup} from "vuetify/lib";
+    import SettingsDialog from "./SettingsDialog.vue";
+    import Settings from "./Settings";
 
     @Component({
         components: {
+            Settings,
+            SettingsDialog,
             VueFilterComponentCreator,
             GraphArea,
             AddNode,
@@ -162,9 +185,20 @@
         @Ref() readonly saveDialog !: SaveDialog;
         @Ref() readonly configurationStylesheetDialog : ConfigurationStylesheetDialog;
         @Ref() readonly bar !: any;
+        @Ref() readonly languageMenu !: typeof VListGroup;
+        @Ref() readonly settingsDialog !: typeof SettingsDialog;
 
         rightOffset: number = 0;
         private leftOffset: number = 56; // Collapsed width of Vuetify v-navigation-drawer
+
+        // Whether the item "Language" is opened with all the available languages
+        languageMenuActive: boolean = false;
+
+        private menuLanguageSelected(languageCode: string) {
+            this.$root.$i18n.locale = languageCode;
+            // @ts-ignore types
+            this.languageMenu.isActive = false;
+        }
 
         icons = {
             add: mdiPlusThick,
@@ -172,7 +206,8 @@
             save: mdiFileDownloadOutline,
             language: mdiTranslate,
             configuration: mdiEthernetCable,
-            filter: mdiFilterOutline
+            filter: mdiFilterOutline,
+            settings: mdiCogs,
         };
 
         filter: Filter[] = [

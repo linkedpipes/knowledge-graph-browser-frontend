@@ -2,33 +2,33 @@
 	<div class="d-flex flex-grow-1 wrapper" ref="wrapper">
 		<div class="flex-grow-1 graph-area" ref="graphd"></div>
 
-		<v-toolbar dense floating class="ma-3 toolbar" :style="leftStyle">
+		<v-toolbar flat dense floating class="ma-3 toolbar" :style="leftStyle">
 			<search-component :graph="graph"></search-component>
 		</v-toolbar>
 
 		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
 			<div class="my-2">
-				<v-btn color="red" fab small dark @click="graph.manipulator.zoomIn()">
+				<v-btn color="primary" fab small dark @click="graph.manipulator.zoomIn()">
 					<v-icon>mdi-plus</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="red" fab small dark @click="graph.manipulator.zoomOut()">
+				<v-btn color="primary" fab small dark @click="graph.manipulator.zoomOut()">
 					<v-icon>mdi-minus</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="red" fab small dark @click="graph.manipulator.fit()">
+				<v-btn color="primary" fab small dark @click="graph.manipulator.fit()">
 					<v-icon>mdi-arrow-expand-all</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="red" fab small dark @click="layout()">
+				<v-btn color="primary" fab small dark @click="layout()">
 					<v-icon>mdi-star-outline</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="red" fab small dark @click="circle()">
+				<v-btn color="primary" fab small dark @click="circle()">
 					<v-icon>mdi-vector-circle</v-icon>
 				</v-btn>
 			</div>

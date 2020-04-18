@@ -9,6 +9,28 @@ const vuetify = new Vuetify({
     icons: {
         iconfont: 'mdiSvg', // 'mdi' || 'mdiSvg' || 'md' || 'fa' || 'fa4' || 'faSvg'
     },
+    theme: {
+        themes: {
+            light: {
+                primary: '#f44336',
+                secondary: '#363636',
+                accent: '#03a9f4',
+                error: '#e91e63',
+                warning: '#ff9800',
+                info: '#cddc39',
+                success: '#4caf50',
+            },
+            dark: {
+                primary: '#f44336',
+                secondary: '#363636',
+                accent: '#03a9f4',
+                error: '#e91e63',
+                warning: '#ff9800',
+                info: '#cddc39',
+                success: '#4caf50',
+            },
+        },
+    },
 });
 
 // Create a vue instance

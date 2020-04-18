@@ -1,6 +1,22 @@
 _lang_local: English
 _lang_english: English
-language: Language
+menu:
+  add_nodes: Add nodes
+  filter: Filters
+  load: Load graph
+  save: Save graph
+  configuration: Source configuration
+  language: Language
+  settings: Settings
+settings:
+  title: Settings
+  permanent:
+    title: Permanent settings
+    content: All the settings are stored in local storage container in your browser.
+  language: Language
+  remote_url: Application API server
+search:
+  label: Insert IRI, name, code...
 change_configuration_and_stylesheet: Change configuration and stylesheet
 side_panel:
   detail_panel:
