@@ -2,7 +2,7 @@ import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import Vue, { CreateElement, VNode } from 'vue';
 import { Graph } from '../graph/Graph';
-import Filter from './Filter';
+import {FiltersList} from './Filter';
 
 /**
  * This Vue component creates for each node and each filter specific component which can handle updates of node's state
@@ -18,7 +18,7 @@ export default class VueFilterComponentCreator extends Vue {
     /**
      * List of available filter with their data.
      */
-    @Prop() filter: Filter[];
+    @Prop() filter: FiltersList;
 
     /**
      * Vue Render function which creates components for each node
@@ -26,14 +26,14 @@ export default class VueFilterComponentCreator extends Vue {
      */
     render (h: CreateElement): VNode {
         let components: VNode[] = [];
-        for (let filter of this.filter) {
+        for (let filter of this.filter.filters) {
             for (let nodeIRI in this.graph.nodes) {
                 let node = this.graph.nodes[nodeIRI];
                 components.push(h(filter.component,
                     {
                         attrs: {
                             name: filter.name,
-                            data: filter.data,
+                            filter: filter.filter,
                             node: node
                         }
                     }

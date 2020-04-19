@@ -49,25 +49,20 @@ side_panel:
 # Dialog to add new nodes
 add_node_dialog:
   title: Add new nodes
-  iri: IRI of the resource
-  error_fetch: Error occured while fetching the resource. See developers console for more detailed information. Try to check the corectness of IRI.
   cancel: Cancel
   add: Add node | Add nodes
-  # Unsupported fight now
   search:
     title: Search nodes
     hint: Enter the term you want to search
   single:
     title: Sigle node
     input: IRI of the resource
+    error: Error occured while fetching the resource. See developers console for more detailed information. Try to check the corectness of IRI.
   multiple:
     title: Multiple nodes
     hint: Insert each IRI in separate line.
     input: IRIs of the resources
-  menu:
-    search: Search nodes
-    single: Single node
-    multiple: Multiple nodes
+    error: Error occured while fetching the resources. Nodes listed in the textarea werent loaded. See developers console for more detailed information. Try to check the corectness of IRI.
 
 # Dialog to change configuration and stylesheet
 configuration_and_stylesheet_dialog:

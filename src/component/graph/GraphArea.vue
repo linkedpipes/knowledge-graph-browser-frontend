@@ -127,6 +127,18 @@ export default class GraphArea extends Vue {
 					style: {label: ""}
 				});
 				break;
+			case "dot":
+				viewOptionsStyles.push({selector: "node",
+					style: {
+						label: "",
+						width: 10,
+						height: 10,
+						shape: "ellipse",
+						"border-width": 0,
+						padding: 0,
+					}
+				});
+				break;
 		}
 
 		switch (this.viewOptions.edge) {

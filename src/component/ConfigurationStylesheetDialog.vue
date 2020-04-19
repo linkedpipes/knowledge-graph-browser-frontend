@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="dialog" max-width="800">
+    <v-dialog v-model="dialog" max-width="800" persistent>
         <v-card>
             <v-toolbar flat color="secondary" dark class="mb-5">
                 <v-toolbar-title>{{ $t("configuration_and_stylesheet_dialog.title") }}</v-toolbar-title>

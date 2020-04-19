@@ -1,11 +1,9 @@
 <template>
-    <v-dialog v-model="dialog" max-width="800">
+    <v-dialog v-model="dialog" max-width="800" persistent>
         <v-card>
             <v-toolbar flat color="secondary" dark>
                 <v-toolbar-title>{{ $t("add_node_dialog.title") }}</v-toolbar-title>
             </v-toolbar>
-
-
             <v-card flat>
                 <v-tabs v-model="tab">
                     <v-tab>{{ $t("add_node_dialog.single.title") }}</v-tab>
@@ -18,7 +16,7 @@
                         <v-card flat>
                             <v-card-text>
                                 <v-text-field v-model="IRI" :label="$t('add_node_dialog.single.input')"></v-text-field>
-                                <v-alert v-if="error" dense outlined type="error">{{ $t("add_node_dialog.error_fetch") }}</v-alert>
+                                <v-alert v-if="error" dense outlined type="error">{{ $t("add_node_dialog.single.error") }}</v-alert>
                             </v-card-text>
                         </v-card>
                     </v-tab-item>
@@ -29,7 +27,7 @@
                                 <p>{{ $t("add_node_dialog.multiple.hint") }}</p>
                                 <v-textarea v-model="IRIs" auto-grow clearable rows="1" :label="$t('add_node_dialog.multiple.input')"></v-textarea>
                                 <v-progress-linear :active="multipleLoading" :value="multipleActual/multipleTotal*100"></v-progress-linear>
-                                <v-alert v-if="error" dense outlined type="error">{{ $t("add_node_dialog.error_fetch") }}</v-alert>
+                                <v-alert v-if="error" dense outlined type="error">{{ $t("add_node_dialog.multiple.error") }}</v-alert>
                             </v-card-text>
                         </v-card>
                     </v-tab-item>

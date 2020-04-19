@@ -1,40 +1,5 @@
 <template>
     <v-app class="app">
-        <v-toolbar color="secondary" v-if="false" class="toolbar" style="flex: none;">
-            <v-toolbar-items>
-                <v-btn @click="$refs.addNode.show()" text>{{ $t("new_nodes.button") }}</v-btn>
-                <v-btn text>{{ $t("load_dialog.button") }}</v-btn>
-                <v-btn @click="$refs.saveDialog.show()" text>{{ $t("save_dialog.button") }}</v-btn>
-            </v-toolbar-items>
-
-            <div class="flex-grow-1"></div>
-
-            <v-toolbar-items>
-                <v-menu offset-y>
-                    <template v-slot:activator="{ on }">
-                        <v-btn text v-on="on">{{ $t("_lang_local") }}</v-btn>
-                    </template>
-                    <v-list>
-                        <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code" @click="$root.$i18n.locale = code">
-                            <v-list-item-title>{{ messages['_lang_local'] }}</v-list-item-title>
-                        </v-list-item>
-                    </v-list>
-                </v-menu>
-                <v-btn @click="$refs.configurationStylesheetDialog.show()" text>{{ $t("change_configuration_and_stylesheet") }}</v-btn>
-            </v-toolbar-items>
-
-            <template #extension>
-                <!--                <span class="mr-2" v-if="!filter_active">No vertices were filtered out.</span>
-                                <span class="mr-2" v-if="filter_active">Filtered by:</span>
-                                <span class="filter-list" v-if="filter_active">
-                                    <v-chip close><b>Degree</b>&nbsp;at least 5</v-chip>
-                                    <v-chip close color="secondary" class="pa-5"> <v-chip close><b>Degree</b>&nbsp;at least 5</v-chip> OR <v-chip close><b>Degree</b>&nbsp;at least 5</v-chip></v-chip>
-                                </span>-->
-                <v-toolbar-items>
-                    <v-btn @click="$refs.filterDialog.show()" text>Add a new filter</v-btn>
-                </v-toolbar-items>
-            </template>
-        </v-toolbar>
         <v-content class="d-flex flex-grow-1" style="overflow: hidden;">
             <graph-area :graph="graph" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset" :view-options="viewOptions"/>
             <side-panel :graph="graph" ref="sidePanel" @width-changed="rightOffset = $event"/>
@@ -55,8 +20,8 @@
                     <v-divider></v-divider>
 
                     <v-list-item link @click="$refs.addNode.show()"><v-list-item-icon><v-icon>{{ icons.add }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.add_nodes") }}</v-list-item-title></v-list-item-content></v-list-item>
-                    <v-list-item link @click="$refs.filterDialog.show()"><v-list-item-icon><v-icon>{{ icons.filter }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title></v-list-item-content></v-list-item>
-                    <v-list-item link @click="$refs.viewOptionsDialog.show()"><v-list-item-icon><v-badge dot :value="viewOptionsActive"><v-icon>{{ icons.viewOptions }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.view_options") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.filterDialog.show()"><v-list-item-icon><v-badge overlap :value="filter.active" :content="filter.active"><v-icon>{{ icons.filter }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.viewOptionsDialog.show()"><v-list-item-icon><v-badge dot :value="viewOptions.active"><v-icon>{{ icons.viewOptions }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.view_options") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
 
@@ -79,31 +44,12 @@
                     </v-list-group>
 
                     <v-list-item link @click="$refs.settingsDialog.show()"><v-list-item-icon><v-icon>{{ icons.settings }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.settings") }}</v-list-item-title></v-list-item-content></v-list-item>
-
-
-                    <!--                    <v-menu offset-y>
-                                            <template v-slot:activator="{ on }">
-                                                <v-list-item v-on="on" link><v-list-item-icon><v-icon>{{ icons.language }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("_lang_local") }}</v-list-item-title></v-list-item-content></v-list-item>
-                                            </template>
-                                            <v-list>
-                                                <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code" @click="$root.$i18n.locale = code">
-                                                    <v-list-item-title>{{ messages['_lang_local'] }}</v-list-item-title>
-                                                </v-list-item>
-                                            </v-list>
-                                        </v-menu>-->
                 </v-list>
             </v-navigation-drawer>
         </v-content>
 
-        <v-footer
-                dark
-                padless
-        >
-            <v-card
-                    class="flex"
-                    flat
-                    tile
-            >
+        <v-footer dark padless>
+            <v-card class="flex" flat tile>
                 <v-card-text class="py-2 white--text">
                     <v-progress-circular color="white" indeterminate size="16" width="2" class="mr-1"></v-progress-circular> <strong>Fetching resources...</strong> [5 left]
                 </v-card-text>
@@ -141,7 +87,6 @@
     import SaveDialog from './SaveDialog.vue';
     import FilterDialog from './filter/FilterDialog.vue';
     import VueFilterComponentCreator from '../filter/VueFilterComponentCreator';
-    import Filter from '../filter/Filter';
     import PropertyFilterComponent from '../filter/filters/PropertyFilter/PropertyFilterComponent';
     import PropertyFilterData from "../filter/filters/PropertyFilter/PropertyFilterData";
     import DegreeFilterComponent from "../filter/filters/DegreeFilter/DegreeFilterComponent";
@@ -167,6 +112,7 @@
     import Settings from "./Settings";
     import ViewOptionsDialog from "./ViewOptionsDialog.vue";
     import ViewOptions from "../graph/ViewOptions";
+    import {FiltersList} from "../filter/Filter";
 
     @Component({
         components: {
@@ -216,27 +162,21 @@
             viewOptions: mdiEye,
         };
 
-        viewOptions: ViewOptions = {
-            edge: "full",
-            node: "full",
-        }
+        viewOptions = new ViewOptions();
 
-        get viewOptionsActive() {
-            return this.viewOptions.edge !== "full" || this.viewOptions.node !== "full";
-        }
-
-        filter: Filter[] = [
+        /** @part-of-app **/
+        filter = new FiltersList([
             {
                 name: "degreeFilter",
                 component: DegreeFilterComponent,
-                data: new DegreeFilterData(),
+                filter: new DegreeFilterData(),
             },
             {
                 name: "propertyFilter",
                 component: PropertyFilterComponent,
-                data: new PropertyFilterData()
+                filter: new PropertyFilterData()
             }
-        ];
+        ]);
 
         translations: {text: LocaleMessage, value: string}[] = [];
 

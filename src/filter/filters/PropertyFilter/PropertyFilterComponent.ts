@@ -15,20 +15,20 @@ export default class PropertyFilterComponent extends Vue {
     /**
      * Data to this filter
      */
-    @Prop() data: PropertyFilterData;
+    @Prop() filter: PropertyFilterData;
 
     /**
      * Filter name.
      */
     @Prop() name: string;
 
-    @Watch('node.currentView.preview.type.iri') @Watch('data', { deep: true })
+    @Watch('node.currentView.preview.type.iri') @Watch('filter', { deep: true })
     valueChanged() {
         let show = true;
 
         // Execute each filter and AND them
-        show = show && this.filterType(this.node, this.data.type);
-        show = show && this.filterClass(this.node, this.data.class);
+        show = show && this.filterType(this.node, this.filter.type);
+        show = show && this.filterClass(this.node, this.filter.class);
 
         // This watcher updates data inside the Vuex container which is
         // generally a bad practise because it can go into a loop or cause

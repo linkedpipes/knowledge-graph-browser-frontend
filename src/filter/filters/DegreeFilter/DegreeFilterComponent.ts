@@ -14,7 +14,7 @@ export default class DegreeFilterComponent extends Vue {
     /**
      * Data to this filter
      */
-    @Prop() data: DegreeFilterData;
+    @Prop() filter: DegreeFilterData;
 
     /**
      * Filter name.
@@ -33,19 +33,19 @@ export default class DegreeFilterComponent extends Vue {
         return count;
     }
 
-    @Watch('data', { deep: true })
+    @Watch('filter', { deep: true })
     @Watch('degree')
     valueChanged() {
         let [incoming, outgoing] = this.degree;
         let total = incoming + outgoing;
 
         let show = true;
-        if (this.data.sumDegree[0] !== null && this.data.sumDegree[0] > total) show = false;
-        if (this.data.sumDegree[1] !== null && this.data.sumDegree[1] < total) show = false;
-        if (this.data.inDegree[0] !== null && this.data.inDegree[0] > incoming) show = false;
-        if (this.data.inDegree[1] !== null && this.data.inDegree[1] < incoming) show = false;
-        if (this.data.outDegree[0] !== null && this.data.outDegree[0] > outgoing) show = false;
-        if (this.data.outDegree[1] !== null && this.data.outDegree[1] < outgoing) show = false;
+        if (this.filter.sumDegree[0] !== null && this.filter.sumDegree[0] > total) show = false;
+        if (this.filter.sumDegree[1] !== null && this.filter.sumDegree[1] < total) show = false;
+        if (this.filter.inDegree[0] !== null && this.filter.inDegree[0] > incoming) show = false;
+        if (this.filter.inDegree[1] !== null && this.filter.inDegree[1] < incoming) show = false;
+        if (this.filter.outDegree[0] !== null && this.filter.outDegree[0] > outgoing) show = false;
+        if (this.filter.outDegree[1] !== null && this.filter.outDegree[1] < outgoing) show = false;
 
         // This watcher updates data inside the Vuex container which is
         // generally a bad practise because it can go into a loop or cause

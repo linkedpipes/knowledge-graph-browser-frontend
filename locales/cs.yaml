@@ -35,10 +35,20 @@ side_panel:
 # Dialog to add new nodes
 add_node_dialog:
   title: Přidání nových vrcholů
-  iri: IRI vrcholu/zdroje
-  error_fetch: Při stahování vrcholu došlo k chybě. Více informací najdete ve vývojářské konzoli prohlížeče. Zkontrolujte správnost IRI.
   cancel: Zrušit
   add: Přidat uzel | Přidat uzly
+  search:
+    title: Najít uzly
+    hint: Zadejte výraz, který hledáte
+  single:
+    title: Jeden vrchol
+    input: IRI vrcholu/zdroje
+    error: Při stahování vrcholu došlo k chybě. Více informací najdete ve vývojářské konzoli prohlížeče. Zkontrolujte správnost IRI.
+  multiple:
+    title: Více vrcholů
+    hint: Každé IRI vložte na vlastní řádek.
+    input: IRI vrcholů
+    error: Při stahování některých vrcholů došlo k chybě. Vrcholy, co se nepodařilo stáhnout, jsou v textovém poli. Více informací najdete ve vývojářské konzoli prohlížeče. Zkontrolujte správnost IRI.
 
 # Dialog to change configuration and stylesheet
 configuration_and_stylesheet_dialog:

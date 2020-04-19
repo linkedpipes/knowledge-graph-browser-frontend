@@ -5,8 +5,6 @@ import { Node } from '../../graph/Node';
 import Cytoscape, {CollectionAnimation} from "cytoscape";
 import Vue, { CreateElement, VNode, VNodeChildren } from 'vue';
 import { NodePreview } from '../../graph/NodeView';
-import Filter from '../../filter/Filter';
-//import DegreeFilterComponent from '../../filter/DegreeFilterComponent';
 
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,
