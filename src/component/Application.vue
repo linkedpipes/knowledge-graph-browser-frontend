@@ -1,7 +1,7 @@
 <template>
     <v-app class="app">
         <v-content class="d-flex flex-grow-1" style="overflow: hidden;">
-            <graph-area :graph="graph" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset" :view-options="viewOptions"/>
+            <graph-area :graph="graph" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset" :view-options="viewOptions" @new-manipulator="areaManipulator = $event"/>
             <side-panel :graph="graph" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
             <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
@@ -56,7 +56,7 @@
             </v-card>
         </v-footer>
 
-        <add-node ref="addNode" :graph="graph" />
+        <add-node ref="addNode" :graph="graph" :manipulator="manipulator" />
         <filter-dialog ref="filterDialog" :graph="graph" :filter="filter" />
         <save-dialog ref="saveDialog" />
         <configuration-stylesheet-dialog
@@ -113,6 +113,8 @@
     import ViewOptionsDialog from "./ViewOptionsDialog.vue";
     import ViewOptions from "../graph/ViewOptions";
     import {FiltersList} from "../filter/Filter";
+    import GraphAreaManipulator from "../graph/GraphAreaManipulator";
+    import GraphManipulator from "../graph/GraphManipulator";
 
     @Component({
         components: {
@@ -130,6 +132,10 @@
     })
     export default class Application extends Vue {
         graph: Graph = new Graph(null, null);
+        /** @non-reactive **/
+        areaManipulator !: GraphAreaManipulator;
+        /** @non-reactive **/
+        manipulator !: GraphManipulator;
 
         @Ref() readonly addNode !: AddNode;
         @Ref() readonly filterDialog !: FilterDialog;
@@ -201,6 +207,14 @@
             this.stylesheet = await this.graph.fetcher.getStylesheet(this.dataSource.stylesheet);
         }
 
+        @Watch('graph')
+        @Watch('areaManipulator')
+        private createNewManipulator() {
+            if (this.graph && this.areaManipulator) {
+                this.manipulator = new GraphManipulator(this.graph, this.areaManipulator);
+            }
+        }
+
         /**
          * Vue method called when component is created
          */
@@ -217,6 +231,9 @@
                     value: code
                 });
             }
+
+            this.areaManipulator = null;
+            this.manipulator = null;
         }
 
         /**

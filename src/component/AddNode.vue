@@ -56,10 +56,14 @@ import Vue from 'vue';
 import {Component, Prop, Watch} from 'vue-property-decorator';
 import { Graph } from '../graph/Graph';
 import SearchComponent from "./SearchComponent.vue";
+import GraphManipulator from "../graph/GraphManipulator";
 @Component({
     components: {SearchComponent}
 })
 export default class AddNode extends Vue {
+    @Prop({type: Object as () => Graph}) graph: Graph;
+    @Prop() manipulator: GraphManipulator;
+
     multipleEntry: boolean = false;
     IRI: string = "";
     IRIs: string = "";
@@ -69,7 +73,6 @@ export default class AddNode extends Vue {
 
     tab: number = 0;
 
-    @Prop({type: Object as () => Graph}) graph: Graph;
 
     get IRIsLines(): string[] {
         if (this.IRIs === null) return [];
@@ -91,31 +94,17 @@ export default class AddNode extends Vue {
 
     async confirmed() {
         if (this.tab === 0) {
-            let node = this.graph.getNodeByIRI(this.IRI);
 
-            // The node not exists yet
-            if (!node) {
-                try {
-                    this.loading = true;
-                    this.error = false;
-                    node = await this.graph.fetchNode(this.IRI);
+            this.loading = true;
+            this.error = false;
 
-                    // Asynchronously fetch view sets, use default view and fetch preview
-                    node.useDefaultView().then((view) => view.fetchPreview());
-                } catch (error) {
-                    node = null;
-                    this.error = true;
-                    console.error("Error occurred while fetching a new node. Probably the user specified wrong IRI or there is a problem on server side.", error);
-                }
-                this.loading = false;
-            }
-
-            if (node) {
+            if (await this.manipulator.blockAddFindNode(this.IRI)) {
                 this.IRI = "";
-                this.dialog = false; // Close
-                node.selected = true;
-                // Todo: Change viewport to the node
+                this.dialog = false;
+            } else {
+                this.error = true;
             }
+
         } else if (this.tab === 1) {
             let iris = this.IRIsLines;
 
@@ -125,22 +114,21 @@ export default class AddNode extends Vue {
             this.multipleActual = 0;
             this.error = false;
 
-            iris.forEach(async (IRI) => {
-                let node = this.graph.getNodeByIRI(IRI);
-                if (!node) {
-                    try {
-                        node = await this.graph.fetchNode(IRI);
-
-
-                        // Asynchronously fetch view sets, use default view and fetch preview
-                        node.useDefaultView().then((view) => view.fetchPreview());
-                    } catch (error) {
-                        node = null;
-                        this.error = true;
-                        console.error("Error occurred while fetching a new node. Probably the user specified wrong IRI or there is a problem on server side.", error);
+            this.manipulator.blockAddFindMultipleNodes(iris, (node, success) => {
+                this.multipleActual++;
+                if (success) {
+                    iris = iris.filter((iri) => iri != node);
+                    this.IRIs = iris.join('\n');
+                } else {
+                    this.error = true;
+                }
+                if (this.multipleActual === this.multipleTotal) {
+                    this.loading = false;
+                    this.multipleLoading = false;
+                    if (!this.error) {
+                        this.dialog = false;
                     }
                 }
-                this.multipleActual++;
             });
         }
 

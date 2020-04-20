@@ -53,7 +53,7 @@ import Component from "vue-class-component";
 import GraphElementNode from "./GraphElementNode";
 import GraphElementEdge from "./GraphElementEdge";
 import Cytoscape from "cytoscape";
-import {Prop, Watch} from "vue-property-decorator";
+import {Emit, Prop, Watch} from "vue-property-decorator";
 import {ResponseStylesheet} from "../../graph-fetcher/response-interfaces";
 import {Graph} from "../../graph/Graph";
 import clone from 'clone';
@@ -112,8 +112,9 @@ export default class GraphArea extends Vue {
 	}
 
 	@Watch('graph')
-	graphChanged() {
-		this.graph.manipulator = new GraphAreaManipulator(this.cy, this.graph, this.offset);
+	@Emit()
+	newManipulator() {
+		return new GraphAreaManipulator(this.cy, this.graph, this.offset);
 	}
 
 	@Watch('stylesheet')
@@ -212,6 +213,9 @@ export default class GraphArea extends Vue {
 				(<GraphElementNode>event.target.scratch("_component")).onDoubleClicked();
 			}
 		});
+
+		// Mount manipulator
+		this.newManipulator();
 	}
 
 	@Watch('leftOffset', {immediate: true})

@@ -42,6 +42,13 @@ export default class GraphAreaManipulator {
         }, this.animateOptions);
     }
 
+    getCenterPosition() {
+        return {
+            x: ((this.cy.container().clientWidth - this.offsetArray[1] - this.offsetArray[3]) / 2 + this.offsetArray[3] - this.cy.pan().x) / this.cy.zoom(),
+            y: ((this.cy.container().clientHeight - this.offsetArray[0] - this.offsetArray[2]) / 2 + this.offsetArray[0] - this.cy.pan().y) / this.cy.zoom(),
+        }
+    }
+
     fit(nodes?: string|Node|(string|Node)[]) {
         let nds: null|(string|Node)[];
         if (nodes === undefined) {
