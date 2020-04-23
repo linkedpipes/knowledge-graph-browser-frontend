@@ -5,11 +5,12 @@ import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 import Vue from 'vue';
 import {DataSource} from "../DataSource";
 import GraphAreaManipulator from "./GraphAreaManipulator";
+import ObjectSave from "../file-save/ObjectSave";
 
 /**
  * Graph class represents graph as a whole structure with additional methods for linking to
  */
-export class Graph {
+export class Graph implements ObjectSave{
     layout?: any;
 
     nodes: {
@@ -21,17 +22,11 @@ export class Graph {
     } = {};
 
     fetcher: DataGraphFetcher = null;
-    dataSource: DataSource;
 
     /**
      * @non-reactive
      */
     manipulator !: GraphAreaManipulator;
-
-    constructor(fetcher: DataGraphFetcher, dataSource: DataSource) {
-        this.fetcher = fetcher;
-        this.dataSource = dataSource;
-    }
 
     /**
      * Returns existing node by its IRI
@@ -148,5 +143,27 @@ export class Graph {
         }
 
         return node;
+    }
+
+    saveToObject(): object {
+        let nodes = [];
+        let edges = [];
+
+        for (let iri in this.nodes) nodes.push(this.nodes[iri].saveToObject());
+        for (let eid in this.edges) edges.push(this.edges[eid].saveToObject());
+
+        return {
+            nodes,
+            edges,
+        }
+    }
+
+    restoreFromObject(object: any): void {
+        for (let nodeData of object.nodes) {
+            this.createNode(nodeData.IRI).restoreFromObject(nodeData);
+        }
+        for (let edgeData of object.edges) {
+            this.createEdge(this.getNodeByIRI(edgeData.source), this.getNodeByIRI(edgeData.target), edgeData.type).restoreFromObject(edgeData);
+        }
     }
 }

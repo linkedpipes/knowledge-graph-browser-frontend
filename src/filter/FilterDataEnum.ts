@@ -1,7 +1,9 @@
 /**
  * Specifies one enum property of node of type T which can be filtered.
  */
-export default class FilterDataEnum<T> {
+import ObjectSave from "../file-save/ObjectSave";
+
+export default class FilterDataEnum<T> implements ObjectSave {
     active: boolean = false;
 
     /**
@@ -13,4 +15,26 @@ export default class FilterDataEnum<T> {
      */
     modeListed = false;
     items: T[] = [];
+
+    /**
+     * Saves current data into the plain javascript object.
+     * This implementation works only for simple data types.
+     */
+    saveToObject(): object {
+        return {
+            active: this.active,
+            modeListed: this.modeListed,
+            items: JSON.stringify(this.items),
+        };
+    }
+
+    /**
+     * Changes data according to plain javascript object.
+     * This implementation works only for simple data types.
+     */
+    restoreFromObject(object: any): void {
+        this.active = object.active;
+        this.modeListed = object.modeListed;
+        this.items = JSON.parse(object.items);
+    }
 }

@@ -171,7 +171,6 @@ export default class DetailPanel extends Vue {
     }
 
     mounted() {
-        console.log("mounted", this.node);
         this.nodeChanged();
     }
 

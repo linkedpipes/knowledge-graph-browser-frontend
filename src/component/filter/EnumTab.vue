@@ -96,7 +96,6 @@ export default class PropertyEnumTab<T> extends Vue {
      * @param itemsIds
      */
     set selectedItems(itemsIds: number[]) {
-        console.log("set selectedItems()", itemsIds);
 
         let items = [];
         for (let itemId in this.availableItems) {

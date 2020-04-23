@@ -1,46 +1,47 @@
 <template>
-    <v-dialog v-model="dialog" max-width="1000">
-      <v-card>
-        <v-card-title><span class="headline">{{ $t("save_dialog.title") }}</span></v-card-title>
+    <v-dialog v-model="dialog" max-width="290">
+        <v-card>
+            <v-card-title class="headline">{{ $t('save_dialog.title') }}</v-card-title>
+            <v-card-text>{{ $t('save_dialog.text') }}</v-card-text>
 
-        <v-card-text>
-            <v-radio-group v-model="type">
-                <v-radio value="minimal" :label="$t('save_dialog.minimal')" />
-                <p>{{ $t("save_dialog.minimal_description") }}</p>
-                <v-radio value="complete" :label="$t('save_dialog.complete')" />
-                <p>{{ $t("save_dialog.complete_description") }}</p>
-            </v-radio-group>
-        </v-card-text>
-
-        <v-divider></v-divider>
-
-        <v-card-actions>
-          <div class="flex-grow-1"></div>
-
-          <v-btn color="primary" text>{{ $t("save_dialog.cancel") }}</v-btn>
-          <v-btn color="primary" text v-if="not_save_option">{{ $t("save_dialog.not_save") }}</v-btn>
-          <v-btn color="primary" text :loading="loading">{{ $t("save_dialog.save") }}</v-btn>
-        </v-card-actions>
-      </v-card>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="primary" text @click="action('yes')">{{ $t('save_dialog.yes') }}</v-btn>
+                <v-btn color="secondary" v-if="modal" text @click="action('no')">{{ $t('save_dialog.no') }}</v-btn>
+                <v-btn color="secondary" text @click="action('back')">{{ $t('save_dialog.back') }}</v-btn>
+            </v-card-actions>
+        </v-card>
     </v-dialog>
 </template>
 <script lang="ts">
 import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import {Component, Prop, Watch} from 'vue-property-decorator';
 
 @Component
 export default class SaveDialog extends Vue {
-    loading: boolean = false;
-    dialog: boolean = false;
+    private dialog: boolean = false;
+    private modal: boolean = false;
+    private resolver: (value: 'yes'|'no'|'back') => void = () => null;
 
-    /**
-     * If is possible to click to not save.
-     */
-    not_save_option: boolean = true;
-    type: string = "minimal";
+    private action(value: 'yes'|'no'|'back') {
+        this.resolver(value);
+        this.dialog = false;
+    }
 
-    show() {
+    @Watch('dialog')
+    private onDialogChanged(value: boolean) {
+        if (!value) {
+            this.action("back");
+        }
+    }
+
+    show(modal: boolean): Promise<'yes'|'no'|'back'> {
         this.dialog = true;
+        this.modal = modal;
+
+        return new Promise((resolve) => {
+            this.resolver = resolve;
+        });
     }
 }
 </script>

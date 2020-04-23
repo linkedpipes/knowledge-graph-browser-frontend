@@ -3,7 +3,7 @@
 		<div class="flex-grow-1 graph-area" ref="graphd"></div>
 
 		<v-toolbar flat dense floating class="ma-3 toolbar" :style="leftStyle">
-			<search-component :graph="graph"></search-component>
+			<search-component :graph="graph" :data-source="dataSource"></search-component>
 		</v-toolbar>
 
 		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
@@ -62,6 +62,7 @@ import SearchComponent from "../SearchComponent.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import cola from 'cytoscape-cola';
 import ViewOptions from "../../graph/ViewOptions";
+import {DataSource} from "../../DataSource";
 
 @Component({
 	components: {
@@ -76,6 +77,7 @@ export default class GraphArea extends Vue {
 	@Prop() leftOffset: number;
 	@Prop() rightOffset: number;
 	@Prop() viewOptions: ViewOptions;
+	@Prop() dataSource: DataSource;
 
 	/**
 	 * How much of the graph area is covered by panels. This array is readonly so it could be passed by reference.

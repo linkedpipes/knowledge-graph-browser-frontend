@@ -22,6 +22,10 @@ export default class PropertyFilterComponent extends Vue {
      */
     @Prop() name: string;
 
+    mounted() {
+        this.valueChanged();
+    }
+
     @Watch('node.currentView.preview.type.iri') @Watch('filter', { deep: true })
     valueChanged() {
         let show = true;

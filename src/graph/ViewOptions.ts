@@ -1,4 +1,6 @@
-export default class ViewOptions {
+import ObjectSave from "../file-save/ObjectSave";
+
+export default class ViewOptions implements ObjectSave {
     /**
      * How nodes should be rendered
      * full - show everything
@@ -20,5 +22,17 @@ export default class ViewOptions {
      */
     get active() {
         return this.edge !== "full" || this.node !== "full";
+    }
+
+    saveToObject(): object {
+        return {
+            node: this.node,
+            edge: this.edge,
+        };
+    }
+
+    restoreFromObject(object: any): void {
+        this.node = object.node;
+        this.edge = object.edge;
     }
 }

@@ -1,11 +1,12 @@
 import Cytoscape, {AnimateOptions} from "cytoscape";
 import {Node} from "./Node";
 import {Graph} from "./Graph";
+import ObjectSave from "../file-save/ObjectSave";
 
 /**
  * This class performs basic operations with graph area like zooming, animations etc.
  */
-export default class GraphAreaManipulator {
+export default class GraphAreaManipulator implements ObjectSave {
     animateOptions: AnimateOptions = {duration: 300};
     manualZoomScale: number = 2;
     nodeZoom: number = 4;
@@ -98,5 +99,16 @@ export default class GraphAreaManipulator {
 
     }
 
+    saveToObject(): object {
+        return {
+            zoom: this.cy.zoom(),
+            pan: this.cy.pan(),
+        };
+    }
+
+    restoreFromObject(object: any): void {
+        this.cy.zoom(object.zoom);
+        this.cy.pan(object.pan);
+    }
 
 }

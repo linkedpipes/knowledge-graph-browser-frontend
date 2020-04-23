@@ -44,10 +44,12 @@ import SimpleJsonSearcher from "../searchers/SimpleJsonSearcher";
 import {mdiMagnify} from "@mdi/js";
     import {Graph} from "../graph/Graph";
     import LocalGraphSearcher from "../searchers/LocalGraphSearcher";
+    import {DataSource} from "../DataSource";
 
 @Component
 export default class SearchComponent extends Vue {
     @Prop() graph: Graph;
+    @Prop() dataSource: DataSource;
 
     loading: boolean = false;
     input: string = "";
@@ -62,9 +64,9 @@ export default class SearchComponent extends Vue {
             let searchers: Searcher[] = [];
 
             searchers.push(new LocalGraphSearcher(this.graph));
-            if (this.graph.dataSource.autocomplete) searchers.push(new SimpleJsonSearcher(this.graph.dataSource.autocomplete));
-            if (this.graph.dataSource.iri_by_id) searchers.push(new IRIConstructorSearcher(this.graph.dataSource.iri_by_id.template, new RegExp(this.graph.dataSource.iri_by_id.id_structure)));
-            searchers.push(new IRIIdentitySearcher(this.graph.dataSource.iri_structure ? new RegExp(this.graph.dataSource.iri_structure) : null));
+            if (this.dataSource.autocomplete) searchers.push(new SimpleJsonSearcher(this.dataSource.autocomplete));
+            if (this.dataSource.iri_by_id) searchers.push(new IRIConstructorSearcher(this.dataSource.iri_by_id.template, new RegExp(this.dataSource.iri_by_id.id_structure)));
+            searchers.push(new IRIIdentitySearcher(this.dataSource.iri_structure ? new RegExp(this.dataSource.iri_structure) : null));
 
             this.graphSearcher = new GraphSearcher(searchers);
         }

@@ -27,30 +27,42 @@
 <script lang="ts">
 import Component from "vue-class-component";
 import Vue from "vue";
-import {Prop, Watch} from "vue-property-decorator";
+import {Prop, PropSync, Watch} from "vue-property-decorator";
 
 @Component
 export default class SliderCard extends Vue {
-    @Prop() value: [number, number];
-    sliderValue: [number, number] = [25, 75];
-    active = false;
+    @PropSync('range') value!: [number, number];
+
+    lastValue: [number, number] = [25, 75];
     max: number = 100;
 
-    @Watch('sliderValue', {deep: true}) @Watch('active')
-    possibleUpdate() {
-        let newValue: [number, number];
-        if (this.active) {
-            newValue = [this.sliderValue[0], this.sliderValue[1]];
-            if (this.sliderValue[1] == this.max + 1) {
-                newValue[1] = null;
-            }
-        } else {
-            newValue = [null, null];
-        }
+    get active(): boolean {
+        return this.value[0] !== null || this.value[1] !== null;
+    }
 
-        if (this.value[0] !== newValue[0] || this.value[1] !== newValue[1]) {
-            // Update this.value
-            this.$emit('input', newValue);
+    set active(value: boolean) {
+        if (value) {
+            this.value = [this.sliderValue[0], (this.sliderValue[1] === this.max + 1) ? null : this.sliderValue[1]];
+        } else {
+            this.value = [null, null];
+        }
+    }
+
+    set sliderValue(value: [number, number]) {
+        this.lastValue = value;
+
+        let val: [number, number] = [value[0], value[1]];
+        if (val[1] === this.max + 1) {
+            val[1] = null;
+        }
+        this.value = val;
+    }
+
+    get sliderValue(): [number, number] {
+        if (this.active) {
+            return [this.value[0], this.value[1] === null ? this.max + 1 : this.value[1]];
+        } else {
+            return [this.lastValue[0], this.lastValue[1]];
         }
     }
 }

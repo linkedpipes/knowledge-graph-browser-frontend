@@ -14,7 +14,7 @@
             <v-tab-item>
                 <v-card flat>
                     <v-card-text>
-                        <range-card v-for="filterName in graphFiltersNamesOrder" :key="filterName" v-model="filtersMapped.degreeFilter[filterName]">
+                        <range-card v-for="filterName in graphFiltersNamesOrder" :key="filterName" :range.sync="filtersMapped.degreeFilter[filterName]">
                             <template v-slot:title>{{ $t('filters.degreeFilter.' + filterName) }}</template>
                             <p>{{ $t("filters.degreeFilter." + filterName + "_description") }}</p>
                         </range-card>

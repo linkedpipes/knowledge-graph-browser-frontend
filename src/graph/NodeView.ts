@@ -3,6 +3,8 @@ import { Expansion } from "./Expansion";
 import { ResponseElementType } from "../graph-fetcher/response-interfaces";
 import { NodeType } from "./Node";
 import { NodeViewSet } from "./NodeViewSet";
+import ObjectSave from "../file-save/ObjectSave";
+import clone from "clone";
 
 /**
  * Information about the type of detail. Same as ResponseElementType
@@ -22,7 +24,7 @@ export interface NodePreview {
     classes: string[];
 };
 
-export class NodeView {
+export class NodeView implements ObjectSave {
     /**
      * IRI of the view
      */
@@ -163,5 +165,23 @@ export class NodeView {
 
         this.expansionInProgress = false;
         return this.expansion;
+    }
+
+    saveToObject(): object {
+        return {
+            IRI: this.IRI,
+            label: this.label,
+            detail: clone(this.detail),
+            preview: clone(this.preview),
+            // todo this.expansion
+        };
+    }
+
+    restoreFromObject(object: any): void {
+        this.IRI = object.IRI;
+        this.label = object.label;
+        this.detail = object.detail;
+        this.preview = object.preview;
+        // todo expansion
     }
 }

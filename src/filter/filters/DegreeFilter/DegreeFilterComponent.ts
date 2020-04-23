@@ -33,6 +33,10 @@ export default class DegreeFilterComponent extends Vue {
         return count;
     }
 
+    mounted() {
+        this.valueChanged();
+    }
+
     @Watch('filter', { deep: true })
     @Watch('degree')
     valueChanged() {

@@ -117,3 +117,10 @@ view_options:
     full: Full
     hide_text: Hide text
     hide: Hide
+
+save_dialog:
+  title: Save graph?
+  text: Would you like to save current graph to a local file on your computer? You would be able to access it later.
+  yes: Yes
+  no: No
+  back: Go back

@@ -103,3 +103,10 @@ view_options:
     full: Vše
     hide_text: Skrýt text
     hide: Skrýt
+
+save_dialog:
+  title: Uložit graf?
+  text: Přejete si uložit aktuální graf do pořítače abyste ho mohli v budoucnu otevřít a pokračovat v prohlížení?
+  yes: Ano
+  no: Ne
+  back: Zpět

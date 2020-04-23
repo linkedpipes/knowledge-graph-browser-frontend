@@ -1,7 +1,7 @@
 <template>
     <v-app class="app">
         <v-content class="d-flex flex-grow-1" style="overflow: hidden;">
-            <graph-area :graph="graph" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset" :view-options="viewOptions" @new-manipulator="areaManipulator = $event"/>
+            <graph-area :graph="graph" :data-source="dataSource" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset" :view-options="viewOptions" @new-manipulator="areaManipulator = $event"/>
             <side-panel :graph="graph" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
             <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
@@ -25,8 +25,8 @@
 
                     <v-divider></v-divider>
 
-                    <v-list-item link><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
-                    <v-list-item link @click="$refs.saveDialog.show()"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.save") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="loadDialog.show()" ><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="saveToFile(null)"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.save") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="$refs.configurationStylesheetDialog.show()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
@@ -63,6 +63,10 @@
                 ref="configurationStylesheetDialog"
                 :oldConfiguration="dataSource ? dataSource.configuration : null"
                 :oldStylesheet="dataSource ? dataSource.stylesheet : null"
+
+                :hasUnsavedChanges="hasUnsavedChanges"
+                :saveDialog="saveDialog"
+                :saveFunction="saveToFile"
                 @changed="configurationStylesheetUpdated"
         />
         <vue-filter-component-creator :graph="graph" :filter="filter" />
@@ -74,6 +78,7 @@
         <settings
                 :remote-url.sync="remoteURL"
         ></settings>
+        <load-dialog ref="loadDialog" @selected="loadFromFile($event)"></load-dialog>
     </v-app>
 </template>
 
@@ -94,7 +99,7 @@
     import Component from "vue-class-component";
     import {LocaleMessage} from "vue-i18n";
     import Vue from 'vue';
-    import {Ref, Watch} from "vue-property-decorator";
+    import {Mixins, Ref, Watch} from "vue-property-decorator";
     import {ResponseStylesheet} from "../graph-fetcher/response-interfaces";
     import {DataSource} from "../DataSource";
 
@@ -115,9 +120,12 @@
     import {FiltersList} from "../filter/Filter";
     import GraphAreaManipulator from "../graph/GraphAreaManipulator";
     import GraphManipulator from "../graph/GraphManipulator";
+    import LoadDialog from "./LoadDialog.vue";
+    import ApplicationLoadStoreMixin from "./ApplicationLoadStoreMixin";
 
     @Component({
         components: {
+            LoadDialog,
             ViewOptionsDialog,
             Settings,
             SettingsDialog,
@@ -130,47 +138,44 @@
             FilterDialog,
         }
     })
-    export default class Application extends Vue {
-        graph: Graph = new Graph(null, null);
-        /** @non-reactive **/
+    export default class Application extends Mixins(ApplicationLoadStoreMixin) {
+        /**
+         * Contains all nodes, edges and their information.
+         * */
+        graph: Graph = new Graph();
+
+        /**
+         * Helper class for graph are manipulation such as animations, etc.
+         *
+         * @non-reactive Must not be set until Vue inits its reactivity (even null is forbidden)
+         * */
         areaManipulator !: GraphAreaManipulator;
-        /** @non-reactive **/
+
+        /**
+         * Helper class for graph manipulation such as adding multiple nodes, etc.
+         *
+         * @non-reactive Must not be set until Vue inits its reactivity (even null is forbidden)
+         * */
         manipulator !: GraphManipulator;
 
-        @Ref() readonly addNode !: AddNode;
-        @Ref() readonly filterDialog !: FilterDialog;
-        @Ref() readonly saveDialog !: SaveDialog;
-        @Ref() readonly configurationStylesheetDialog : ConfigurationStylesheetDialog;
-        @Ref() readonly bar !: any;
-        @Ref() readonly languageMenu !: typeof VListGroup;
-        @Ref() readonly settingsDialog !: typeof SettingsDialog;
-
-        rightOffset: number = 0;
-        private leftOffset: number = 56; // Collapsed width of Vuetify v-navigation-drawer
-
-        // Whether the item "Language" is opened with all the available languages
-        languageMenuActive: boolean = false;
-
-        private menuLanguageSelected(languageCode: string) {
-            this.$root.$i18n.locale = languageCode;
-            // @ts-ignore types
-            this.languageMenu.isActive = false;
-        }
-
-        icons = {
-            add: mdiPlusThick,
-            load: mdiFileUploadOutline,
-            save: mdiFileDownloadOutline,
-            language: mdiTranslate,
-            configuration: mdiEthernetCable,
-            filter: mdiFilterOutline,
-            settings: mdiCogs,
-            viewOptions: mdiEye,
-        };
-
+        /**
+         * Simple object containing data how graph should be rendered.
+         * Example: Show dots instead of labeled nodes without edges.
+         * */
         viewOptions = new ViewOptions();
 
-        /** @part-of-app **/
+        /**
+         * List of node filters supported in the application.
+         * Theoretically, the filter list can be dynamically expanded.
+         *
+         * filter - object containing filter data (like max, min, whether is active]
+         * component - a Vue component linked to filter field and every node (so programmer can define watchers and
+         * decide whether the node should be visible or not)
+         *
+         * Despite the array here, the FilterDialog component ignores it and shows only those filters which are
+         * programmed in the FilterDialog component. Todo add field with Vue component which renders filter settings
+         * so the FilterDialog will not depend on specific filters and can be dynamically changed.
+         * */
         filter = new FiltersList([
             {
                 name: "degreeFilter",
@@ -184,27 +189,87 @@
             }
         ]);
 
-        translations: {text: LocaleMessage, value: string}[] = [];
-
-        //remoteURL: string = "http://wsl.local:3000/";
+        /**
+         * URL where remote API is located.
+         * It is not a constant and can be changed anytime.
+         * It is a part of settings and can be overridden by local storage.
+         * */
         remoteURL: string = "http://localhost:3000/";
-/*        configurationIRI: string = null;
-        stylesheetIRI: string = null;*/
-        stylesheet: ResponseStylesheet = {
-            styles: []
-        };
-        private dataSource: DataSource = null;
 
+        /**
+         * Current stylesheet for Cytoscape object.
+         *
+         * The stylesheet can be fetched from dataSource.stylesheet IRI or form saved graph from file.
+         * */
+        stylesheet: ResponseStylesheet = { styles: [] };
 
-        @Watch('dataSource.configuration')
-        createGraph() {
-            let fetcher = new DataGraphFetcher(this.remoteURL, this.dataSource.configuration);
-            this.graph = new Graph(fetcher, this.dataSource);
+        /**
+         * Data source contains information about configuration IRI, stylesheet IRI, starting node and others.
+         * Both the whole object and single fields can be changed.
+         * */
+        dataSource: DataSource = null;
+
+        @Ref() readonly addNode !: AddNode;
+        @Ref() readonly filterDialog !: FilterDialog;
+        @Ref() readonly saveDialog !: SaveDialog;
+        @Ref() readonly configurationStylesheetDialog !: ConfigurationStylesheetDialog;
+        @Ref() readonly bar !: any;
+        @Ref() readonly languageMenu !: typeof VListGroup;
+        @Ref() readonly settingsDialog !: typeof SettingsDialog;
+        @Ref() readonly loadDialog !: typeof LoadDialog;
+
+        private rightOffset: number = 0;
+        private leftOffset: number = 56; // Collapsed width of Vuetify v-navigation-drawer
+        private languageMenuActive: boolean = false; // Whether the item "Language" is opened with all the available languages
+
+        // When user clicks on specific language in the left panel
+        private menuLanguageSelected(languageCode: string) {
+            this.$root.$i18n.locale = languageCode;
+            // @ts-ignore types
+            this.languageMenu.isActive = false;
         }
 
-        @Watch('dataSource.stylesheet')
-        async stylesheetUpdate() {
-            this.stylesheet = await this.graph.fetcher.getStylesheet(this.dataSource.stylesheet);
+        // List of available languages to main menu
+        translations: {text: LocaleMessage, value: string}[] = [];
+
+        // List of icons used in main menu
+        icons = {
+            add: mdiPlusThick,
+            load: mdiFileUploadOutline,
+            save: mdiFileDownloadOutline,
+            language: mdiTranslate,
+            configuration: mdiEthernetCable,
+            filter: mdiFilterOutline,
+            settings: mdiCogs,
+            viewOptions: mdiEye,
+        };
+
+        /**
+         * Function to create a new graph (and discard old one).
+         */
+        createGraph() {
+            this.graph = new Graph();
+            this.updateFetcher();
+            this.updateStylesheet();
+        }
+
+        /**
+         * Function to update graph fetcher.
+         *
+         * Is automatically called when remote URL is changed
+         */
+        @Watch('remoteURL')
+        updateFetcher() {
+            this.graph.fetcher = new DataGraphFetcher(this.remoteURL, this.dataSource?.configuration);
+        }
+
+        async updateStylesheet() {
+            try {
+                this.stylesheet = await this.graph.fetcher.getStylesheet(this.dataSource.stylesheet);
+            } catch (e) {
+                console.warn("Error occurred while fetching the stylesheet.\nCheck the correctness of the IRI, configuration IRI, URL of remote server or the internet connection.\nStyles will be emptied.");
+                this.stylesheet.styles = [];
+            }
         }
 
         @Watch('graph')
@@ -219,12 +284,7 @@
          * Vue method called when component is created
          */
         created() {
-/*            let fetcher = new DataGraphFetcher("http://wsl.local:3000/", "https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/psp");
-            this.graph = new Graph(fetcher);
-
-            this.graph.createNode("https://psp.opendata.cz/zdroj/osoba/5914").useDefaultView().then((view) => view.fetchPreview());
-            this.graph.createNode("https://psp.opendata.cz/zdroj/osoba/5915").useDefaultView().then((view) => view.fetchPreview());*/
-
+            // Resolve languages
             for (let code in this.$root.$i18n.messages) {
                 this.translations.push({
                     text: this.$root.$i18n.messages[code]['_lang_local'],
@@ -232,8 +292,12 @@
                 });
             }
 
+            // Create @non-reactive properties
             this.areaManipulator = null;
             this.manipulator = null;
+
+            // @ts-ignore backdoor to api
+            window['kgvb'] = this;
         }
 
         /**
@@ -250,7 +314,13 @@
         }
 
         configurationStylesheetUpdated(update: { configuration: string, stylesheet: string, resource: string } | DataSource) {
+            let fullUpdate = update.configuration !== this.dataSource?.configuration;
+            let stylesheetUpdated = update.stylesheet !== this.dataSource?.stylesheet;
             this.dataSource = update;
+
+            if (fullUpdate) this.createGraph();
+            if (!fullUpdate && stylesheetUpdated) this.updateStylesheet();
+
             if (update.resource) this.addNode.show(update.resource);
         }
     }

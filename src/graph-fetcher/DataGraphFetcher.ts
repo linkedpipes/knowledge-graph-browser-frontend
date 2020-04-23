@@ -4,8 +4,8 @@ import { ResponseViewSets, ResponsePreview, ResponseStylesheet, ResponseExpand, 
  * Fetches graphs and other information from remote server
  */
 export class DataGraphFetcher {
-    private remoteUrl: string;
-    private configIRI: string;
+    readonly remoteUrl: string;
+    readonly configIRI: string;
 
     constructor(remoteServer: string, configIRI: string) {
         this.remoteUrl = remoteServer;

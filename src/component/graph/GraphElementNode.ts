@@ -36,9 +36,11 @@ export default class GraphElementNode extends Vue {
     mounted() {
         // @ts-ignore
         this.cy = this.$parent.cy;
+        let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
-            data: { ...this.node.currentView?.preview, id: this.node.IRI }
+            data: { ...this.node.currentView?.preview, id: this.node.IRI },
+            position,
         });
 
         //this.node.graph.layout?.stop();
@@ -55,6 +57,7 @@ export default class GraphElementNode extends Vue {
         this.node.element = this;
 
         this.visibilityChanged();
+        this.selectedChanged();
     };
 
     /**
@@ -69,8 +72,8 @@ export default class GraphElementNode extends Vue {
         }
     }
 
-    @Watch('node.selected') selectedChanged(val: boolean) {
-        if (val) {
+    @Watch('node.selected') selectedChanged() {
+        if (this.node.selected) {
             this.element.select();
         } else {
             this.element.unselect();

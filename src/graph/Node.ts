@@ -4,6 +4,8 @@ import { NodeViewSet } from "./NodeViewSet";
 import { ResponseElementType } from "../graph-fetcher/response-interfaces";
 import {Edge} from "./Edge";
 import GraphElementNode from "../component/graph/GraphElementNode";
+import ObjectSave from "../file-save/ObjectSave";
+import Vue from 'vue';
 
 /**
  * Information about the type of Node. Same as ResponseElementType
@@ -13,13 +15,14 @@ export interface NodeType extends ResponseElementType {}
 /**
  * Node as a part of graph. Each Node belongs to exactly one Graph.
  */
-export class Node {
+export class Node implements ObjectSave {
     /**
      * Each Node must belong to one and only one Graph. Every update is reported to the graph instance. Also provides fetcher.
      */
     graph: Graph;
 
     element: GraphElementNode = null;
+    onMountPosition: [number, number] | null = null;
 
     /**
      * Node unique identifier
@@ -74,6 +77,24 @@ export class Node {
         this.graph._removeNode(this);
     }
 
+    addViewSet(IRI: string): NodeViewSet {
+        let viewSet = new NodeViewSet();
+        viewSet.IRI = IRI;
+        viewSet.node = this;
+
+        //this.viewSets[IRI] = viewSet;
+        Vue.set(this.viewSets, IRI, viewSet);
+
+        return viewSet;
+    }
+
+    createView(IRI: string): NodeView {
+        let view = new NodeView();
+        view.IRI = IRI;
+        view.node = this;
+        return view;
+    }
+
     async fetchViewSets() {
         if (this.viewSets) return;
 
@@ -83,17 +104,15 @@ export class Node {
 
         let nodeViews: {[viewIRI:string]: NodeView} = {};
         for (let nv of result.views) {
-            let view = new NodeView();
-            view.IRI = nv.iri;
+            let view = this.createView(nv.iri);
             view.label = nv.label;
-            view.node = this;
+
             nodeViews[nv.iri] = view;
         }
 
         for (let vs of result.viewSets) {
-            let viewSet = new NodeViewSet();
-            this.viewSets[vs.iri] = viewSet;
-            viewSet.IRI = vs.iri;
+            let viewSet = this.addViewSet(vs.iri);
+
             viewSet.label = vs.label;
             viewSet.defaultView = nodeViews[vs.defaultView];
             for (let nv of vs.views) {
@@ -113,5 +132,59 @@ export class Node {
 
         this.currentView = view;
         return this.currentView;
+    }
+
+    saveToObject(): object {
+        let viewSets: object[] = (this.viewSets === null) ? null : [];
+        for (let iri in this.viewSets) viewSets.push(this.viewSets[iri].saveToObject());
+
+        let currentView: object | string | null;
+        if (viewSets === null) {
+            currentView = this.currentView ? this.currentView.saveToObject() : null;
+        } else {
+            currentView = this.currentView ? this.currentView.IRI : null;
+        }
+
+        return {
+            IRI: this.IRI,
+            selected: this.selected,
+            visible: this.visible,
+            currentView,
+            viewSets,
+            onMountPosition: this?.element?.element ? [this.element.element.position().x, this.element.element.position().y] : null,
+        };
+    }
+
+    restoreFromObject(object: any): void {
+        this.selected = object.selected;
+        this.visible = object.visible;
+        this.onMountPosition = object.onMountPosition;
+
+        if (object.viewSets === null) {
+            this.viewSets = null;
+        } else {
+            this.viewSets = {};
+
+            for (let viewSetData of object.viewSets) {
+                let viewSet = this.addViewSet(viewSetData.IRI);
+                viewSet.restoreFromObject(viewSetData);
+            }
+        }
+
+        if (typeof object.currentView === 'string') {
+            // Search views for object.currentView
+            for (let viewSetIRI in this.viewSets) {
+                let view = this.viewSets[viewSetIRI].views[object.currentView];
+                if (view) {
+                    this.currentView = view;
+                    break;
+                }
+            }
+        } else if (object.currentView !== null) {
+            // the view is not part of view sets
+            let view = this.createView(object.currentView.IRI);
+            view.restoreFromObject(object.currentView);
+            this.currentView = view;
+        }
     }
 }

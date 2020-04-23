@@ -13,7 +13,7 @@
 
                 <v-text-field v-model="stylesheet" :label="$t('configuration_and_stylesheet_dialog.stylesheet')"></v-text-field>
                 
-                <v-alert v-if="oldConfiguration && oldConfiguration !== config" dense outlined type="warning">
+                <v-alert v-if="oldConfiguration && oldConfiguration !== config && hasUnsavedChanges" dense outlined type="warning">
                     {{ $t("configuration_and_stylesheet_dialog.destroy_warning") }}
                 </v-alert>
             </v-card-text>
@@ -38,12 +38,18 @@ import {Prop, Watch} from "vue-property-decorator";
 import Vue from 'vue';
 import {DataSource} from "../DataSource";
 import Component from "vue-class-component";
+import SaveDialog from "./SaveDialog.vue";
 const dataSources = require("../../data/DataSources.yaml");
 
 @Component
 export default class ConfigurationStylesheetDialog extends Vue {
     @Prop() oldConfiguration: string;
     @Prop() oldStylesheet: string;
+
+    @Prop() hasUnsavedChanges: boolean;
+    @Prop() saveDialog: SaveDialog;
+    @Prop() saveFunction: () => void;
+
 
     config: string = "";
     stylesheet: string = "";
@@ -64,6 +70,22 @@ export default class ConfigurationStylesheetDialog extends Vue {
     }
 
     update() {
+        if (this.oldConfiguration && this.oldConfiguration !== this.config && this.hasUnsavedChanges) {
+            this.saveDialog.show(true).then(result => {
+                if (result == 'yes') {
+                    this.saveFunction();
+                    this.actuallyUpdate();
+                }
+                if (result == 'no') {
+                    this.actuallyUpdate();
+                }
+            });
+        } else {
+            this.actuallyUpdate();
+        }
+    }
+
+    private actuallyUpdate() {
         if (this.predefinedSelected) {
             this.$emit('changed', this.predefinedSelected);
         } else {

@@ -103,6 +103,7 @@ export default class AddNode extends Vue {
                 this.dialog = false;
             } else {
                 this.error = true;
+                this.loading = false;
             }
 
         } else if (this.tab === 1) {
