@@ -31,7 +31,13 @@ export class Node implements ObjectSave {
     /**
      * List of edges connected to this Node
      */
-    edges: Edge[] = [];
+    get edges(): Edge[] {
+        let edges: Edge[] = [];
+        for (let eid in this.graph.edges) {
+            if (this.graph.edges[eid].source === this || this.graph.edges[eid].target === this) edges.push(this.graph.edges[eid]);
+        }
+        return edges;
+    }
 
     /**
      * Represents results of a different filters
@@ -72,7 +78,6 @@ export class Node implements ObjectSave {
     } = null;
 
     remove() {
-        console.warn("This function works partially only. The node is still contained in expansion for example.");
         this.graph._removeNode(this);
     }
 

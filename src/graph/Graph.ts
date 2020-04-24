@@ -3,7 +3,6 @@ import { Edge, EdgeType } from "./Edge";
 import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 
 import Vue from 'vue';
-import {DataSource} from "../DataSource";
 import GraphAreaManipulator from "./GraphAreaManipulator";
 import ObjectSave from "../file-save/ObjectSave";
 
@@ -47,15 +46,19 @@ export class Graph implements ObjectSave{
     }
 
     /**
-     * Internal method only for Node to remove itself from the graph
+     * Method for removing one single node from graph.
+     * Expects that the request came from user so it removes also all edges
      * @internal
      * @param node Node to be removed
      */
     _removeNode(node: Node) {
         Vue.delete(this.nodes, node.IRI);
+        for (let edge of node.edges) {
+            this._removeEdge(edge);
+        }
     }
 
-    private getEdgeIdentifier(edge: Edge) {
+    private static getEdgeIdentifier(edge: Edge) {
         return edge.source.IRI + " " + edge.target.IRI + " " + edge.type.iri;
     }
 
@@ -67,9 +70,7 @@ export class Graph implements ObjectSave{
      */
     createEdge(source: Node, target: Node, type: EdgeType): Edge {
         let edge = new Edge(source, target, type, this);
-        source.edges.push(edge);
-        target.edges.push(edge);
-        Vue.set(this.edges, this.getEdgeIdentifier(edge), edge);
+        Vue.set(this.edges, Graph.getEdgeIdentifier(edge), edge);
         return edge;
     }
 
@@ -78,8 +79,7 @@ export class Graph implements ObjectSave{
      * @internal
      */
     _removeEdge(edge: Edge) {
-        Vue.delete(edge.source.edges, edge.source.edges.indexOf(edge));
-        Vue.delete(edge.target.edges, edge.target.edges.indexOf(edge));
+        Vue.delete(this.edges, Graph.getEdgeIdentifier(edge));
     }
 
     /**
