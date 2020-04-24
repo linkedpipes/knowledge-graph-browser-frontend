@@ -1,9 +1,9 @@
 import Component from 'vue-class-component';
-import { Prop, Watch, Mixins } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
 
 import Cytoscape, {CollectionAnimation} from "cytoscape";
-import Vue, { CreateElement, VNode, VNodeChildren } from 'vue';
+import Vue from 'vue';
 import { NodePreview } from '../../graph/NodeView';
 
 /**
@@ -64,7 +64,7 @@ export default class GraphElementNode extends Vue {
      * Method called by ancestor component GraphArea when doubleclick is registered
      */
     async onDoubleClicked() {
-        if (!this.node.currentView) {
+        if (!this.node?.currentView.IRI) {
             await this.node.useDefaultView();
         }
         if (this.node.currentView) {

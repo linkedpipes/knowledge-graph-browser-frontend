@@ -9,7 +9,7 @@ import clone from "clone";
 /**
  * Information about the type of detail. Same as ResponseElementType
  */
-export interface DetailType extends ResponseElementType {};
+export interface DetailType extends ResponseElementType {}
 
 export interface DetailValue {
     type: DetailType,
@@ -22,7 +22,7 @@ export interface NodePreview {
     iri: string;
     label: string;
     classes: string[];
-};
+}
 
 export class NodeView implements ObjectSave {
     /**
@@ -66,7 +66,7 @@ export class NodeView implements ObjectSave {
         await this.fetchPreview();
     }
 
-    private ExtractTypes(types: ResponseElementType[]): Map<string, ResponseElementType> {
+    private static ExtractTypes(types: ResponseElementType[]): Map<string, ResponseElementType> {
         let result: Map<string, DetailType> = new Map();
         for (let type of types) {
             // ResponseElementType === DetailType
@@ -87,7 +87,7 @@ export class NodeView implements ObjectSave {
             let result = await this.node.graph.fetcher.getDetail(this.IRI, this.node.IRI);
             let data = result.nodes.find(node => node.iri == this.node.IRI).data;
 
-            let types = this.ExtractTypes(result.types);
+            let types = NodeView.ExtractTypes(result.types);
 
             this.detail = [];
             for (let IRI in data) {
@@ -113,7 +113,7 @@ export class NodeView implements ObjectSave {
         if (!this.preview) {
             let result = await this.node.graph.fetcher.getPreview(this.IRI, this.node.IRI);
 
-            let types = this.ExtractTypes(result.types);
+            let types = NodeView.ExtractTypes(result.types);
 
             let preview = result.nodes.find(node => node.iri == this.node.IRI);
 
@@ -137,7 +137,7 @@ export class NodeView implements ObjectSave {
 
         this.expansion = new Expansion(this.node);
 
-        let types = this.ExtractTypes(result.types);
+        let types = NodeView.ExtractTypes(result.types);
 
         // Create nodes
         for (let expansionNode of result.nodes) {
@@ -145,7 +145,7 @@ export class NodeView implements ObjectSave {
             if (!node) {
                 // We have to create a new one
                 node = this.node.graph.createNode(expansionNode.iri);
-                let view = new NodeView();
+                let view = node.createView(null);
                 view.preview = {
                     ...expansionNode,
                     type: types.get(expansionNode.type)
