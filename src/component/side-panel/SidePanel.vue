@@ -3,6 +3,7 @@
         <div class="detail-panel pa-5">
             <detail-panel :node="detailNode" v-if="panelMode === 1" />
             <list-panel :nodes="selectedNodes" v-if="panelMode === 2" />
+            <hidden-nodes-panel :graph="graph" v-if="panelMode === 3" @close="showHiddenPanel = false" />
         </div>
     </v-navigation-drawer>
 </template>
@@ -10,25 +11,29 @@
 import Vue from 'vue';
 import { Graph } from '../../graph/Graph';
 import { Node } from '../../graph/Node';
-import {Emit, Prop, Ref, Watch} from 'vue-property-decorator';
+import {Emit, Prop, PropSync, Ref, Watch} from 'vue-property-decorator';
 import Component from "vue-class-component";
 import DetailPanel from './DetailPanel.vue';
 import ListPanel from './ListPanel.vue';
+import HiddenNodesPanel from "./HiddenNodesPanel.vue";
 
 enum PanelModeEnum {
     Nothing = 0,
     SingleDetail = 1,
-    List = 2
+    List = 2,
+    HiddenNodes = 3,
 }
 
 @Component({
 	components: {
+        HiddenNodesPanel,
 		DetailPanel,
 		ListPanel
 	}
 })
 export default class SidePanel extends Vue {
     @Prop(Object) graph: Graph;
+    @PropSync('hiddenPanel') showHiddenPanel !: boolean;
     @Ref() readonly panel !: any;
     active: boolean = false;
 
@@ -61,6 +66,9 @@ export default class SidePanel extends Vue {
      * For now, the implementation only depends on the number of selected nodes.
      */
     get panelMode(): PanelModeEnum {
+        if (this.showHiddenPanel)
+            return PanelModeEnum.HiddenNodes;
+
         if (this.selectedNodes.length == 0) {
             return PanelModeEnum.Nothing;
         } else if (this.selectedNodes.length == 1) {

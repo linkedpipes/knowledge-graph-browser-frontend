@@ -12,7 +12,7 @@
                     :manipulator="manipulator"
                     @new-manipulator="areaManipulator = $event"
             />
-            <side-panel :graph="graph" ref="sidePanel" @width-changed="rightOffset = $event"/>
+            <side-panel :graph="graph" :hidden-panel.sync="hiddenPanel" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
             <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
                 <v-list dense nav class="py-0">
@@ -32,6 +32,7 @@
                     <v-list-item link @click="$refs.addNode.show()"><v-list-item-icon><v-icon>{{ icons.add }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.add_nodes") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="$refs.filterDialog.show()"><v-list-item-icon><v-badge overlap :value="filter.active" :content="filter.active"><v-icon>{{ icons.filter }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="$refs.viewOptionsDialog.show()"><v-list-item-icon><v-badge dot :value="viewOptions.active"><v-icon>{{ icons.viewOptions }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.view_options") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="hiddenPanel = !hiddenPanel"><v-list-item-icon><v-badge dot :value="hiddenPanel"><v-icon>{{ icons.hidden }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.hidden_nodes") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
 
@@ -119,7 +120,7 @@
         mdiTranslate,
         mdiEthernetCable,
         mdiFilterOutline,
-        mdiCogs, mdiEye
+        mdiCogs, mdiEye, mdiImageFilterTiltShift
     } from '@mdi/js';
     import {VListGroup} from "vuetify/lib";
     import SettingsDialog from "./SettingsDialog.vue";
@@ -237,6 +238,11 @@
         private leftOffset: number = 56; // Collapsed width of Vuetify v-navigation-drawer
         private languageMenuActive: boolean = false; // Whether the item "Language" is opened with all the available languages
 
+        /**
+         * If is opened the panel with hidden nodes
+         * */
+        hiddenPanel: boolean = false;
+
         // When user clicks on specific language in the left panel
         private menuLanguageSelected(languageCode: string) {
             this.$root.$i18n.locale = languageCode;
@@ -257,6 +263,7 @@
             filter: mdiFilterOutline,
             settings: mdiCogs,
             viewOptions: mdiEye,
+            hidden: mdiImageFilterTiltShift
         };
 
         /**
