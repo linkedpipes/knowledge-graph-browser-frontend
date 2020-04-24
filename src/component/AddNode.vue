@@ -35,7 +35,7 @@
                     <v-tab-item>
                         <v-card flat>
                             <v-card-text>
-                                <search-component></search-component>
+                                <search-component :graph-searcher="graphSearcher" @searched="onSearcher"></search-component>
                             </v-card-text>
                         </v-card>
                     </v-tab-item>
@@ -45,7 +45,7 @@
             <v-card-actions>
                 <div class="flex-grow-1"></div>
                 <v-btn color="primary" text @click="dialog = false">{{ $t("add_node_dialog.cancel") }}</v-btn>
-                <v-btn color="primary" text :loading="loading" @click="confirmed()">{{ $tc("add_node_dialog.add", tab === 1 ? IRIsLines.length : 1) }}</v-btn>
+                <v-btn color="primary" v-if="tab !== 2" text :loading="loading" @click="confirmed()">{{ $tc("add_node_dialog.add", tab === 1 ? IRIsLines.length : 1) }}</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -53,16 +53,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import {Component, Prop, Watch} from 'vue-property-decorator';
+import {Component, Prop} from 'vue-property-decorator';
 import { Graph } from '../graph/Graph';
 import SearchComponent from "./SearchComponent.vue";
 import GraphManipulator from "../graph/GraphManipulator";
+import GraphSearcher from "../GraphSearcher";
 @Component({
     components: {SearchComponent}
 })
 export default class AddNode extends Vue {
     @Prop({type: Object as () => Graph}) graph: Graph;
     @Prop() manipulator: GraphManipulator;
+    @Prop() private graphSearcher: GraphSearcher;
 
     multipleEntry: boolean = false;
     IRI: string = "";
@@ -91,6 +93,11 @@ export default class AddNode extends Vue {
     multipleLoading: boolean = false;
     multipleActual: number = 0;
     multipleTotal: number = 1;
+
+    private onSearcher(IRI: string) {
+        this.dialog = false;
+        this.manipulator.blockAddFindNode(IRI);
+    }
 
     async confirmed() {
         if (this.tab === 0) {

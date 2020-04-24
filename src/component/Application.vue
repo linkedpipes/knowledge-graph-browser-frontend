@@ -1,7 +1,17 @@
 <template>
     <v-app class="app">
         <v-content class="d-flex flex-grow-1" style="overflow: hidden;">
-            <graph-area :graph="graph" :data-source="dataSource" :stylesheet="stylesheet" :left-offset="leftOffset" :right-offset="rightOffset" :view-options="viewOptions" @new-manipulator="areaManipulator = $event"/>
+            <graph-area
+                    :graph="graph"
+                    :data-source="dataSource"
+                    :stylesheet="stylesheet"
+                    :left-offset="leftOffset"
+                    :right-offset="rightOffset"
+                    :view-options="viewOptions"
+                    :graph-searcher="graphSearcher"
+                    :manipulator="manipulator"
+                    @new-manipulator="areaManipulator = $event"
+            />
             <side-panel :graph="graph" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
             <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
@@ -56,7 +66,7 @@
             </v-card>
         </v-footer>
 
-        <add-node ref="addNode" :graph="graph" :manipulator="manipulator" />
+        <add-node ref="addNode" :graph="graph" :manipulator="manipulator" :graph-searcher="graphSearcher"/>
         <filter-dialog ref="filterDialog" :graph="graph" :filter="filter" />
         <save-dialog ref="saveDialog" />
         <configuration-stylesheet-dialog
@@ -98,7 +108,6 @@
     import DegreeFilterData from "../filter/filters/DegreeFilter/DegreeFilterData";
     import Component from "vue-class-component";
     import {LocaleMessage} from "vue-i18n";
-    import Vue from 'vue';
     import {Mixins, Ref, Watch} from "vue-property-decorator";
     import {ResponseStylesheet} from "../graph-fetcher/response-interfaces";
     import {DataSource} from "../DataSource";
@@ -122,6 +131,12 @@
     import GraphManipulator from "../graph/GraphManipulator";
     import LoadDialog from "./LoadDialog.vue";
     import ApplicationLoadStoreMixin from "./ApplicationLoadStoreMixin";
+    import GraphSearcher from "../GraphSearcher";
+    import Searcher from "../searchers/Searcher";
+    import LocalGraphSearcher from "../searchers/LocalGraphSearcher";
+    import SimpleJsonSearcher from "../searchers/SimpleJsonSearcher";
+    import IRIConstructorSearcher from "../searchers/IRIConstructorSearcher";
+    import IRIIdentitySearcher from "../searchers/IRIIdentitySearcher";
 
     @Component({
         components: {
@@ -322,6 +337,29 @@
             if (!fullUpdate && stylesheetUpdated) this.updateStylesheet();
 
             if (update.resource) this.addNode.show(update.resource);
+        }
+
+        /**
+         * GraphSearcher can search nodes in current graph, in remote server or construct IRI from ID.
+         */
+        graphSearcher: GraphSearcher = null;
+
+        /**
+         * Method for updating graphSearcher. It depends on graph instance and data source.
+         */
+        @Watch('graph')
+        @Watch('dataSource')
+        private updateGraphSearcher() {
+            if (this.graph) {
+                let searchers: Searcher[] = [];
+
+                searchers.push(new LocalGraphSearcher(this.graph));
+                if (this.dataSource.autocomplete) searchers.push(new SimpleJsonSearcher(this.dataSource.autocomplete));
+                if (this.dataSource.iri_by_id) searchers.push(new IRIConstructorSearcher(this.dataSource.iri_by_id.template, new RegExp(this.dataSource.iri_by_id.id_structure)));
+                searchers.push(new IRIIdentitySearcher(this.dataSource.iri_structure ? new RegExp(this.dataSource.iri_structure) : null));
+
+                this.graphSearcher = new GraphSearcher(searchers);
+            }
         }
     }
 </script>

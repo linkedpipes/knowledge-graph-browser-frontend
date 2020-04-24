@@ -34,46 +34,26 @@
 </template>
 
 <script lang="ts">
-    import {Component, Prop, Watch} from "vue-property-decorator";
+import {Component, Emit, Prop, Watch} from "vue-property-decorator";
 import Vue from "vue";
 import GraphSearcher from "../GraphSearcher";
-import Searcher, {SearcherResult} from "../searchers/Searcher";
-import IRIIdentitySearcher from "../searchers/IRIIdentitySearcher";
-import IRIConstructorSearcher from "../searchers/IRIConstructorSearcher";
-import SimpleJsonSearcher from "../searchers/SimpleJsonSearcher";
+import {SearcherResult} from "../searchers/Searcher";
 import {mdiMagnify} from "@mdi/js";
-    import {Graph} from "../graph/Graph";
-    import LocalGraphSearcher from "../searchers/LocalGraphSearcher";
-    import {DataSource} from "../DataSource";
 
 @Component
 export default class SearchComponent extends Vue {
-    @Prop() graph: Graph;
-    @Prop() dataSource: DataSource;
+    @Prop() private graphSearcher: GraphSearcher;
 
-    loading: boolean = false;
-    input: string = "";
-    items: SearcherResult[] = []; // todo
-    zoomIcon = mdiMagnify;
+    // Event emitted when user selects node
+    @Emit('searched') private triggerSearched(IRI: string) {return IRI;}
 
-    graphSearcher: GraphSearcher = null;
-
-    @Watch('graph')
-    private graphChanged() {
-        if (this.graph) {
-            let searchers: Searcher[] = [];
-
-            searchers.push(new LocalGraphSearcher(this.graph));
-            if (this.dataSource.autocomplete) searchers.push(new SimpleJsonSearcher(this.dataSource.autocomplete));
-            if (this.dataSource.iri_by_id) searchers.push(new IRIConstructorSearcher(this.dataSource.iri_by_id.template, new RegExp(this.dataSource.iri_by_id.id_structure)));
-            searchers.push(new IRIIdentitySearcher(this.dataSource.iri_structure ? new RegExp(this.dataSource.iri_structure) : null));
-
-            this.graphSearcher = new GraphSearcher(searchers);
-        }
-    }
+    private loading: boolean = false;
+    private input: string = "";
+    private items: SearcherResult[] = [];
+    private zoomIcon = mdiMagnify;
 
     @Watch('input')
-    inputChanged() {
+    private inputChanged() {
         this.items = [];
         if (!this.input) {
             this.loading = false;
@@ -89,18 +69,11 @@ export default class SearchComponent extends Vue {
         });
     }
 
-    async onSelect(IRI: string) {
+    private async onSelect(IRI: string) {
         if (IRI == "" || IRI === null) return;
         this.input = null;
 
-        Object.values(this.graph.nodes).forEach(node => {node.selected = false});
-        let node = this.graph.getNodeByIRI(IRI);
-        if (!node) {
-            node = await this.graph.fetchNode(IRI);
-            node.useDefaultView().then((view) => view.fetchPreview());
-        }
-        node.selected = true;
-        this.graph.manipulator.fit(node);
+        this.triggerSearched(IRI);
     }
 }
 </script>
