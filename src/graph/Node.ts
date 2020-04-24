@@ -5,7 +5,6 @@ import { ResponseElementType } from "../graph-fetcher/response-interfaces";
 import {Edge} from "./Edge";
 import GraphElementNode from "../component/graph/GraphElementNode";
 import ObjectSave from "../file-save/ObjectSave";
-import Vue from 'vue';
 
 /**
  * Information about the type of Node. Same as ResponseElementType
@@ -77,14 +76,10 @@ export class Node implements ObjectSave {
         this.graph._removeNode(this);
     }
 
-    addViewSet(IRI: string): NodeViewSet {
+    createViewSet(IRI: string): NodeViewSet {
         let viewSet = new NodeViewSet();
         viewSet.IRI = IRI;
         viewSet.node = this;
-
-        //this.viewSets[IRI] = viewSet;
-        Vue.set(this.viewSets, IRI, viewSet);
-
         return viewSet;
     }
 
@@ -100,8 +95,7 @@ export class Node implements ObjectSave {
 
         let result = await this.graph.fetcher.getViewSets(this.IRI);
 
-        this.viewSets = {};
-
+        // First create list of views
         let nodeViews: {[viewIRI:string]: NodeView} = {};
         for (let nv of result.views) {
             let view = this.createView(nv.iri);
@@ -110,8 +104,11 @@ export class Node implements ObjectSave {
             nodeViews[nv.iri] = view;
         }
 
+        // Create View sets
+        let viewSets: typeof Node.prototype.viewSets = {};
         for (let vs of result.viewSets) {
-            let viewSet = this.addViewSet(vs.iri);
+            let viewSet = this.createViewSet(vs.iri);
+            viewSets[vs.iri] = viewSet;
 
             viewSet.label = vs.label;
             viewSet.defaultView = nodeViews[vs.defaultView];
@@ -120,6 +117,7 @@ export class Node implements ObjectSave {
                 viewSet.views[nv].viewSet = viewSet;
             }
         }
+        this.viewSets = viewSets;
     }
 
     async useDefaultView(): Promise<NodeView> {
@@ -163,12 +161,14 @@ export class Node implements ObjectSave {
         if (object.viewSets === null) {
             this.viewSets = null;
         } else {
-            this.viewSets = {};
-
+            let viewSets: typeof Node.prototype.viewSets = {};
             for (let viewSetData of object.viewSets) {
-                let viewSet = this.addViewSet(viewSetData.IRI);
+                let viewSet = this.createViewSet(viewSetData.IRI);
+                viewSets[viewSetData.IRI] = viewSet;
+
                 viewSet.restoreFromObject(viewSetData);
             }
+            this.viewSets = viewSets;
         }
 
         if (typeof object.currentView === 'string') {

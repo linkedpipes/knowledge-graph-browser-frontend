@@ -9,6 +9,12 @@ export class NodeViewSet implements ObjectSave{
     defaultView: NodeView;
     views: {[viewIRI: string]: NodeView} = {};
 
+    createView(IRI: string): NodeView {
+        let view = this.node.createView(IRI);
+        view.viewSet = this;
+        return view;
+    }
+
     saveToObject(): object {
         let views = [];
         for (let vIRI in this.views) views.push(this.views[vIRI].saveToObject());
@@ -25,11 +31,12 @@ export class NodeViewSet implements ObjectSave{
         this.IRI = object.IRI;
         this.label = object.label;
 
-        let views: {[viewIRI: string]: NodeView} = {};
+        let views: typeof NodeViewSet.prototype.views = {};
         for (let viewData of object.views) {
-            let view = this.node.createView(viewData.IRI);
+            let view = this.createView(viewData.IRI);
+            views[viewData.IRI] = view;
+
             view.restoreFromObject(viewData);
-            views[viewData.IRI] = view
         }
         this.views = views;
 
