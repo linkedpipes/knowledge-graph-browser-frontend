@@ -139,6 +139,7 @@
     import SimpleJsonSearcher from "../searchers/SimpleJsonSearcher";
     import IRIConstructorSearcher from "../searchers/IRIConstructorSearcher";
     import IRIIdentitySearcher from "../searchers/IRIIdentitySearcher";
+    let Configuration: {api: string} = require("../../conf.yaml");
 
     @Component({
         components: {
@@ -211,7 +212,7 @@
          * It is not a constant and can be changed anytime.
          * It is a part of settings and can be overridden by local storage.
          * */
-        remoteURL: string = "http://localhost:3000/";
+        remoteURL: string = Configuration.api;
 
         /**
          * Current stylesheet for Cytoscape object.

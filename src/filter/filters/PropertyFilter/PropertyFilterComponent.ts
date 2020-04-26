@@ -50,7 +50,7 @@ export default class PropertyFilterComponent extends Vue {
 
         let found = false;
         for (let item of filter.items) {
-            if (item.iri == node?.currentView?.preview?.type.iri) {
+            if (item.iri == node?.currentView?.preview?.type?.iri) {
                 found = true;
                 break;
             }

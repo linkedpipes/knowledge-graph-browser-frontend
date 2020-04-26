@@ -59,14 +59,14 @@ export default class ListPanel extends Vue {
         for (let node of this.nodes) {
             let type = node.currentView.preview.type;
             let group: NodeTypeGroup;
-            if (map.has(type.iri)) {
-                group = map.get(type.iri);
+            if (map.has(type?.iri)) {
+                group = map.get(type?.iri);
             } else {
                 group = {
                     type,
                     nodes: []
                 };
-                map.set(type.iri, group);
+                map.set(type?.iri, group);
             }
 
             group.nodes.push(node);

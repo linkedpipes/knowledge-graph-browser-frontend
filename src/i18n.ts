@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import VueI18n from 'vue-i18n';
+let Configuration: {language: string} = require("../conf.yaml");
 
 Vue.use(VueI18n);
 
@@ -15,11 +16,14 @@ VueI18n.prototype.getChoiceIndex = function (choice, choicesLength) {
     switch (this.getLocaleMessage(this.locale)["_pluralization"]) {
         case 'slavic':
             switch (choicesLength) {
+                case 2:
+                    if (choice === 1) return 0;
+                    return 1;
                 case 3:
-                        if (choice === 0) return 2;
-                        if (choice === 1) return 0;
-                        if (choice < 5) return 1;
-                        return 2;
+                    if (choice === 0) return 2;
+                    if (choice === 1) return 0;
+                    if (choice < 5) return 1;
+                    return 2;
                 case 4:
                     if (choice === 0) return 0;
                     if (choice === 1) return 1;
@@ -42,7 +46,7 @@ localesContext.keys().forEach(function(key: string){
 
 // Configure i18n
 export default new VueI18n({
-    locale: 'en',
+    locale: Configuration.language,
     fallbackLocale: 'en',
     messages: locales,
     silentTranslationWarn: true,

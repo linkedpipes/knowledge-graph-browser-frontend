@@ -8,7 +8,7 @@
                     class="grey lighten-2"
                     max-height="100%"
                 >
-                    <v-row class="fill-height flex-column pa-3">
+                    <v-row v-if="detail.type" class="fill-height flex-column pa-3">
                     <v-card-text class="white--text">
                     <div class="text-right">{{detail.type.label}}</div>
                     </v-card-text>
@@ -53,7 +53,7 @@
 
         <v-alert v-if="!node.isVisible" type="warning" dense text>{{ $t("side_panel.detail_panel.hidden.f" + (node.shownByFilters ? "t" : "f") + "u" + (node.visible ? "t" : "f")) }}</v-alert>
 
-        <v-card v-if="node.currentView && node.currentView.preview" class="mb-5">
+        <v-card v-if="node.currentView && node.currentView.preview && node.currentView.preview.type" class="mb-5">
             <v-card-text>
                 <div>
                     <b>{{node.currentView.preview.type.label}}</b> <span v-if="node.currentView.preview.type.description">(<i>{{node.currentView.preview.type.description}}</i>)</span>
@@ -78,9 +78,11 @@
                         </template>
                     </v-list-item-group>
                 </v-list>
-                <v-alert v-else dense outlined type="error" class="mx-5">
-                    {{ $t("side_panel.detail_panel.no_views") }}
-                </v-alert>
+                <div v-else style="padding-bottom: 1px;">
+                    <v-alert dense outlined type="error" class="mx-5">
+                        {{ $t("side_panel.detail_panel.no_views") }}
+                    </v-alert>
+                </div>
             </template>
             <v-card-text v-else>
                 {{ $t("side_panel.detail_panel.fetching_views") }}
@@ -95,7 +97,7 @@
                 <tbody>
                     <tr v-for="detail in node.currentView.detail" :key="detail.IRI">
                         <td>
-                            <div><b>{{detail.type.label}}</b> <a :href="detail.IRI" target="_blank"><code>{{detail.IRI}}</code></a></div>
+                            <div><b v-if="detail.type">{{detail.type.label}}</b> <a :href="detail.IRI" target="_blank"><code>{{detail.IRI}}</code></a></div>
                             <div>{{detail.value}}</div>
                         </td>
                     </tr>
