@@ -1,9 +1,11 @@
 _lang_local: čeština
 _lang_english: Czech
+_pluralization: slavic
 menu:
   add_nodes: Přidat vrcholy
   filter: Filtrování
   view_options: Možnosti pohledu
+  hidden_nodes: Skryté uzly
   load: Načíst ze souboru
   save: Uložit do souboru
   configuration: Konfigurace zdroje
@@ -17,71 +19,109 @@ settings:
   language: Jazyk aplikace
   remote_url: Vzdálený API server
 search:
-  label: Zadejte IRI, název uzlu, kód...
+  label: 'Zadejte IRI, název uzlu, kód...'
+change_configuration_and_stylesheet: Změnit konfiguraci a stylesheet
 side_panel:
   detail_panel:
     loading: načítání
     views: Pohledy
     expand: Expandovat
     use: Použít
-    no_views: Vzdálený server odpověděl, ale nedodal žádné pohledy. Měli byste zkontrolovat konfiguraci serveru.
+    no_views: >-
+      Vzdálený server odpověděl, ale nedodal žádné pohledy. Měli byste
+      zkontrolovat konfiguraci serveru.
     fetching_views: Stahování pohledů...
     detail: Detail
     please_select_view: Zvolte nejprve pohled pro zobrazení detailu o zdroji.
     fetching_detail: Stahování detailu...
     key: Položka
     value: Hodnota
-
-# Dialog to add new nodes
+    hidden:
+      ffut: Uzel je skrytý filtrem. Pro jeho zobrazení změňte parametry filtru.
+      ftuf: Uzel je skrytý. Pro zobrazení změňte jeho viditelnost.
+      ffuf: >-
+        Uzel je skrytý filtrem a také má vypnutou viditelnost. Pro zobrazení
+        upravte parametry filtru a změňte viditelnost uzlu.
+    remove_desc: Smaže vrchol z grafu
+    refresh_desc: Znova načte data ze serveru o tomto uzlu
+    locate_desc: Lokalizuje uzel v grafu
+    visible_desc: Mění viditelnost uzlu
+  list_panel:
+    title: Seznam označených vrcholů
+    remove: Smazat
+    remove_desc: Smaže všechny označené uzly
+    hide: Skrýt
+    hide_desc: Skryje všechny označené uzly
+    show: Zobrazit
+    show_desc: Zobrazí všechny označené uzly
+    number_items: '1 vrchol | {n} vrcholy | {n} vrcholů'
+  hidden_nodes_panel:
+    title: Skryté uzly
+    description: >-
+      Na tomto panelu najdete uzly, které nejsou vidět v grafu. Pokud je
+      uzel skrytý filtrem, ikonka filtru je u něj zobrazena. Pokud má
+      vypnutou viditelnost, je u něj zobrazená ikonka oka. Na tuto ikonku je
+      možné kliknout pro změnu viditelnosti.
+    remove: Smazat
+    remove_description: Smaže všechny uzly které jsou skryté
+  node_grouped_list:
+    number_items: '1 vrchol | {n} vrcholy | {n} vrcholů'
+    no_nodes: Žádné uzly k zobrazní
 add_node_dialog:
   title: Přidání nových vrcholů
   cancel: Zrušit
   add: Přidat uzel | Přidat uzly
   search:
     title: Najít uzly
-    hint: Zadejte výraz, který hledáte
+    hint: 'Zadejte výraz, který hledáte'
   single:
     title: Jeden vrchol
     input: IRI vrcholu/zdroje
-    error: Při stahování vrcholu došlo k chybě. Více informací najdete ve vývojářské konzoli prohlížeče. Zkontrolujte správnost IRI.
+    error: >-
+      Při stahování vrcholu došlo k chybě. Více informací najdete ve
+      vývojářské konzoli prohlížeče. Zkontrolujte správnost IRI.
   multiple:
     title: Více vrcholů
     hint: Každé IRI vložte na vlastní řádek.
     input: IRI vrcholů
-    error: Při stahování některých vrcholů došlo k chybě. Vrcholy, co se nepodařilo stáhnout, jsou v textovém poli. Více informací najdete ve vývojářské konzoli prohlížeče. Zkontrolujte správnost IRI.
-
-# Dialog to change configuration and stylesheet
+    error: >-
+      Při stahování některých vrcholů došlo k chybě. Vrcholy, co se
+      nepodařilo stáhnout, jsou v textovém poli. Více informací najdete ve
+      vývojářské konzoli prohlížeče. Zkontrolujte správnost IRI.
 configuration_and_stylesheet_dialog:
   title: Konfigurace a styly
   predefined: Předdefinované konfigurace a styly
   config: IRI konfigurace
   stylesheet: IRI stylesheetu
-  destroy_warning: Změnou konfigurace dojde ke smazání celého grafu. Bude vám nabídnuto uložení změn.
+  destroy_warning: >-
+    Změnou konfigurace dojde ke smazání celého grafu. Bude vám nabídnuto
+    uložení změn.
   cancel: Zrušit
-  load: Načíst # Fresh start
-  update: Změnit # Changing configuration
-  update_stylesheet: Změnit stylesheet # Updating only stylesheet
-  update_general: Změnit # Text when button is disabled
-
-# Dialog to filter nodes
+  load: Načíst
+  update: Změnit
+  update_stylesheet: Změnit stylesheet
+  update_general: Změnit
 filter_dialog:
   title: Filtrování uzlů
-  only_selected: Skrýt vrcholy které budou přidány a nesplňují aktuální podmínky dané filtrem.
-  only_selected_description: Pokud není políčko zatrhnuté, jakákoli možnost co není v seznamu bude automaticky povolena.
+  only_selected: >-
+    Skrýt vrcholy které budou přidány a nesplňují aktuální podmínky dané
+    filtrem.
+  only_selected_description: >-
+    Pokud není políčko zatrhnuté, jakákoli možnost co není v seznamu bude
+    automaticky povolena.
   close: Zavřít
-
-# Translation to different filters
 filters:
-  # Degree of the nodes
   degreeFilter:
     title: Grafové vlastnosti
     sumDegree: Stupeň vrcholu
-    sumDegree_description: Můžete si zvolit filtrování pouze těch vrcholů jež mají celkový grafový stupeň (tedy počet sousedů) v určitém rozmezí. Toto se hodí na odfiltrování vrcholů které mají spoustu sousedů a znepřehledňují graf.
+    sumDegree_description: >-
+      Můžete si zvolit filtrování pouze těch vrcholů jež mají celkový
+      grafový stupeň (tedy počet sousedů) v určitém rozmezí. Toto se hodí na
+      odfiltrování vrcholů které mají spoustu sousedů a znepřehledňují graf.
     inDegree: Vstupní stupeň vrcholu
     inDegree_description: Počítá pouze ty hrany které do vrcholu vstupují.
     outDegree: Odchozí stupeň vrcholu
     outDegree_description: Počítá pouze ty hrany které z vrcholu vystupují.
-  # Nodes properties
   propertyFilter:
     type:
       tab: Typ
@@ -103,15 +143,15 @@ view_options:
     full: Vše
     hide_text: Skrýt text
     hide: Skrýt
-
 save_dialog:
   title: Uložit graf?
-  text: Přejete si uložit aktuální graf do pořítače abyste ho mohli v budoucnu otevřít a pokračovat v prohlížení?
-  yes: Ano
-  no: Ne
+  text: >-
+    Přejete si uložit aktuální graf do pořítače abyste ho mohli v budoucnu
+    otevřít a pokračovat v prohlížení?
+  'yes': Ano
+  'no': Ne
   back: Zpět
-
 searcher:
-  by_id: Jako zdroj s ID '{0}'
+  by_id: 'Jako zdroj s ID ''{0}'''
   supported_iri: Jako validní IRI
   unsupported_iri: Jako nevalidní IRI (pravděpodobně špatný formát)

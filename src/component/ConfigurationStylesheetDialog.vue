@@ -25,7 +25,7 @@
             <v-card-actions>
                 <div class="flex-grow-1"></div>
 
-                <v-btn color="primary" text @click="dialog= false">Cancel</v-btn>
+                <v-btn color="primary" text @click="dialog= false">{{ $t("configuration_and_stylesheet_dialog.cancel") }}</v-btn>
                 <v-btn color="primary" text @click="update()" :disabled="!config || !stylesheet || (oldConfiguration === config && oldStylesheet === stylesheet)">
                     <span v-if="oldConfiguration === null">{{ $t("configuration_and_stylesheet_dialog.load") }}</span>
                     <span v-else-if="oldConfiguration !== config">{{ $t("configuration_and_stylesheet_dialog.update") }}</span>

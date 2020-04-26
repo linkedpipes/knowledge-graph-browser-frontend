@@ -1,5 +1,6 @@
 _lang_local: English
 _lang_english: English
+_pluralization: default
 menu:
   add_nodes: Add nodes
   filter: Filters
