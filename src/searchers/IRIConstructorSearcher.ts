@@ -16,7 +16,7 @@ export default class IRIConstructorSearcher implements Searcher {
             return new Map<string, SearcherResult>([
                 [iri, {
                     IRI: iri,
-                    text: "By ID " + query,
+                    text: ['searcher.by_id', query],
                     color: "lime",
                     icon: mdiIdentifier
                 }]

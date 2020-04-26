@@ -23,7 +23,7 @@
                     <v-icon dense :class="['white--text', data.item.color]" v-text="data.item.icon"></v-icon>
                 </v-list-item-avatar>
                 <v-list-item-content>
-                    <v-list-item-title v-html="data.item.text"></v-list-item-title>
+                    <v-list-item-title>{{(typeof data.item.text === 'string') ? data.item.text : $t(data.item.text[0], data.item.text.slice(1)) }}</v-list-item-title>
                     <v-list-item-subtitle v-html="data.item.IRI"></v-list-item-subtitle>
                 </v-list-item-content>
             </template>

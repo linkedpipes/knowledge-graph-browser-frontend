@@ -137,3 +137,8 @@ save_dialog:
   yes: Yes
   no: No
   back: Go back
+
+searcher:
+  by_id: As resource ID '{0}'
+  supported_iri: As valid IRI
+  unsupported_iri: As non-valid IRI (probably broken)

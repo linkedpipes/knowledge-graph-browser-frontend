@@ -16,7 +16,7 @@ export default class IRIIdentitySearcher implements Searcher {
         return new Map<string, SearcherResult>([
             [query, {
                 IRI: query,
-                text: valid ? "Legal IRI" : "Unsupported IRI",
+                text: valid ? ['searcher.supported_iri'] : ['searcher.unsupported_iri'],
                 icon: valid ? mdiSlashForward : mdiHelp,
                 color: valid ? "deep-orange" : "grey",
             }]

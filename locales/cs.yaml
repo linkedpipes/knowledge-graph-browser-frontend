@@ -110,3 +110,8 @@ save_dialog:
   yes: Ano
   no: Ne
   back: Zpět
+
+searcher:
+  by_id: Jako zdroj s ID '{0}'
+  supported_iri: Jako validní IRI
+  unsupported_iri: Jako nevalidní IRI (pravděpodobně špatný formát)

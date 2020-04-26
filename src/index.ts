@@ -2,6 +2,9 @@ import Vue from 'vue';
 import Application from './component/Application.vue';
 import Vuetify from 'vuetify/lib';
 import i18n from './i18n';
+import cytoscape from "cytoscape";
+
+cytoscape.warnings(false);
 
 Vue.use(Vuetify);
 

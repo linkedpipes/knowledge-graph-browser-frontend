@@ -1,34 +1,42 @@
 - name:
-    en: rpp
+    en: Register of rights and obligations of the Czech Republic
+    cs: Registr práv a povinností České republiky
   description:
-    en: rpp
+    en: (Registr práv a povinností)
+    cs:
   configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/rpp
   stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/rpp/style-sheet
   resource: https://rpp-opendata.egon.gov.cz/odrpp/zdroj/agenda/A116
   autocomplete: https://raw.githubusercontent.com/martinnec/kgbrowser/master/configurations/rpp-autocomplete.json
+  iri_structure: ^https://rpp-opendata\.egon\.gov\.cz/
 - name:
-    en: psp
+    en: Chamber of deputies - Parliament of the Czech Republic
+    cs: Poslanecká sněmovna parlamentu České republiky
   description:
-    en: psp
+    en:
   configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/psp
   stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/psp/style-sheet
   resource: https://psp.opendata.cz/zdroj/osoba/5914
+  iri_structure: ^https://psp\.opendata\.cz/zdroj/
 - name:
-    en: ssp
+    en: State administration of the Czech Republic
+    cs: Státní správa České republiky
   description:
-    en: ssp
+    en:
   configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/sgov
   stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/sgov/style-sheet
   resource: https://slovník.gov.cz/legislativní/sbírka/111/2009/pojem/orgán-veřejné-moci
+  iri_structure: ^https://slovník\.gov\.cz/
 - name:
     en: Wikidata animals
-    cs: Zvířata ve Wikipedii
+    cs: Zvířata na Wikipedii
   description:
     en: Browse all the animals on the the free encyclopedia wikipedia.org.
     cs: Procházejte veškeré tvory ze zvířecí říše na wikipedia.org.
   configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/wikidata/animals
   stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/wikidata/animals/style-sheet
   resource: http://www.wikidata.org/entity/Q135022
+  iri_structure: ^http://www\.wikidata\.org/entity/Q[1-9][0-9]*$
   iri_by_id:
     template: ["http://www.wikidata.org/entity/", ""]
     id_structure: ^Q[1-9][0-9]*$

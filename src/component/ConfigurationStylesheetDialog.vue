@@ -6,7 +6,11 @@
             </v-toolbar>
 
             <v-card-text>
-                <v-select return-object v-model="predefinedSelected" :items="predefined" :item-text="i=>i.name.en" :label="$t('configuration_and_stylesheet_dialog.predefined')"></v-select>
+                <v-select return-object v-model="predefinedSelectedRaw" :items="sources" :item-text="i=>i.text" item-value="source" :label="$t('configuration_and_stylesheet_dialog.predefined')">
+                    <template v-slot:item="item">
+                        {{item.item.text}} &nbsp; <div class="text--secondary">{{item.item.description}}</div>
+                    </template>
+                </v-select>
                 <v-divider></v-divider>
 
                 <v-text-field v-model="config" :label="$t('configuration_and_stylesheet_dialog.config')"></v-text-field>
@@ -39,7 +43,7 @@ import Vue from 'vue';
 import {DataSource} from "../DataSource";
 import Component from "vue-class-component";
 import SaveDialog from "./SaveDialog.vue";
-const dataSources = require("../../data/DataSources.yaml");
+const dataSources: DataSource[] = require("../../data/DataSources.yaml");
 
 @Component
 export default class ConfigurationStylesheetDialog extends Vue {
@@ -54,8 +58,15 @@ export default class ConfigurationStylesheetDialog extends Vue {
     config: string = "";
     stylesheet: string = "";
 
-    predefinedSelected: DataSource = null;
-    predefined: DataSource[] = dataSources;
+    private predefinedSelectedRaw: {
+        text: string,
+        description: string,
+        source: DataSource
+    } = null;
+
+    private get predefinedSelected(): DataSource {
+        return this.predefinedSelectedRaw ? this.predefinedSelectedRaw.source : null;
+    };
 
     dialog: boolean = false;
 
@@ -67,6 +78,14 @@ export default class ConfigurationStylesheetDialog extends Vue {
 
     close() {
         this.dialog = false;
+    }
+
+    private get sources() {
+        return dataSources.map(source => {return {
+            text: source.name[this.$i18n.locale] !== undefined ? source.name[this.$i18n.locale] : source.name[this.$i18n.fallbackLocale],
+            description: source.description[this.$i18n.locale] !== undefined ? source.description[this.$i18n.locale] : source.description[this.$i18n.fallbackLocale],
+            source
+        }});
     }
 
     update() {
@@ -109,14 +128,14 @@ export default class ConfigurationStylesheetDialog extends Vue {
     @Watch('config')
     configChanged() {
         if (this.predefinedSelected && this.config !== this.predefinedSelected.configuration) {
-            this.predefinedSelected = null;
+            this.predefinedSelectedRaw = null;
         }
     }
 
     @Watch('stylesheet')
     stylesheetChanged() {
         if (this.predefinedSelected && this.stylesheet !== this.predefinedSelected.stylesheet) {
-            this.predefinedSelected = null;
+            this.predefinedSelectedRaw = null;
         }
     }
 }

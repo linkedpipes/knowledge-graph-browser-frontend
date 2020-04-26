@@ -1,7 +1,7 @@
 export interface SearcherResult {
     readonly IRI: string;
 
-    text: string;
+    text: string | string[];
     icon: string;
     color: string;
 }
