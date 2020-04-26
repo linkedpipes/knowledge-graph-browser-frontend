@@ -4,6 +4,7 @@ menu:
   add_nodes: Add nodes
   filter: Filters
   view_options: View options
+  hidden_nodes: Hidden nodes
   load: Load graph
   save: Save graph
   configuration: Source configuration
@@ -36,8 +37,12 @@ side_panel:
       ffut: The node is hidden by a filter. To show it, change filter options.
       ftuf: The node is hidden. To show it, change its visibility.
       ffuf: The node is hidden both by filter and user. To show it, change filter options and visibility of the node.
+    remove_desc: Remove node from graph
+    refresh_desc: Reload all data from server
+    locate_desc: Locate node in graph
+    visible_desc: Switch user visibility of the node
   list_panel:
-    title: List of nodes
+    title: List of selected nodes
     remove: Remove
     remove_desc: Removes all the nodes
     hide: Hide
@@ -45,6 +50,14 @@ side_panel:
     show: Show
     show_desc: Makes all nodes visible
     number_items: 1 resource | {n} resources
+  hidden_nodes_panel:
+    title: Hidden nodes
+    description: This panel shows nodes currently not visible in the graph. If the node is hidden by a user, red eye icon is shown. By clicking on the eye you can change its user visibility. If the node is hidden by a filter, the filter icon is shown.
+    remove: Remove
+    remove_description: Removes all hidden nodes listed here
+  node_grouped_list:
+    number_items: 1 resource | {n} resources
+    no_nodes: There are currently no nodes to be listed
 
 # Dialog to add new nodes
 add_node_dialog:

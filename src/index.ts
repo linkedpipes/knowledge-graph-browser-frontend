@@ -17,7 +17,7 @@ const vuetify = new Vuetify({
                 accent: '#03a9f4',
                 error: '#e91e63',
                 warning: '#ff9800',
-                info: '#cddc39',
+                info: '#363636',
                 success: '#4caf50',
             },
             dark: {
@@ -26,7 +26,7 @@ const vuetify = new Vuetify({
                 accent: '#03a9f4',
                 error: '#e91e63',
                 warning: '#ff9800',
-                info: '#cddc39',
+                info: '#363636',
                 success: '#4caf50',
             },
         },

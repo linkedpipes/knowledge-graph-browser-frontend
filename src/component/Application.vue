@@ -10,9 +10,10 @@
                     :view-options="viewOptions"
                     :graph-searcher="graphSearcher"
                     :manipulator="manipulator"
+                    :area-manipulator="areaManipulator"
                     @new-manipulator="areaManipulator = $event"
             />
-            <side-panel :graph="graph" :hidden-panel.sync="hiddenPanel" ref="sidePanel" @width-changed="rightOffset = $event"/>
+            <side-panel :graph="graph" :area-manipulator="areaManipulator" :hidden-panel.sync="hiddenPanel" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
             <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
                 <v-list dense nav class="py-0">
@@ -59,7 +60,7 @@
             </v-navigation-drawer>
         </v-content>
 
-        <v-footer dark padless>
+        <v-footer v-if="false" dark padless>
             <v-card class="flex" flat tile>
                 <v-card-text class="py-2 white--text">
                     <v-progress-circular color="white" indeterminate size="16" width="2" class="mr-1"></v-progress-circular> <strong>Fetching resources...</strong> [5 left]

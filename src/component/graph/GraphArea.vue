@@ -8,17 +8,17 @@
 
 		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
 			<div class="my-2">
-				<v-btn color="primary" fab small dark @click="graph.manipulator.zoomIn()">
+				<v-btn color="primary" fab small dark @click="areaManipulator.zoomIn()">
 					<v-icon>mdi-plus</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="primary" fab small dark @click="graph.manipulator.zoomOut()">
+				<v-btn color="primary" fab small dark @click="areaManipulator.zoomOut()">
 					<v-icon>mdi-minus</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="primary" fab small dark @click="graph.manipulator.fit()">
+				<v-btn color="primary" fab small dark @click="areaManipulator.fit()">
 					<v-icon>mdi-arrow-expand-all</v-icon>
 				</v-btn>
 			</div>
@@ -82,6 +82,7 @@ export default class GraphArea extends Vue {
 	@Prop() dataSource: DataSource;
 	@Prop() private graphSearcher: GraphSearcher;
 	@Prop() private manipulator: GraphManipulator;
+	@Prop(Object) private areaManipulator: GraphAreaManipulator;
 
 	/**
 	 * How much of the graph area is covered by panels. This array is readonly so it could be passed by reference.

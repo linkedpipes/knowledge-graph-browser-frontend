@@ -32,7 +32,7 @@
             </v-tooltip>
             <v-tooltip bottom>
                 <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" @click="node.graph.manipulator.fit(node)" :disabled="!node.isVisible"><v-icon>{{ locate }}</v-icon></v-btn>
+                    <v-btn v-on="on" @click="areaManipulator.fit(node)" :disabled="!node.isVisible"><v-icon>{{ locate }}</v-icon></v-btn>
                 </template>
                 <span>{{ $t("side_panel.detail_panel.locate_desc") }}</span>
             </v-tooltip>
@@ -114,10 +114,12 @@ import { DetailValue } from '../../graph/NodeView';
 import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
 
 import { mdiTrashCanOutline, mdiRefresh, mdiCrosshairsGps, mdiEye, mdiEyeOff  } from '@mdi/js';
+import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 
 @Component
 export default class DetailPanel extends Vue {
     @Prop(Object) node: Node;
+    @Prop(Object) areaManipulator: GraphAreaManipulator;
 
     trash = mdiTrashCanOutline;
     refresh = mdiRefresh;

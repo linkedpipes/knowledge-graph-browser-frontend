@@ -32,6 +32,7 @@ export default class GraphElementNode extends Vue {
     /**
      * Vue method called after the creation of the object.
      * Registers node in the Cytoscape instance
+     * @vue
      */
     mounted() {
         // @ts-ignore
@@ -43,12 +44,6 @@ export default class GraphElementNode extends Vue {
             position,
         });
 
-        //this.node.graph.layout?.stop();
-
-        // @ts-ignore because of wrong type definitions
-        //this.node.graph.layout = this.element.cy().layout({name: "cola", fit: false, infinite: true}).run();
-
-        //this.element.css('display', 'none'); todo - for now its disabled
         this.element.scratch("_component", this);
 
         this.element.on("select", () => this.node.selected = true);
@@ -56,7 +51,8 @@ export default class GraphElementNode extends Vue {
 
         this.node.element = this;
 
-        this.visibilityChanged();
+        // For hidden nodes, disable animations
+        this.visibilityChanged(this.node.isVisible, undefined);
         this.selectedChanged();
     };
 
@@ -72,7 +68,8 @@ export default class GraphElementNode extends Vue {
         }
     }
 
-    @Watch('node.selected') selectedChanged() {
+    @Watch('node.selected')
+    private selectedChanged() {
         if (this.node.selected) {
             this.element.select();
         } else {
@@ -82,23 +79,31 @@ export default class GraphElementNode extends Vue {
 
     visibilityAnimation: CollectionAnimation;
 
-    @Watch('node.isVisible') visibilityChanged() {
-        let visible = this.node.isVisible;
-
+    @Watch('node.isVisible')
+    private visibilityChanged(visible: boolean, old: boolean | undefined) {
         if (this.visibilityAnimation) this.visibilityAnimation.stop(true, false);
 
         if (visible) {
-            this.visibilityAnimation = this.element.style("display", "element").animate({
-                style: { opacity: 1 }
-            }, {
-                duration: 300
-            });
+            if (old !== undefined) {
+                this.visibilityAnimation = this.element.style("display", "element").animate({
+                    style: { opacity: 1 }
+                }, {
+                    duration: 300
+                });
+            }
         } else {
-            this.visibilityAnimation = this.element.animate({
-                style: { opacity: 0 }
-            }, {
-                duration: 300
-            }).animate({style: {display: "none"}});
+            if (old === undefined) {
+                this.element.style({
+                    opacity: 0,
+                    display: "none",
+                });
+            } else {
+                this.visibilityAnimation = this.element.animate({
+                    style: { opacity: 0 }
+                }, {
+                    duration: 300
+                }).animate({style: {display: "none"}});
+            }
         }
     }
 

@@ -192,4 +192,17 @@ export class Node implements ObjectSave {
             this.currentView = view;
         }
     }
+
+    /**
+     * Selects this and only this node.
+     *
+     * Side panels behave according to how many nodes are selected, therefore by selecting specific node exclusively
+     * detail panel will be opened.
+     */
+    selectExclusively() {
+        for (let IRI in this.graph.nodes) {
+            this.graph.nodes[IRI].selected = false;
+        }
+        this.selected = true;
+    }
 }
