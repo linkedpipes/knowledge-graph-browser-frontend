@@ -5,7 +5,10 @@ const TerserPlugin = require('terser-webpack-plugin');
 var ProgressBarPlugin = require('progress-bar-webpack-plugin');
 const chalk = require('chalk');
 
-//const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+const TerserJSPlugin = require('terser-webpack-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 //var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
@@ -28,16 +31,16 @@ module.exports = {
             {
                 test: /\.css$/,
                 use: [
-                    //MiniCssExtractPlugin.loader,
                     'vue-style-loader',
+                    MiniCssExtractPlugin.loader,
                     'css-loader',
                 ]
             },
             {
-                test: /\.s[ca]ss$/,
+                test: /\.s(c|a)ss$/,
                 use: [
-                    //MiniCssExtractPlugin.loader,
                     'vue-style-loader',
+                    MiniCssExtractPlugin.loader,
                     'css-loader',
                     {
                         loader: 'sass-loader',
@@ -65,7 +68,7 @@ module.exports = {
             clear: false,
             width: 60
           }),
-        //new MiniCssExtractPlugin(),
+        new MiniCssExtractPlugin(),
         /* new OptimizeCssAssetsPlugin({
             cssProcessor: require('cssnano'),
             cssProcessorPluginOptions: {
@@ -85,7 +88,7 @@ module.exports = {
                 comments: false,
               },
             },
-        })]
+        }), new OptimizeCSSAssetsPlugin({})]
     },
     stats: { children: false },
 };
