@@ -10,7 +10,7 @@
                     </v-switch>
 
                     <slot></slot>
-                    <v-checkbox :disabled="!value.active" v-model="value.modeListed" color="red" class="black--label" :label="$t('filter_dialog.only_selected')" :messages="$t('filter_dialog.only_selected_description')"></v-checkbox>
+                    <v-checkbox :disabled="!value.active" v-model="modeListed" color="red" class="black--label" :label="$t('filter_dialog.only_selected')" :messages="$t('filter_dialog.only_selected_description')"></v-checkbox>
                     <v-list max-height="400" style="overflow-y: scroll;">
                         <v-list-item-group v-model="selectedItems" multiple>
                             <v-list-item :disabled="!value.active" v-for="(item, i) in availableItems" :key="`item-${i}`" :value="i" class="item-invert" active-class="item-invert-selected">
@@ -49,13 +49,27 @@ export default class PropertyEnumTab<T> extends Vue {
     @Prop() availableItems: T[];
     @Prop() equalityComparator: (a: T, b: T) => boolean;
 
+    private modeListed: boolean = false;
+
     /**
      * Current filter
      */
     @Prop() value: FilterDataEnum<T>;
 
-    @Watch('value.modeListed') modeListedChanged(val: boolean, oldVal: boolean) {
-        if (val == oldVal) return;
+    @Watch('value.modeListed', {immediate: true})
+    private modeListedUpdate(val: boolean) {
+        this.modeListed = val;
+    }
+
+    /**
+     * The reason why modeListed was split into two variables is because we want to change both modeListed and
+     * array of items in the same AnimationFrame. Naive approach would change modeListed in the first frame, than
+     * in the second frame the graph re-renders and array changes which triggers re-rendering again in the next frame
+     * */
+    @Watch('modeListed')
+    private localModeListedChanged(val: boolean) {
+        // When the action came from parent
+        if (val == this.value.modeListed) return;
 
         // We need to negate the array
         let newArray: number[] = [];
@@ -64,7 +78,10 @@ export default class PropertyEnumTab<T> extends Vue {
                 newArray.push(Number(itemId));
             }
         }
-        this.selectedItems = newArray;
+
+        // Change both values simultaneously
+        this.selectedItems = newArray; // (it has getter which changes this.value)
+        this.value.modeListed = val;
     }
 
     /**
