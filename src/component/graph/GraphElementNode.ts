@@ -88,9 +88,14 @@ export default class GraphElementNode extends Vue {
         if (this.visibilityAnimation) this.visibilityAnimation.stop(true, false);
 
         if (visible) {
-            if (old !== undefined) {
+            if (old === undefined) {
+                this.element.style({
+                    opacity: 1,
+                    display: "element",
+                });
+            } else {
                 this.visibilityAnimation = this.element.style("display", "element").animate({
-                    style: { opacity: 1 }
+                    style: {opacity: 1}
                 }, {
                     duration: 300
                 });
