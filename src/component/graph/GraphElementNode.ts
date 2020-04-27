@@ -38,9 +38,13 @@ export default class GraphElementNode extends Vue {
         // @ts-ignore
         this.cy = this.$parent.cy;
         let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
+
+        // All parameters here must correspond to functions trigger by watchers
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
             data: { ...this.node.currentView?.preview, id: this.node.IRI },
+            // @ts-ignore bad types
+            classes: this.node.currentView?.preview?.classes,
             position,
         });
 
@@ -115,12 +119,21 @@ export default class GraphElementNode extends Vue {
      * When node changes the current view and preview is not fetched yet,
      * this function is called with empty preview and therefore the old
      * values saved in Cy instance are not overwritten.
-     * @param preview Preview by which the node will be rendered
      */
-    @Watch('previewData', { immediate: true, deep: true })
-    updatePreview(preview: NodePreview) {
-        this.element?.data(preview);
-        this.element?.toggleClass("_preview_loading", preview === null);
+    @Watch('previewData', { deep: true })
+    private updatePreview() {
+        console.log("Preview is ", this.previewData);
+        // By doing this we achieve that the current preview remains if there is no other
+        if (this.previewData !== null) {
+            // Reset all data
+            this.element?.removeData();
+            this.element?.data({...this.previewData, id: this.node.IRI});
+
+            // Function .classes() sets whole new class list (removes the previous one)
+            // @ts-ignore bad types
+            this.element?.classes(this.previewData.classes);
+        }
+        this.element?.toggleClass("_preview_loading", this.previewData === null);
     }
 
     beforeDestroy() {

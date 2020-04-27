@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import {Prop, Watch} from 'vue-property-decorator';
 import Cytoscape from "cytoscape";
 import { Edge } from '../../graph/Edge';
 
@@ -26,9 +26,18 @@ export default class GraphElementEdge extends Vue {
                 source: this.edge.source.IRI,
                 target: this.edge.target.IRI,
                 label: this.edge.type.label
-            }
+            },
+            // @ts-ignore bad types
+            classes: this.edge.classes,
         });
     };
+
+    @Watch('edge.classes', {deep: true})
+    private updateClassList() {
+        // Function .classes() sets whole new class list (removes the previous one)
+        // @ts-ignore bad types
+        this.element?.classes(this.edge.classes);
+    }
 
     beforeDestroy() {
         this.cy.remove(this.element);

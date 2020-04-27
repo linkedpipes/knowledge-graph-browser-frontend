@@ -158,9 +158,10 @@ export class NodeView implements ObjectSave {
 
         // Create edges
         for (let expansionEdge of result.edges) {
-            this.node.graph.createEdge(
+            let edge = this.node.graph.createEdge(
                 this.node.graph.getNodeByIRI(expansionEdge.source),
                 this.node.graph.getNodeByIRI(expansionEdge.target), types.get(expansionEdge.type));
+            edge.classes = expansionEdge.classes;
         }
 
         this.expansionInProgress = false;

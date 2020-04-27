@@ -78,6 +78,7 @@ interface ResponseElementEdge {
     source: string;
     target: string;
     type: string;
+    classes: string[];
 }
 
 export interface ResponseElementNode {

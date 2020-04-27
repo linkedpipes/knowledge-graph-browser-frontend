@@ -139,8 +139,8 @@ export default class GraphArea extends Vue {
 				viewOptionsStyles.push({selector: "node",
 					style: {
 						label: "",
-						width: 10,
-						height: 10,
+						width: 20,
+						height: 20,
 						shape: "ellipse",
 						"border-width": 0,
 						padding: 0,

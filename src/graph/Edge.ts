@@ -21,6 +21,7 @@ export class Edge implements ObjectSave {
     source: Node;
     target: Node;
     type: EdgeType;
+    classes: string[] = [];
 
     constructor (source: Node, target: Node, type: EdgeType, graph: Graph) {
         this.source = source;
@@ -34,10 +35,12 @@ export class Edge implements ObjectSave {
             source: this.source.IRI,
             target: this.target.IRI,
             type: clone(this.type),
+            classes: clone(this.classes),
         };
     }
 
     restoreFromObject(object: any): void {
-        // no need to do anything
+        // We need to only restore classes because other items are node identifiers
+        this.classes = object.classes ?? [];
     }
 }
