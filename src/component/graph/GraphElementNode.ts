@@ -122,7 +122,6 @@ export default class GraphElementNode extends Vue {
      */
     @Watch('previewData', { deep: true })
     private updatePreview() {
-        console.log("Preview is ", this.previewData);
         // By doing this we achieve that the current preview remains if there is no other
         if (this.previewData !== null) {
             // Reset all data

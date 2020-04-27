@@ -54,7 +54,7 @@ export default class ListPanel extends Vue {
         visibility: [mdiEyeOff, mdiEye],
     }
 
-    get groupedNodes(): IterableIterator<NodeTypeGroup> {
+    get groupedNodes(): NodeTypeGroup[] {
         let map = new Map<string, NodeTypeGroup>();
         for (let node of this.nodes) {
             let type = node.currentView.preview.type;
@@ -72,7 +72,7 @@ export default class ListPanel extends Vue {
             group.nodes.push(node);
         }
 
-        return map.values();
+        return Array.from(map.values());
     }
 
     changeVisibility(visibility: boolean) {
