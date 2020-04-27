@@ -18,7 +18,7 @@
             {{ $t('side_panel.hidden_nodes_panel.description') }}
         </div>
 
-        <node-grouped-list mode-hidden-nodes :groups="groupedNodes" @nodeSelected="nodeSelected" />
+        <node-grouped-list mode-hidden-nodes select-button unselect-button hide-button show-button delete-button :groups="groupedNodes" @nodeSelected="nodeSelected" />
     </div>
 </template>
 <script lang="ts">

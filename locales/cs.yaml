@@ -67,6 +67,11 @@ side_panel:
   node_grouped_list:
     number_items: '1 vrchol | {n} vrcholy | {n} vrcholů'
     no_nodes: Žádné uzly k zobrazní
+    delete: Smazat
+    hide: Skrýt
+    show: Zobrazit
+    select: Vybrat
+    unselect: Zrušit výběr
 add_node_dialog:
   title: Přidání nových vrcholů
   cancel: Zrušit

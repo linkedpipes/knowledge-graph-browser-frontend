@@ -59,6 +59,11 @@ side_panel:
   node_grouped_list:
     number_items: 1 resource | {n} resources
     no_nodes: There are currently no nodes to be listed
+    delete: Delete
+    hide: Hide
+    show: Show
+    select: Select
+    unselect: Unselect
 
 # Dialog to add new nodes
 add_node_dialog:

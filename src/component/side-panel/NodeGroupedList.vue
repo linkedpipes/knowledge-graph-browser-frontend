@@ -10,6 +10,14 @@
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
 
+                    <div class="v-btn-toggle v-btn-toggle--tile buttons-menu mb-5">
+                        <v-btn v-if="deleteButton" @click="groupDelete(group)">{{ $t('side_panel.node_grouped_list.delete') }}</v-btn>
+                        <v-btn v-if="hideButton" @click="groupVisibility(group, false)">{{ $t('side_panel.node_grouped_list.hide') }}</v-btn>
+                        <v-btn v-if="showButton" @click="groupVisibility(group, true)">{{ $t('side_panel.node_grouped_list.show') }}</v-btn>
+                        <v-btn v-if="selectButton" @click="groupSelection(group, true)">{{ $t('side_panel.node_grouped_list.select') }}</v-btn>
+                        <v-btn v-if="unselectButton" @click="groupSelection(group, false)">{{ $t('side_panel.node_grouped_list.unselect') }}</v-btn>
+                    </div>
+
                     <v-simple-table dense>
                         <template v-slot:default>
                             <tbody>
@@ -56,6 +64,12 @@
         @Prop() groups: NodeTypeGroup[];
         @Prop(Boolean) modeHiddenNodes: boolean;
 
+        @Prop(Boolean) deleteButton!: boolean;
+        @Prop(Boolean) hideButton!: boolean;
+        @Prop(Boolean) showButton!: boolean;
+        @Prop(Boolean) selectButton!: boolean;
+        @Prop(Boolean) unselectButton!: boolean;
+
         private readonly icons = {
             visibility: [mdiEyeOff, mdiEye],
             filter: [mdiFilterOutline, mdiFilter],
@@ -64,6 +78,24 @@
         @Emit('nodeSelected')
         private nodeSelected(node: Node) {
             return node;
+        }
+
+        private groupDelete(group: NodeTypeGroup) {
+            for (let node of group.nodes) {
+                node.remove();
+            }
+        }
+
+        private groupVisibility(group: NodeTypeGroup, visibility: boolean) {
+            for (let node of group.nodes) {
+                node.visible = visibility;
+            }
+        }
+
+        private groupSelection(group: NodeTypeGroup, selection: boolean) {
+            for (let node of group.nodes) {
+                node.selected = selection;
+            }
         }
     }
 </script>
@@ -86,5 +118,13 @@
 
         /** Working solution from the Internet **/
         width: 0;
+    }
+
+    .buttons-menu {
+        display: flex;
+    }
+
+    .buttons-menu > * {
+        flex-grow: 1;
     }
 </style>

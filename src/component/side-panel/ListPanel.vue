@@ -23,7 +23,7 @@
             </v-tooltip>
         </div>
 
-        <node-grouped-list :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
+        <node-grouped-list delete-button unselect-button hide-button show-button :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
     </div>
 </template>
 <script lang="ts">
