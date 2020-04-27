@@ -81,9 +81,10 @@ export default class ConfigurationStylesheetDialog extends Vue {
     }
 
     private get sources() {
+        let fallbackLocale = typeof this.$i18n.fallbackLocale === 'string' ? this.$i18n.fallbackLocale : 'en';
         return dataSources.map(source => {return {
-            text: source.name[this.$i18n.locale] !== undefined ? source.name[this.$i18n.locale] : source.name[this.$i18n.fallbackLocale],
-            description: source.description[this.$i18n.locale] !== undefined ? source.description[this.$i18n.locale] : source.description[this.$i18n.fallbackLocale],
+            text: source.name[this.$i18n.locale] !== undefined ? source.name[this.$i18n.locale] : source.name[fallbackLocale],
+            description: source.description[this.$i18n.locale] !== undefined ? source.description[this.$i18n.locale] : source.description[fallbackLocale],
             source
         }});
     }
