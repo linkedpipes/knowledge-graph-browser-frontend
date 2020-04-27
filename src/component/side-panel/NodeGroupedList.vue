@@ -15,7 +15,7 @@
                             <tbody>
                             <tr v-for="node in group.nodes" :key="node.IRI">
                                 <td class="table-node-actions">
-                                    <a :href="node.IRI" target="_blank"><v-btn icon text x-small><v-icon small>{{ icons.link }}</v-icon></v-btn></a>
+                                    <link-component :href="node.IRI" />
                                     <v-btn v-if="modeHiddenNodes" icon text x-small @click="node.visible = !node.visible"><v-icon small :color="node.visible ? 'grey lighten-3' : 'primary'">{{ icons.visibility[node.visible ? 1 : 0] }}</v-icon></v-btn>
                                     <v-icon v-if="modeHiddenNodes" small :color="node.shownByFilters ? 'grey lighten-3' : 'primary'">{{ icons.filter[node.shownByFilters ? 1 : 0] }}</v-icon>
                                 </td>
@@ -41,20 +41,22 @@
     import {Component, Emit, Prop} from "vue-property-decorator";
     import Vue from "vue";
     import {Node, NodeType} from "../../graph/Node";
-    import {mdiEye, mdiEyeOff, mdiFilter, mdiFilterOutline, mdiWeb} from "@mdi/js";
+    import {mdiEye, mdiEyeOff, mdiFilter, mdiFilterOutline} from "@mdi/js";
+    import LinkComponent from "../helper/LinkComponent.vue";
 
     interface NodeTypeGroup {
         type: NodeType;
         nodes: Node[];
     }
 
-    @Component
+    @Component({
+        components: {LinkComponent}
+    })
     export default class NodeGroupedList extends Vue {
         @Prop() groups: NodeTypeGroup[];
         @Prop(Boolean) modeHiddenNodes: boolean;
 
         private readonly icons = {
-            link: mdiWeb,
             visibility: [mdiEyeOff, mdiEye],
             filter: [mdiFilterOutline, mdiFilter],
         }

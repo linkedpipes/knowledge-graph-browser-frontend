@@ -45,34 +45,42 @@
         </div>
 
         <div class="mb-5">
-            <h1 v-if="node.currentView && node.currentView.preview">{{node.currentView.preview.label}}
-                <v-chip v-for="cls in previewClasses" :key="cls.label" :color="cls.color" class="mx-2">{{cls.label}}</v-chip>
-                </h1><h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
-            <a :href="node.IRI" target="_blank"><code>{{node.IRI}}</code></a>
+            <div v-if="node.currentView && node.currentView.preview">
+                <h1 class="mb-2">{{node.currentView.preview.label}}</h1>
+                <div><v-chip label v-for="cls in previewClasses" :key="cls.label" :color="cls.color" class="mx-2">{{cls.label}}</v-chip></div>
+            </div>
+            <h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
         </div>
 
         <v-alert v-if="!node.isVisible" type="warning" dense text>{{ $t("side_panel.detail_panel.hidden.f" + (node.shownByFilters ? "t" : "f") + "u" + (node.visible ? "t" : "f")) }}</v-alert>
 
-        <v-card v-if="node.currentView && node.currentView.preview && node.currentView.preview.type" class="mb-5">
+        <!-- TYPE OF THE NODE -->
+        <v-card outlined v-if="node.currentView && node.currentView.preview && node.currentView.preview.type" class="mb-5">
             <v-card-text>
-                <div>
-                    <b>{{node.currentView.preview.type.label}}</b> <span v-if="node.currentView.preview.type.description">(<i>{{node.currentView.preview.type.description}}</i>)</span>
-                </div>
-                <a :href="node.currentView.preview.type.iri" target="_blank"><code>{{node.currentView.preview.type.iri}}</code></a>
+                <a :href="node.IRI" target="_blank" class="text--primary" style="text-decoration: none;">{{node.IRI}}</a>
+            </v-card-text>
+
+            <v-divider></v-divider>
+
+            <v-card-text class="text--primary">
+                <link-component :href="node.currentView.preview.type.iri" /> &nbsp;
+                <b>{{node.currentView.preview.type.label}}</b> &nbsp;
+                <span v-if="node.currentView.preview.type.description">{{node.currentView.preview.type.description}}</span>
             </v-card-text>
         </v-card>
 
-        <v-card :loading="viewSets === null" class="mb-5">
+        <!-- EXPANSIONS AND VIEWS -->
+        <v-card outlined :loading="viewSets === null" class="mb-5">
             <v-card-title>{{ $t("side_panel.detail_panel.views") }}</v-card-title>
             <template v-if="viewSets !== null">
                 <v-list v-if="viewSets.length">
-                    <v-list-item-group v-model="currentViewIRI" mandatory color="blue">
+                    <v-list-item-group v-model="currentViewIRI" mandatory color="secondary">
                         <template v-for="viewSet in viewSets">
                             <v-list-item :key="viewSet.IRI" disabled>{{viewSet.label}}</v-list-item>
                             <v-list-item v-for="view in viewSet.views" :key="view.IRI" :value="view.IRI" @click="view.use()">
                                 <v-list-item-content>
                                     <v-list-item-title style="flex-basis: auto;" class="flex-grow-1">{{view.label}}</v-list-item-title>
-                                    <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="blue" :loading="view.expansionInProgress" @click.stop="view.expand()">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
+                                    <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="secondary" :loading="view.expansionInProgress" @click.stop="view.expand()">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
                                 </v-list-item-content>
                             </v-list-item>
                         </template>
@@ -89,7 +97,8 @@
             </v-card-text>
         </v-card>
 
-        <v-card :disabled="!node.currentView" :loading="node.currentView && !node.currentView.detail" class="mb-5">
+        <!-- DETAIL -->
+        <v-card outlined :disabled="!node.currentView" :loading="node.currentView && !node.currentView.detail" class="mb-5 detail">
             <v-card-title>{{ $t("side_panel.detail_panel.detail") }}</v-card-title>
             <v-card-text v-if="!node.currentView">{{ $t("side_panel.detail_panel.please_select_view") }}</v-card-text>
             <v-card-text v-else-if="!node.currentView.detail">{{ $t("side_panel.detail_panel.fetching_detail") }}</v-card-text>
@@ -97,8 +106,7 @@
                 <tbody>
                     <tr v-for="detail in node.currentView.detail" :key="detail.IRI">
                         <td>
-                            <div><b v-if="detail.type">{{detail.type.label}}</b> <a :href="detail.IRI" target="_blank"><code>{{detail.IRI}}</code></a></div>
-                            <div>{{detail.value}}</div>
+                            <link-component :href="detail.IRI" /> &nbsp; <b v-if="detail.type">{{detail.type.label}}</b> &nbsp; {{detail.value}}
                         </td>
                     </tr>
                 </tbody>
@@ -115,13 +123,19 @@ import { DetailValue } from '../../graph/NodeView';
 // Stylesheet
 import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
 
-import { mdiTrashCanOutline, mdiRefresh, mdiCrosshairsGps, mdiEye, mdiEyeOff  } from '@mdi/js';
+import {mdiTrashCanOutline, mdiRefresh, mdiCrosshairsGps, mdiEye, mdiEyeOff, mdiWeb} from '@mdi/js';
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
-
-@Component
+import LinkComponent from "../helper/LinkComponent.vue";
+@Component({
+    components: {LinkComponent}
+})
 export default class DetailPanel extends Vue {
     @Prop(Object) node: Node;
     @Prop(Object) areaManipulator: GraphAreaManipulator;
+
+    private readonly icons = {
+        link: mdiWeb,
+    }
 
     trash = mdiTrashCanOutline;
     refresh = mdiRefresh;
@@ -139,12 +153,12 @@ export default class DetailPanel extends Vue {
             return null;
         }
 
-        let colors = ['red', 'pink', 'purple', 'deep-purple', 'indigo', 'blue', 'light-blue', 'cyan', 'teal', 'green', 'light-green', 'lime', 'yellow', 'amber', 'orange', 'deep-orange', 'brown', 'blueGrey'];
+        let colors = ['red', 'pink', 'purple', 'deep-purple', 'indigo', 'blue', 'light-blue', 'green', 'light-green', 'lime', 'yellow', 'amber', 'orange', 'deep-orange'];
 
         return this.node.currentView.preview.classes.map(cls => {
             return {
                 label: cls,
-                color: colors[cls.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0) % colors.length]
+                color: colors[Math.abs(cls.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)) % colors.length]
             }
         });
     }
@@ -202,3 +216,9 @@ export default class DetailPanel extends Vue {
     }
 }
 </script>
+<style scoped>
+    .detail >>> td {
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+</style>
