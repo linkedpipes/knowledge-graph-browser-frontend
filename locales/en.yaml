@@ -90,6 +90,7 @@ configuration_and_stylesheet_dialog:
   update: Update # Changing configuration
   update_stylesheet: Update stylesheet # Updating only stylesheet
   update_general: Update # Text when button is disabled
+  load_from_file: Load existing graph from file
 
 # Dialog to filter nodes
 filter_dialog:

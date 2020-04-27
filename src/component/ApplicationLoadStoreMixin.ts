@@ -9,6 +9,7 @@ import clone from "clone";
 import {DataSource} from "../DataSource";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
 import SaveDialog from "./SaveDialog.vue";
+import LoadDialog from "./LoadDialog.vue";
 
 @Component export default class ApplicationLoadStoreMixin extends Vue implements ObjectSave {
     graph: Graph;
@@ -19,6 +20,27 @@ import SaveDialog from "./SaveDialog.vue";
     areaManipulator !: GraphAreaManipulator;
 
     readonly saveDialog !: SaveDialog;
+    readonly loadDialog !: LoadDialog;
+
+    /**
+     * If there are unsaved changes, it asks whether user wants to save them.
+     * Then it opens load dialog.
+     */
+    public doLoadFromFileProcess(): void {
+        if (this.hasUnsavedChanges) {
+            this.saveDialog.show(true).then(result => {
+                switch (result) {
+                    case "yes":
+                        this.saveToFile();
+                        // Fallthrough
+                    case "no":
+                        this.loadDialog.show();
+                }
+            });
+        } else {
+            this.loadDialog.show();
+        }
+    }
 
     protected async loadFromFile(file: File) {
         let content = await file.text();

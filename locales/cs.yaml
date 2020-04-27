@@ -101,6 +101,7 @@ configuration_and_stylesheet_dialog:
   update: Změnit
   update_stylesheet: Změnit stylesheet
   update_general: Změnit
+  load_from_file: Načíst existující graf ze souboru
 filter_dialog:
   title: Filtrování uzlů
   only_selected: >-

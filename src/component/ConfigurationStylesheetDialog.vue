@@ -23,6 +23,8 @@
             </v-card-text>
 
             <v-card-actions>
+                <v-btn color="primary" text @click="loadFromFile">{{ $t("configuration_and_stylesheet_dialog.load_from_file") }}</v-btn>
+
                 <div class="flex-grow-1"></div>
 
                 <v-btn color="primary" text @click="dialog= false">{{ $t("configuration_and_stylesheet_dialog.cancel") }}</v-btn>
@@ -38,7 +40,7 @@
 </template>
 
 <script lang="ts">
-import {Prop, Watch} from "vue-property-decorator";
+    import {Emit, Prop, Watch} from "vue-property-decorator";
 import Vue from 'vue';
 import {DataSource} from "../DataSource";
 import Component from "vue-class-component";
@@ -103,6 +105,14 @@ export default class ConfigurationStylesheetDialog extends Vue {
         } else {
             this.actuallyUpdate();
         }
+    }
+
+    /**
+     * When user click he/she wants to load from file
+     */
+    @Emit('requestLoadFromFile')
+    private loadFromFile() {
+        this.dialog = false;
     }
 
     private actuallyUpdate() {

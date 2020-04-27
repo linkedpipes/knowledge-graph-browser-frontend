@@ -37,8 +37,8 @@
 
                     <v-divider></v-divider>
 
-                    <v-list-item link @click="loadDialog.show()" ><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
-                    <v-list-item link @click="saveToFile(null)"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.save") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="doLoadFromFileProcess()" ><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="saveToFile()"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.save") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="$refs.configurationStylesheetDialog.show()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
@@ -80,6 +80,7 @@
                 :saveDialog="saveDialog"
                 :saveFunction="saveToFile"
                 @changed="configurationStylesheetUpdated"
+                @requestLoadFromFile="doLoadFromFileProcess"
         />
         <vue-filter-component-creator :graph="graph" :filter="filter" />
         <view-options-dialog :options="viewOptions" ref="viewOptionsDialog"></view-options-dialog>
@@ -234,7 +235,7 @@
         @Ref() readonly bar !: any;
         @Ref() readonly languageMenu !: typeof VListGroup;
         @Ref() readonly settingsDialog !: typeof SettingsDialog;
-        @Ref() readonly loadDialog !: typeof LoadDialog;
+        @Ref() readonly loadDialog !: LoadDialog;
 
         private rightOffset: number = 0;
         private leftOffset: number = 56; // Collapsed width of Vuetify v-navigation-drawer
