@@ -343,7 +343,10 @@
             let stylesheetUpdated = update.stylesheet !== this.dataSource?.stylesheet;
             this.dataSource = update;
 
-            if (fullUpdate) this.createGraph();
+            if (fullUpdate) {
+                this.createGraph();
+                this.filter.reset();
+            }
             if (!fullUpdate && stylesheetUpdated) this.updateStylesheet();
 
             if (update.resource) this.addNode.show(update.resource);

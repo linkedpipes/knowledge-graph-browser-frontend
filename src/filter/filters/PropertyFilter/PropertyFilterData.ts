@@ -20,6 +20,11 @@ export default class PropertyFilterData implements Filter{
         return (this.type.active ? 1 : 0) + (this.class.active ? 1 : 0);
     }
 
+    reset() {
+        this.type.reset();
+        this.class.reset();
+    }
+
     saveToObject(): object {
         return {
             type: this.type.saveToObject(),

@@ -5,7 +5,12 @@ export interface FilterIsActive {
     readonly active: number;
 }
 
-export interface Filter extends FilterIsActive, ObjectSave {}
+export interface Filter extends FilterIsActive, ObjectSave {
+    /**
+     * Sets filter into the default state
+     */
+    reset(): void;
+}
 
 /**
  * Represents an ordered list of filters used in the application
@@ -23,6 +28,13 @@ export class FiltersList implements FilterIsActive, ObjectSave {
 
     get active(): number {
         return this.filters.reduce((sum, filterObject) => sum += filterObject.filter.active, 0);
+    }
+
+    /**
+     * Resets all filter data
+     */
+    reset() {
+        this.filters.forEach(filter => filter.filter.reset());
     }
 
     saveToObject(): object {

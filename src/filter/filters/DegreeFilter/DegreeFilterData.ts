@@ -15,6 +15,12 @@ export default class DegreeFilterData implements Filter{
             ((this.outDegree[0] !== null || this.outDegree[1] !== null) ? 1 : 0);
     }
 
+    reset() {
+        this.sumDegree = [null, null];
+        this.inDegree = [null, null];
+        this.outDegree = [null, null];
+    }
+
     saveToObject(): object {
         return {
             sumDegree: clone(this.sumDegree),

@@ -4,8 +4,6 @@
 import ObjectSave from "../file-save/ObjectSave";
 
 export default class FilterDataEnum<T> implements ObjectSave {
-    active: boolean = false;
-
     /**
      * Specifies filter mode.
      *
@@ -15,6 +13,14 @@ export default class FilterDataEnum<T> implements ObjectSave {
      */
     modeListed = false;
     items: T[] = [];
+
+    active: boolean = false;
+
+    reset() {
+        this.modeListed = false;
+        this.items = [];
+        this.active = false;
+    }
 
     /**
      * Saves current data into the plain javascript object.
