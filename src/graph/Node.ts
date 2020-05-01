@@ -95,40 +95,55 @@ export class Node implements ObjectSave {
         return view;
     }
 
-    async fetchViewSets() {
-        if (this.viewSets) return;
+    private fetchViewSetsPromise: Promise<void> = null;
 
-        let result = await this.graph.fetcher.getViewSets(this.IRI);
+    async fetchViewSets(): Promise<void> {
+        let asynchronouslyFetchViewSets = async () => {
+            let result = await this.graph.fetcher.getViewSets(this.IRI);
 
-        // First create list of views
-        let nodeViews: {[viewIRI:string]: NodeView} = {};
-        for (let nv of result.views) {
-            let view = this.createView(nv.iri);
-            view.label = nv.label;
+            // First create list of views
+            let nodeViews: {[viewIRI:string]: NodeView} = {};
+            for (let nv of result.views) {
+                let view = this.createView(nv.iri);
+                view.label = nv.label;
 
-            nodeViews[nv.iri] = view;
-        }
-
-        // Create View sets
-        let viewSets: typeof Node.prototype.viewSets = {};
-        for (let vs of result.viewSets) {
-            let viewSet = this.createViewSet(vs.iri);
-            viewSets[vs.iri] = viewSet;
-
-            viewSet.label = vs.label;
-            viewSet.defaultView = nodeViews[vs.defaultView];
-            for (let nv of vs.views) {
-                viewSet.views[nv] = nodeViews[nv];
-                viewSet.views[nv].viewSet = viewSet;
+                nodeViews[nv.iri] = view;
             }
+
+            // Create View sets
+            let viewSets: typeof Node.prototype.viewSets = {};
+            for (let vs of result.viewSets) {
+                let viewSet = this.createViewSet(vs.iri);
+                viewSets[vs.iri] = viewSet;
+
+                viewSet.label = vs.label;
+                viewSet.defaultView = nodeViews[vs.defaultView];
+                for (let nv of vs.views) {
+                    viewSet.views[nv] = nodeViews[nv];
+                    viewSet.views[nv].viewSet = viewSet;
+                }
+            }
+            this.viewSets = viewSets;
+            this.fetchViewSetsPromise = null;
         }
-        this.viewSets = viewSets;
+
+        if (!this.viewSets) {
+            if (!this.fetchViewSetsPromise) {
+                this.fetchViewSetsPromise = asynchronouslyFetchViewSets();
+            }
+
+            return this.fetchViewSetsPromise;
+        }
+    }
+
+    async getDefaultView(): Promise<NodeView> {
+        await this.fetchViewSets();
+        let vs = this.viewSets[Object.keys(this.viewSets)[0]];
+        return vs.views[Object.keys(vs.views)[0]];
     }
 
     async useDefaultView(): Promise<NodeView> {
-        await this.fetchViewSets();
-        let vs = this.viewSets[Object.keys(this.viewSets)[0]];
-        let view = vs.views[Object.keys(vs.views)[0]];
+        let view = await this.getDefaultView();
 
         // Fetching preview before the view is actually changed prevents time period when labels and class are unavailable
         await view.fetchPreview();

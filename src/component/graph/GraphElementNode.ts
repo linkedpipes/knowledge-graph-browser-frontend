@@ -4,7 +4,7 @@ import { Node } from '../../graph/Node';
 
 import Cytoscape, {CollectionAnimation} from "cytoscape";
 import Vue from 'vue';
-import { NodePreview } from '../../graph/NodeView';
+import {NodePreview, NodeView} from '../../graph/NodeView';
 import clone from "clone";
 
 /**
@@ -80,12 +80,16 @@ export default class GraphElementNode extends Vue {
      * Method called by ancestor component GraphArea when doubleclick is registered
      */
     async onDoubleClicked() {
+        let view: NodeView;
+
         if (!this.node?.currentView.IRI) {
-            await this.node.useDefaultView();
+            // Currently nodes obtained by expansion have view, but it does not contain IRI
+            view = await this.node.getDefaultView();
+        } else {
+            view = this.node.currentView;
         }
-        if (this.node.currentView) {
-            await this.node.currentView.expand();
-        }
+
+        await view.expand();
     }
 
     @Watch('node.selected')
@@ -165,7 +169,7 @@ export default class GraphElementNode extends Vue {
 
             // Function .classes() sets whole new class list (removes the previous one)
             // @ts-ignore bad types
-            this.element?.classes(clone(this.previewData.classes));
+            this.element?.classes(clone(this.previewData?.classes));
         }
         this.element?.toggleClass("_preview_loading", this.previewData === null);
 
