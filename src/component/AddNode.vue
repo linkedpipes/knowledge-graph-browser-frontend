@@ -81,7 +81,10 @@ export default class AddNode extends Vue {
         return this.IRIs.split(/\r\n|\r|\n/).map(s => s.trim()).filter(s => s.length > 0);
     }
 
-    show(predefinedIRI: string = null) {
+    show(predefinedIRI: string = null, firstPanel: boolean = false) {
+        if (firstPanel) {
+            this.tab = 0;
+        }
         this.dialog = true;
         this.error = false;
         this.loading = false;

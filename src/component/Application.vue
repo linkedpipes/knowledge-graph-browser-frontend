@@ -349,7 +349,7 @@
             }
             if (!fullUpdate && stylesheetUpdated) this.updateStylesheet();
 
-            if (update.resource) this.addNode.show(update.resource);
+            if (fullUpdate) this.addNode.show(update.resource ?? null);
         }
 
         /**
