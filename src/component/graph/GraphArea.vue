@@ -53,7 +53,7 @@ import Component from "vue-class-component";
 import GraphElementNode from "./GraphElementNode";
 import GraphElementEdge from "./GraphElementEdge";
 import Cytoscape from "cytoscape";
-import {Emit, Prop, Watch} from "vue-property-decorator";
+import {Emit, Mixins, Prop, Watch} from "vue-property-decorator";
 import {ResponseStylesheet} from "../../graph-fetcher/response-interfaces";
 import {Graph} from "../../graph/Graph";
 import clone from 'clone';
@@ -65,6 +65,7 @@ import ViewOptions from "../../graph/ViewOptions";
 import {DataSource} from "../../DataSource";
 import GraphSearcher from "../../GraphSearcher";
 import GraphManipulator from "../../graph/GraphManipulator";
+import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
 
 @Component({
 	components: {
@@ -73,7 +74,7 @@ import GraphManipulator from "../../graph/GraphManipulator";
 		GraphElementEdge
 	}
 })
-export default class GraphArea extends Vue {
+export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	@Prop() graph: Graph;
 	@Prop() stylesheet: ResponseStylesheet;
 	@Prop() leftOffset: number;
@@ -122,73 +123,6 @@ export default class GraphArea extends Vue {
 	@Emit()
 	newManipulator() {
 		return new GraphAreaManipulator(this.cy, this.graph, this.offset);
-	}
-
-	@Watch('stylesheet')
-	@Watch('viewOptions', {deep: true})
-	stylesheetUpdated() {
-		let viewOptionsStyles = [];
-
-		switch (this.viewOptions.node) {
-			case "hide":
-				viewOptionsStyles.push({selector: "node",
-					style: {label: ""}
-				});
-				break;
-			case "dot":
-				viewOptionsStyles.push({selector: "node",
-					style: {
-						label: "",
-						width: 20,
-						height: 20,
-						shape: "ellipse",
-						"border-width": 0,
-						padding: 0,
-					}
-				});
-				break;
-		}
-
-		switch (this.viewOptions.edge) {
-			case "hide":
-				viewOptionsStyles.push({selector: "edge",
-					style: {display: "none"}
-				});
-				break;
-			case "hide_text":
-				viewOptionsStyles.push({selector: "edge",
-					style: {label: ""}
-				});
-				break;
-		}
-
-		let style = [
-			{
-				selector: "node",
-				style: {
-					label: "data(label)"
-				}
-			},
-			{
-				selector: "edge",
-				style: {
-					width: 3,
-					"line-color": "#ccc",
-					"target-arrow-color": "#ccc",
-					"target-arrow-shape": "triangle",
-					"label": "data(label)"
-				}
-			},
-			...this.stylesheet.styles.map(style => {return {selector: style.selector, style: clone(style.properties)}}),
-			...viewOptionsStyles,
-			{
-				selector: "node._preview_loading",
-				style: {
-					opacity: 0.5
-				}
-			}
-		];
-		this.cy.style(style);
 	}
 
 	/**
