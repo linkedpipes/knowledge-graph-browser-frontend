@@ -5,6 +5,7 @@ import { Node } from '../../graph/Node';
 import Cytoscape, {CollectionAnimation} from "cytoscape";
 import Vue from 'vue';
 import { NodePreview } from '../../graph/NodeView';
+import clone from "clone";
 
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,
@@ -39,14 +40,29 @@ export default class GraphElementNode extends Vue {
         this.cy = this.$parent.cy;
         let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
 
+        // @ts-ignore
+        let id = this.cy.data("id_counter");
+        // @ts-ignore
+        this.cy.data("id_counter", id + 1);
+
         // All parameters here must correspond to functions trigger by watchers
+        // The objects are considered owned by Cytoscape therefore are copied to remove Vue observers
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
-            data: { ...this.node.currentView?.preview, id: this.node.IRI },
+            // label: Fixes Cytoscape bug when there is no clickable bounding box when node has [width: label] and previous label was empty
+            data: { label: "-----", ...clone(this.node.currentView?.preview), id: this.node.IRI },
             // @ts-ignore bad types
-            classes: this.node.currentView?.preview?.classes,
+            classes: clone(this.node.currentView?.preview?.classes),
             position,
         });
+
+        console.log(JSON.stringify({
+            group: 'nodes',
+            data: { ...clone(this.node.currentView?.preview), id: this.node.IRI },
+            // @ts-ignore bad types
+            classes: clone(this.node.currentView?.preview?.classes),
+            position,
+        }));
 
         this.element.scratch("_component", this);
 
@@ -130,14 +146,36 @@ export default class GraphElementNode extends Vue {
         // By doing this we achieve that the current preview remains if there is no other
         if (this.previewData !== null) {
             // Reset all data
-            this.element?.removeData();
-            this.element?.data({...this.previewData, id: this.node.IRI});
+
+            // The reason why this.element.removeData() is not used is because of a bug in Cytoscape library.
+            // The data field label must not be empty otherwise the node become un clickable when [width: label] style
+            // is used
+            let emptyData: any = {};
+            if (this.element) {
+                for (let id in this.element.data()) {
+                    emptyData[id] = undefined;
+                }
+            }
+            this.element?.data({
+                ...emptyData,
+                label: " ",
+                ...clone(this.previewData),
+                id: this.node.IRI
+            });
 
             // Function .classes() sets whole new class list (removes the previous one)
             // @ts-ignore bad types
-            this.element?.classes(this.previewData.classes);
+            this.element?.classes(clone(this.previewData.classes));
         }
         this.element?.toggleClass("_preview_loading", this.previewData === null);
+
+        console.log(JSON.stringify({
+            group: 'nodes',
+            data: { ...clone(this.node.currentView?.preview), id: this.node.IRI },
+            // @ts-ignore bad types
+            classes: clone(this.node.currentView?.preview?.classes)
+        }));
+
     }
 
     beforeDestroy() {

@@ -197,6 +197,11 @@ export default class GraphArea extends Vue {
 	created() {
 		Cytoscape.use(cola);
 		this.cy = Cytoscape();
+
+		// each node gets numeric id instead of IRI because it may cause some bugs if IRI contains some special characters
+		// @ts-ignore
+		this.cy.data("id_counter", 0);
+
 		this.stylesheetUpdated();
 	}
 
