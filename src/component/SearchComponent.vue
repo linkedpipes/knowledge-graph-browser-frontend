@@ -2,6 +2,7 @@
     <div>
         <v-autocomplete
                 :items="items"
+                v-model="model"
                 :search-input.sync="input"
                 color="blue-grey lighten-2"
                 :label="$t('search.label')"
@@ -52,6 +53,11 @@ export default class SearchComponent extends Vue {
     private items: SearcherResult[] = [];
     private zoomIcon = mdiMagnify;
 
+    /**
+     * Contains selected item, but it is used only for removing it.
+     */
+    private model: null = null;
+
     @Watch('input')
     private inputChanged() {
         this.items = [];
@@ -72,6 +78,10 @@ export default class SearchComponent extends Vue {
     private async onSelect(IRI: string) {
         if (IRI == "" || IRI === null) return;
         this.input = null;
+
+        // There is a bug with this component. After the item is selected, it remains selected and can't be un-selected
+        // because of inner vue watchers. Therefore we must wait to the next tick to remove the selected item
+        Vue.nextTick(() => this.model = null);
 
         this.triggerSearched(IRI);
     }
