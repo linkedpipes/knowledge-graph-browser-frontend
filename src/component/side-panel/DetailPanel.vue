@@ -44,9 +44,10 @@
             </v-tooltip>
         </div>
 
+        <!-- NODE NAME AND CLASSES -->
         <div class="mb-5">
-            <div v-if="node.currentView && node.currentView.preview">
-                <h1 class="mb-2">{{node.currentView.preview.label}}</h1>
+            <div v-if="lastFullPreview">
+                <h1 class="mb-2">{{lastFullPreview.label}}</h1>
                 <div><v-chip label v-for="cls in previewClasses" :key="cls.label" :color="cls.color" class="mx-2">{{cls.label}}</v-chip></div>
             </div>
             <h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
@@ -55,17 +56,20 @@
         <v-alert v-if="!node.isVisible" type="warning" dense text>{{ $t("side_panel.detail_panel.hidden.f" + (node.shownByFilters ? "t" : "f") + "u" + (node.visible ? "t" : "f")) }}</v-alert>
 
         <!-- TYPE OF THE NODE -->
-        <v-card outlined v-if="node.currentView && node.currentView.preview && node.currentView.preview.type" class="mb-5">
+        <v-card outlined class="mb-5">
             <v-card-text>
                 <a :href="node.IRI" target="_blank" class="text--primary" style="text-decoration: none;">{{node.IRI}}</a>
             </v-card-text>
 
             <v-divider></v-divider>
 
-            <v-card-text class="text--primary">
-                <link-component :href="node.currentView.preview.type.iri" /> &nbsp;
-                <b>{{node.currentView.preview.type.label}}</b> &nbsp;
-                <span v-if="node.currentView.preview.type.description">{{node.currentView.preview.type.description}}</span>
+            <v-card-text v-if="lastFullPreview && lastFullPreview.type" class="text--primary">
+                <link-component :href="lastFullPreview.type.iri" /> &nbsp;
+                <b>{{lastFullPreview.type.label}}</b> &nbsp;
+                <span v-if="lastFullPreview.type.description">{{lastFullPreview.type.description}}</span>
+            </v-card-text>
+            <v-card-text v-else class="text--primary">
+                {{ $t("side_panel.detail_panel.no_type_info") }}
             </v-card-text>
         </v-card>
 
@@ -119,7 +123,7 @@ import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
 import { NodeViewSet } from '../../graph/NodeViewSet';
-import { DetailValue } from '../../graph/NodeView';
+import {DetailValue, NodePreview} from '../../graph/NodeView';
 // Stylesheet
 import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
 
@@ -144,18 +148,42 @@ export default class DetailPanel extends Vue {
 
     currentViewIRI: string = null;
 
+    // Contains preview which was used latest
+    private _lastFullPreviewData: NodePreview | null = null;
+
+    // Node to which the preview belongs
+    private _lastFullPreviewBelongsTo: Node | null = null;
+
     /**
-     * Returns classes list with deterministic color based on name
+     * When user changes view, it takes some time to load preview, therefore lastFullPreview contains last preview
+     * if actual hasn't been downloaded yet. Prevents unnecessary blinking.
+     **/
+    private get lastFullPreview(): NodePreview | null {
+        if (this.node.currentView?.preview) {
+            this._lastFullPreviewData = this.node.currentView.preview;
+            this._lastFullPreviewBelongsTo = this.node;
+            return this.node.currentView.preview;
+        } else if (this._lastFullPreviewBelongsTo === this.node) {
+            return this._lastFullPreviewData;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns classes list with deterministic color based on name.
+     *
+     * Uses lastFullPreview to prevent unnecessary blinking when switching the views
      * @todo take out the color logic somewhere else
      */
     get previewClasses(): {label: string; color: string}[] {
-        if (!this.node.currentView?.preview) {
+        if (!this.lastFullPreview) {
             return null;
         }
 
         let colors = ['red', 'pink', 'purple', 'deep-purple', 'indigo', 'blue', 'light-blue', 'green', 'light-green', 'lime', 'yellow', 'amber', 'orange', 'deep-orange'];
 
-        return this.node.currentView.preview.classes.map(cls => {
+        return this.lastFullPreview.classes.map(cls => {
             return {
                 label: cls,
                 color: colors[Math.abs(cls.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)) % colors.length]

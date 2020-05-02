@@ -50,7 +50,7 @@ export default class GraphElementNode extends Vue {
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
             // label: Fixes Cytoscape bug when there is no clickable bounding box when node has [width: label] and previous label was empty
-            data: { label: " ", ...clone(this.node.currentView?.preview), id: this.node.IRI },
+            data: { label: "-", ...clone(this.node.currentView?.preview), id: this.node.IRI },
             // @ts-ignore bad types
             classes: clone(this.node.currentView?.preview?.classes),
             position,
@@ -154,7 +154,7 @@ export default class GraphElementNode extends Vue {
             }
             this.element?.data({
                 ...emptyData,
-                label: " ",
+                label: "-",
                 ...clone(this.previewData),
                 id: this.node.IRI
             });
