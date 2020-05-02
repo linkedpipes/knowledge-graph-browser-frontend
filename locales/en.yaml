@@ -64,6 +64,9 @@ side_panel:
     show: Show
     select: Select
     unselect: Unselect
+    no_type: No type provided
+    no_type_desc: You can try to fetch types of these nodes.
+    no_type_button: Fetch
 
 # Dialog to add new nodes
 add_node_dialog:

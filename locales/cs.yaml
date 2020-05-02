@@ -72,6 +72,9 @@ side_panel:
     show: Zobrazit
     select: Vybrat
     unselect: Zrušit výběr
+    no_type: Bez typu
+    no_type_desc: Můžete se pokusit stáhnout typy o těchto uzlech.
+    no_type_button: Stáhnout
 add_node_dialog:
   title: Přidání nových vrcholů
   cancel: Zrušit

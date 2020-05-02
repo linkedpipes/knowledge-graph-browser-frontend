@@ -1,11 +1,15 @@
 <template>
     <div>
         <v-expansion-panels accordion multiple>
-            <v-expansion-panel v-for="group of groups" :key="group.type.iri">
+            <v-expansion-panel v-for="group of groups" :key="group.type ? group.type.iri : ''">
                 <v-expansion-panel-header>
-                    <div>
+                    <div v-if="group.type">
                         <div><b>{{group.type.label}}</b> - {{ $tc('side_panel.node_grouped_list.number_items', group.nodes.length) }}</div>
                         <div class="mt-1 grey--text text--darken-1">{{group.type.description}}</div>
+                    </div>
+                    <div v-else>
+                        <div><b class="red--text">{{ $t('side_panel.node_grouped_list.no_type') }}</b> - {{ $tc('side_panel.node_grouped_list.number_items', group.nodes.length) }}</div>
+                        <div class="mt-1 grey--text text--darken-1">{{ $t('side_panel.node_grouped_list.no_type_desc') }} <v-btn @click.stop="fetchTypes(group.nodes)" :loading="fetchTypesLoading" x-small outlined color="primary">{{ $t('side_panel.node_grouped_list.no_type_button') }}</v-btn></div>
                     </div>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
@@ -46,7 +50,7 @@
 </template>
 
 <script lang="ts">
-    import {Component, Emit, Prop} from "vue-property-decorator";
+    import {Component, Emit, Prop, Watch} from "vue-property-decorator";
     import Vue from "vue";
     import {Node, NodeType} from "../../graph/Node";
     import {mdiEye, mdiEyeOff, mdiFilter, mdiFilterOutline} from "@mdi/js";
@@ -73,6 +77,22 @@
         private readonly icons = {
             visibility: [mdiEyeOff, mdiEye],
             filter: [mdiFilterOutline, mdiFilter],
+        }
+
+        private fetchTypesLoading = false;
+        private async fetchTypes(nodes: Node[]) {
+            this.fetchTypesLoading = true;
+            let promises = []
+            for (let node of nodes) {
+                promises.push(node.useDefaultView());
+            }
+
+            await Promise.all(promises);
+            this.fetchTypesLoading = false;
+        }
+        @Watch('groups')
+        private groupsUpdated() {
+            this.fetchTypesLoading = false;
         }
 
         @Emit('nodeSelected')
