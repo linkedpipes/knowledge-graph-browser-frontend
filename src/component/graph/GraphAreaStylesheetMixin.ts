@@ -156,6 +156,6 @@ export default class GraphAreaStylesheetMixin extends Vue {
 
     @Watch('finalStylesheet')
     protected stylesheetUpdated() {
-        this.cy.style(this.finalStylesheet);
+        this.cy.style(clone(this.finalStylesheet));
     }
 }

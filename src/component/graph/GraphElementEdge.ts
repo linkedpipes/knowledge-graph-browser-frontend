@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import {Prop, Watch} from 'vue-property-decorator';
 import Cytoscape from "cytoscape";
 import { Edge } from '../../graph/Edge';
+import clone from "clone";
 
 /**
  * Vue component representing edge in Cytoscape graph instance
@@ -28,7 +29,7 @@ export default class GraphElementEdge extends Vue {
                 label: this.edge.type.label
             },
             // @ts-ignore bad types
-            classes: this.edge.classes,
+            classes: clone(this.edge.classes),
         });
     };
 
@@ -36,7 +37,7 @@ export default class GraphElementEdge extends Vue {
     private updateClassList() {
         // Function .classes() sets whole new class list (removes the previous one)
         // @ts-ignore bad types
-        this.element?.classes(this.edge.classes);
+        this.element?.classes(clone(this.edge.classes));
     }
 
     beforeDestroy() {
