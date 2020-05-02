@@ -56,14 +56,6 @@ export default class GraphElementNode extends Vue {
             position,
         });
 
-        console.log(JSON.stringify({
-            group: 'nodes',
-            data: { ...clone(this.node.currentView?.preview), id: this.node.IRI },
-            // @ts-ignore bad types
-            classes: clone(this.node.currentView?.preview?.classes),
-            position,
-        }));
-
         this.element.scratch("_component", this);
 
         this.element.on("select", () => this.node.selected = true);
@@ -172,14 +164,6 @@ export default class GraphElementNode extends Vue {
             this.element?.classes(clone(this.previewData?.classes));
         }
         this.element?.toggleClass("_preview_loading", this.previewData === null);
-
-        console.log(JSON.stringify({
-            group: 'nodes',
-            data: { ...clone(this.node.currentView?.preview), id: this.node.IRI },
-            // @ts-ignore bad types
-            classes: clone(this.node.currentView?.preview?.classes)
-        }));
-
     }
 
     beforeDestroy() {
