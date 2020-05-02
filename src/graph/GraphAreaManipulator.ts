@@ -9,7 +9,9 @@ import ObjectSave from "../file-save/ObjectSave";
 export default class GraphAreaManipulator implements ObjectSave {
     animateOptions: AnimateOptions = {duration: 300};
     manualZoomScale: number = 2;
-    nodeZoom: number = 4;
+
+    // Final size of bounding box of elements with respect to size of viewport when doing fit
+    bbMaxSize: number = 0.75;
 
     /**
      * Cytoscape instance
@@ -30,16 +32,28 @@ export default class GraphAreaManipulator implements ObjectSave {
     }
 
     zoomIn() {
-        this.cy.animate({
-            // @ts-ignore zoom accepts number
-            zoom: this.cy.zoom() * this.manualZoomScale,
-        }, this.animateOptions);
+        this.changeZoomByQuotient(this.manualZoomScale);
+
     }
 
     zoomOut() {
+        this.changeZoomByQuotient(1 / this.manualZoomScale);
+    }
+
+    changeZoomByQuotient(quotient: number) {
+        this.cy.stop()
+
+        let clientVP = [this.cy.container().clientWidth - this.offsetArray[1] - this.offsetArray[3], this.cy.container().clientHeight - this.offsetArray[0] - this.offsetArray[2]];
+
+        let phi = [clientVP[0]/2 + this.offsetArray[3], clientVP[1]/2 + this.offsetArray[0]];
+
         this.cy.animate({
             // @ts-ignore zoom accepts number
-            zoom: this.cy.zoom() / this.manualZoomScale,
+            zoom: this.cy.zoom() * quotient,
+            pan: {
+                x: phi[0] - (phi[0] - this.cy.pan().x)*quotient,
+                y: phi[1] - (phi[1] - this.cy.pan().y)*quotient,
+            },
         }, this.animateOptions);
     }
 
@@ -50,53 +64,40 @@ export default class GraphAreaManipulator implements ObjectSave {
         }
     }
 
-    fit(nodes?: string|Node|(string|Node)[]) {
-        let nds: null|(string|Node)[];
-        if (nodes === undefined) {
-            nds = null;
-        } else if (nodes instanceof Node || typeof nodes === 'string') {
-            nds = [nodes];
-        } else {
-            nds = nodes;
+    fit(nodes?: Node|Node[]) {
+        if (nodes instanceof Node) {
+            nodes = [nodes];
         }
 
-        let count = 0;
         let collection: Cytoscape.NodeCollection;
-        if (nds === null) {
+        if (nodes == null) {
             collection = this.cy.nodes();
+            for (let IRI in this.graph.nodes) {
+                if (this.graph.nodes[IRI].isVisible) {
+                    collection.merge(this.graph.nodes[IRI].element.element);
+                }
+            }
         } else {
             collection = this.cy.collection();
-            for (let node of nds) {
-                count++;
-                if (node instanceof Node) {
-                    collection.merge(node.element.element);
-                } else {
-                    collection.merge(this.graph.getNodeByIRI(node).element.element);
-                }
+            for (let node of nodes) {
+                collection.merge(node.element.element);
             }
         }
 
-        if (count == 1) {
+        let bb = collection.boundingBox({});
+
+        if (bb.w > 0) {
+            let clientVP = [this.cy.container().clientWidth - this.offsetArray[1] - this.offsetArray[3], this.cy.container().clientHeight - this.offsetArray[0] - this.offsetArray[2]];
+            let zoom = Math.min(clientVP[0]*this.bbMaxSize/bb.w, clientVP[1]*this.bbMaxSize/bb.h);
             this.cy.animate({
-               /* center: {
-                    eles: collection,
-                },*/
-                // @ts-ignore
-                zoom: this.nodeZoom,
+                // @ts-ignore zoom accepts number
+                zoom,
                 pan: {
-                    x: -(collection[0].position().x * this.nodeZoom - (this.cy.container().clientWidth - this.offsetArray[1] - this.offsetArray[3]) / 2 - this.offsetArray[3]),
-                    y: -(collection[0].position().y * this.nodeZoom - (this.cy.container().clientHeight - this.offsetArray[0] - this.offsetArray[2]) / 2 - this.offsetArray[0]),
+                    x: clientVP[0]/2 + this.offsetArray[3] - zoom * (bb.x1 + bb.w/2),
+                    y: clientVP[1]/2 + this.offsetArray[0] - zoom * (bb.y1 + bb.h/2),
                 },
             }, this.animateOptions);
-        } else {
-            this.cy.animate({
-                fit: {
-                    eles: collection,
-                    padding: 100,
-                }
-            }, this.animateOptions);
         }
-
     }
 
     saveToObject(): object {

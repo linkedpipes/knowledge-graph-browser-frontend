@@ -99,7 +99,7 @@ export default class AddNode extends Vue {
 
     private onSearcher(IRI: string) {
         this.dialog = false;
-        this.manipulator.blockAddFindNode(IRI);
+        this.manipulator.locateOrTryFetchNode(IRI);
     }
 
     async confirmed() {
@@ -108,7 +108,7 @@ export default class AddNode extends Vue {
             this.loading = true;
             this.error = false;
 
-            if (await this.manipulator.blockAddFindNode(this.IRI)) {
+            if (await this.manipulator.locateOrTryFetchNode(this.IRI)) {
                 this.IRI = "";
                 this.dialog = false;
             } else {

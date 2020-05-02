@@ -3,7 +3,7 @@
 		<div class="flex-grow-1 graph-area" ref="graphd"></div>
 
 		<v-toolbar flat dense floating class="ma-3 toolbar" :style="leftStyle">
-			<search-component :graph-searcher="graphSearcher" @searched="manipulator.blockAddFindNode($event)"></search-component>
+			<search-component :graph-searcher="graphSearcher" @searched="manipulator.locateOrTryFetchNode($event)"></search-component>
 		</v-toolbar>
 
 		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">

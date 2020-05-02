@@ -4,6 +4,7 @@
 import {Graph} from "./Graph";
 import {Node} from "./Node";
 import GraphAreaManipulator from "./GraphAreaManipulator";
+import Vue from "vue";
 
 export default class GraphManipulator {
     private readonly graph: Graph;
@@ -23,7 +24,7 @@ export default class GraphManipulator {
      * Based on node IRI it tries to create or find specific node, selects it and focus on it.
      * @param IRI
      */
-    async blockAddFindNode(IRI: string): Promise<boolean> {
+    async locateOrTryFetchNode(IRI: string): Promise<boolean> {
         let node = this.graph.getNodeByIRI(IRI);
         let wasNew = !node;
 
@@ -40,16 +41,17 @@ export default class GraphManipulator {
             node.element.element.position(this.area.getCenterPosition());
         }
 
+        this.selectOnly(node);
+
         if (!node.viewSets) {
             node.useDefaultView().then((view) => view.fetchPreview());
-        }
 
-        this.selectOnly(node);
+        }
 
         // Show if hidden
         if (node.shownByFilters) {
             node.visible = true;
-            this.area.fit(node);
+            Vue.nextTick(() => this.area.fit(node)); // It must be done in the next tick so the side panel has time to open
         }
 
         return true;
