@@ -50,7 +50,7 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import GraphElementNode from "./GraphElementNode";
+import GraphElementNode from "./GraphElementNode.vue";
 import GraphElementEdge from "./GraphElementEdge";
 import Cytoscape from "cytoscape";
 import {Emit, Mixins, Prop, Watch} from "vue-property-decorator";
@@ -60,12 +60,14 @@ import clone from 'clone';
 import { mdiMagnify } from '@mdi/js';
 import SearchComponent from "../SearchComponent.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
-import cola from 'cytoscape-cola';
 import ViewOptions from "../../graph/ViewOptions";
 import {DataSource} from "../../DataSource";
 import GraphSearcher from "../../GraphSearcher";
 import GraphManipulator from "../../graph/GraphManipulator";
 import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
+
+import cola from 'cytoscape-cola';
+import popper from 'cytoscape-popper';
 
 @Component({
 	components: {
@@ -130,6 +132,8 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	 */
 	created() {
 		Cytoscape.use(cola);
+		Cytoscape.use(popper);
+
 		this.cy = Cytoscape();
 
 		// each node gets numeric id instead of IRI because it may cause some bugs if IRI contains some special characters

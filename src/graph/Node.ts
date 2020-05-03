@@ -3,7 +3,7 @@ import { NodeView } from "./NodeView";
 import { NodeViewSet } from "./NodeViewSet";
 import { ResponseElementType } from "../graph-fetcher/response-interfaces";
 import {Edge} from "./Edge";
-import GraphElementNode from "../component/graph/GraphElementNode";
+import GraphElementNode from "../component/graph/GraphElementNode.vue";
 import ObjectSave from "../file-save/ObjectSave";
 
 /**
@@ -70,6 +70,11 @@ export class Node implements ObjectSave {
      */
     selected: boolean = false;
     visible: boolean = true;
+
+    /**
+     * Whether the node can not be moved by layouts.
+     */
+    lockedForLayouts: boolean = false;
 
     currentView: NodeView = null;
 
@@ -167,6 +172,7 @@ export class Node implements ObjectSave {
             IRI: this.IRI,
             selected: this.selected,
             visible: this.visible,
+            lockedForLayouts: this.lockedForLayouts,
             currentView,
             viewSets,
             onMountPosition: this?.element?.element ? [this.element.element.position().x, this.element.element.position().y] : null,
@@ -176,6 +182,7 @@ export class Node implements ObjectSave {
     restoreFromObject(object: any): void {
         this.selected = object.selected;
         this.visible = object.visible;
+        this.lockedForLayouts = (object.lockedForLayouts !== undefined) ? object.lockedForLayouts : false;
         this.onMountPosition = object.onMountPosition;
 
         if (object.viewSets === null) {

@@ -1,3 +1,9 @@
+<template>
+    <div class="popper lock" ref="lockIconWrapper">
+        <v-icon ref="lockIcon" class="lock-icon" color="secondary" small>{{lockIcon}}</v-icon>
+    </div>
+</template>
+<script lang="ts">
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
@@ -6,6 +12,8 @@ import Cytoscape, {CollectionAnimation} from "cytoscape";
 import Vue from 'vue';
 import {NodePreview, NodeView} from '../../graph/NodeView';
 import clone from "clone";
+
+import { mdiPinOutline } from '@mdi/js';
 
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,
@@ -29,6 +37,8 @@ export default class GraphElementNode extends Vue {
      * Reference to this node in the Cytoscape container
      */
     element: Cytoscape.NodeSingular;
+
+    private lockIcon = mdiPinOutline;
 
     /**
      * Vue method called after the creation of the object.
@@ -61,12 +71,64 @@ export default class GraphElementNode extends Vue {
         this.element.on("select", () => this.node.selected = true);
         this.element.on("unselect", () => this.node.selected = false);
 
+        // Right-click
+        this.element.on("cxttap", () => this.node.lockedForLayouts = !this.node.lockedForLayouts);
+
+        // On moving end, lock the node
+        this.element.on("tapend", () => this.node.lockedForLayouts = true);
+
         this.node.element = this;
 
         // For hidden nodes, disable animations
         this.visibilityChanged(this.node.isVisible, undefined);
         this.selectedChanged();
+        this.lockedForLayoutsChanged();
     };
+
+    private popper: any = null;
+
+    @Watch('node.lockedForLayouts')
+    private lockedForLayoutsChanged() {
+        let updatePopper = () => {
+            // @ts-ignore bad types
+            this.$refs.lockIcon?.$el.style.zoom = String(this.element.cy().zoom() * 100) + '%';
+        }
+        let positionUpdater = () => {
+            updatePopper();
+            this.popper.scheduleUpdate();
+        };
+
+        if (this.node.lockedForLayouts) {
+            // @ts-ignore no types
+            this.popper = this.element.popper({
+                content: () => this.$refs.lockIconWrapper,
+                popper: {
+                    placement: 'right-end',
+                    modifiers: {
+                        preventOverflow: { enabled: false },
+                        hide: { enabled: false },
+                        flip: { enabled: false },
+                    }
+                } // my popper options here
+            });
+            updatePopper();
+            // @ts-ignore
+            this.$refs.lockIconWrapper.style.display = "block";
+
+            this.element.on('position', positionUpdater);
+            this.element.cy().on('pan zoom resize', positionUpdater);
+        } else {
+            // @ts-ignore no types
+            this.$refs.lockIconWrapper.style.display = "none";
+            if (this.popper) {
+                // @ts-ignore bad types
+                this.element.off('position', positionUpdater);
+                // @ts-ignore bad types
+                this.element.cy().off('pan zoom resize', positionUpdater);
+            }
+            this.popper?.destroy();
+        }
+    }
 
     /**
      * Method called by ancestor component GraphArea when doubleclick is registered
@@ -170,5 +232,20 @@ export default class GraphElementNode extends Vue {
         this.cy.remove(this.element);
     };
 
-    render(): null {return null; }
+    // render(): null {return null; }
 }
+</script>
+<style scoped>
+    .popper {
+        display: none;
+        pointer-events: none;
+        width: 0;
+        height: 0;
+    }
+
+    .lock-icon {
+        position: absolute !important;
+        left: 2px;
+        top: -8px;
+    }
+</style>
