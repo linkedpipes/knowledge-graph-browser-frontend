@@ -6,6 +6,7 @@ menu:
   filter: Filters
   view_options: View options
   hidden_nodes: Hidden nodes
+  layout: Layout options
   load: Load graph
   save: Save graph
   configuration: Source configuration
@@ -152,3 +153,22 @@ searcher:
   by_id: As resource ID '{0}'
   supported_iri: As valid IRI
   unsupported_iri: As non-valid IRI (probably broken)
+
+layouts:
+  cola:
+    name: Cola
+    title: Cola layout
+    do_layout_after_reposition: Do layout when user changes nodes positions
+    do_layout_after_reposition_desc: Whenever user changes node position, layout will run. All nodes except pinned ones will be layouted.
+    expansion_only_those: Layout only those nodes which are part of an expansion
+    expansion_only_those_desc: When user expands node, this option specifies if the whole graph or only expanded nodes should be layouted.
+    node_spacing: Node spacing
+    node_spacing_desc: Sets space around each node where any other node must not be located.
+    edge_length: Edge length
+    edge_length_desc: This option sets optimal edge length. The greater number is set, the further the nodes are.
+
+layout_dialog:
+  title: Layout options
+  keep_old_layout: Keep old layout
+  change_layout: Change to this layout
+  close: Close

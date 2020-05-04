@@ -5,14 +5,17 @@ import {Graph} from "./Graph";
 import {Node} from "./Node";
 import GraphAreaManipulator from "./GraphAreaManipulator";
 import Vue from "vue";
+import {LayoutManager} from "../layouts/LayoutManager";
 
 export default class GraphManipulator {
     private readonly graph: Graph;
     private readonly area: GraphAreaManipulator;
+    private readonly layoutManager: LayoutManager;
 
-    constructor(graph: Graph, area: GraphAreaManipulator) {
+    constructor(graph: Graph, area: GraphAreaManipulator, layoutManager: LayoutManager) {
         this.graph = graph;
         this.area = area;
+        this.layoutManager = layoutManager;
     }
 
     selectOnly(node: Node) {

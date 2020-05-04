@@ -11,7 +11,7 @@
                     :graph-searcher="graphSearcher"
                     :manipulator="manipulator"
                     :area-manipulator="areaManipulator"
-                    @new-manipulator="areaManipulator = $event"
+                    @new-manipulator="areaManipulatorUpdated($event)"
             />
             <side-panel :graph="graph" :area-manipulator="areaManipulator" :hidden-panel.sync="hiddenPanel" ref="sidePanel" @width-changed="rightOffset = $event"/>
 
@@ -34,6 +34,7 @@
                     <v-list-item link @click="$refs.filterDialog.show()"><v-list-item-icon><v-badge overlap :value="filter.active" :content="filter.active"><v-icon>{{ icons.filter }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="$refs.viewOptionsDialog.show()"><v-list-item-icon><v-badge dot :value="viewOptions.active"><v-icon>{{ icons.viewOptions }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.view_options") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="hiddenPanel = !hiddenPanel"><v-list-item-icon><v-badge dot :value="hiddenPanel"><v-icon>{{ icons.hidden }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.hidden_nodes") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="layoutDialog.show()"><v-list-item-icon><v-icon>{{ icons.layout }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.layout") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
 
@@ -92,6 +93,7 @@
                 :remote-url.sync="remoteURL"
         ></settings>
         <load-dialog ref="loadDialog" @selected="loadFromFile($event)"></load-dialog>
+        <layout-dialog ref="layoutDialog" :layouts="layouts" />
     </v-app>
 </template>
 
@@ -122,7 +124,10 @@
         mdiTranslate,
         mdiEthernetCable,
         mdiFilterOutline,
-        mdiCogs, mdiEye, mdiImageFilterTiltShift
+        mdiCogs,
+        mdiEye,
+        mdiImageFilterTiltShift,
+        mdiLayersTriple
     } from '@mdi/js';
     import {VListGroup} from "vuetify/lib";
     import SettingsDialog from "./SettingsDialog.vue";
@@ -140,10 +145,15 @@
     import SimpleJsonSearcher from "../searchers/SimpleJsonSearcher";
     import IRIConstructorSearcher from "../searchers/IRIConstructorSearcher";
     import IRIIdentitySearcher from "../searchers/IRIIdentitySearcher";
+    import LayoutDialog from "./LayoutDialog.vue";
+    import {LayoutManager} from "../layouts/LayoutManager";
+    import ColaLayoutSettingsComponent from "../layouts/cola/ColaLayoutSettingsComponent.vue";
+    import ColaLayout from "../layouts/cola/ColaLayout";
     let Configuration: {api: string} = require("../../conf.yaml");
 
     @Component({
         components: {
+            LayoutDialog,
             LoadDialog,
             ViewOptionsDialog,
             Settings,
@@ -165,6 +175,8 @@
 
         /**
          * Helper class for graph are manipulation such as animations, etc.
+         *
+         * It is created by GraphArea component.
          *
          * @non-reactive Must not be set until Vue inits its reactivity (even null is forbidden)
          * */
@@ -194,6 +206,8 @@
          * Despite the array here, the FilterDialog component ignores it and shows only those filters which are
          * programmed in the FilterDialog component. Todo add field with Vue component which renders filter settings
          * so the FilterDialog will not depend on specific filters and can be dynamically changed.
+         *
+         * It is similar to LayoutsList.
          * */
         filter = new FiltersList([
             {
@@ -206,6 +220,27 @@
                 component: PropertyFilterComponent,
                 filter: new PropertyFilterData()
             }
+        ]);
+
+        /**
+         * List of layouts supported in the application.
+         * This list can be dynamically expanded by plugins.
+         *
+         * Items are constant, that means, that instance of every layout is created only once and remains same even
+         * if the whole graph is changed.
+         *
+         * name - name of the layout used for saving to file
+         * settingsComponent - Vue component rendering settings page to the layout
+         * layout - the core instance containing parameters and layout algorithms
+         *
+         * It is similar to FiltersList.
+         * */
+        layouts = new LayoutManager([
+            {
+                name: 'cola',
+                settingsComponent: ColaLayoutSettingsComponent,
+                layout: new ColaLayout(),
+            },
         ]);
 
         /**
@@ -236,6 +271,7 @@
         @Ref() readonly languageMenu !: typeof VListGroup;
         @Ref() readonly settingsDialog !: typeof SettingsDialog;
         @Ref() readonly loadDialog !: LoadDialog;
+        @Ref() readonly layoutDialog !: typeof LayoutDialog;
 
         private rightOffset: number = 0;
         private leftOffset: number = 56; // Collapsed width of Vuetify v-navigation-drawer
@@ -259,14 +295,18 @@
         // List of icons used in main menu
         icons = {
             add: mdiPlusThick,
+            filter: mdiFilterOutline,
+            viewOptions: mdiEye,
+            hidden: mdiImageFilterTiltShift,
+            layout: mdiLayersTriple,
+
             load: mdiFileUploadOutline,
             save: mdiFileDownloadOutline,
-            language: mdiTranslate,
+
             configuration: mdiEthernetCable,
-            filter: mdiFilterOutline,
+
+            language: mdiTranslate,
             settings: mdiCogs,
-            viewOptions: mdiEye,
-            hidden: mdiImageFilterTiltShift
         };
 
         /**
@@ -297,11 +337,32 @@
             }
         }
 
+        /**
+         * When graph is changed, change it also in all dependent classes.
+         * Todo still in work. #DependencyInjection
+         * */
+        @Watch('graph', {immediate: true})
+        private graphChanged(graph: Graph) {
+            if (this.areaManipulator) this.areaManipulator.graph = graph;
+        }
+
+        /**
+         * Called by GraphArea component when cytoscape instance is mounted.
+         * */
+        private areaManipulatorUpdated(manipulator: GraphAreaManipulator) {
+            this.areaManipulator = manipulator;
+            this.areaManipulator.graph = this.graph;
+
+            this.layouts.graphAreaManipulatorChanged(this.areaManipulator);
+            this.areaManipulator.layoutManager = this.layouts;
+
+            this.createNewManipulator()
+        }
+
         @Watch('graph')
-        @Watch('areaManipulator')
         private createNewManipulator() {
             if (this.graph && this.areaManipulator) {
-                this.manipulator = new GraphManipulator(this.graph, this.areaManipulator);
+                this.manipulator = new GraphManipulator(this.graph, this.areaManipulator, this.layouts);
             }
         }
 
@@ -374,6 +435,27 @@
                 this.graphSearcher = new GraphSearcher(searchers);
             }
         }
+
+        //#region Functions that watch graph and trigger layout event handlers
+
+        // All we need is to know that at least one lockedForLayouts has changed.
+        // I was afraid that watching every single node can halt layout when batch change therefore we first count
+        // some number from it and watch the number
+        private get countNodesLockedForLayout(): number {
+            let count: number = 0;
+            for (let IRI in this.graph.nodes) {
+                if (this.graph.nodes[IRI].lockedForLayouts) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        @Watch('countNodesLockedForLayout')
+        private countNodesLockedForLayoutChanged() {
+            this.layouts?.currentLayout?.onLockedChanged();
+        }
+        //#endregion Functions that watch graph and trigger layout event handlers
     }
 </script>
 <style>

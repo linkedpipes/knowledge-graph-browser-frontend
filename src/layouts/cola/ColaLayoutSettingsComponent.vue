@@ -1,0 +1,66 @@
+<template>
+    <div>
+        <h1 class="text--primary mb-5">{{ $t("layouts.cola.title") }}</h1>
+
+        <v-list>
+            <v-list-item class="mb-5">
+                <div>
+                    <v-checkbox v-model="layout.options.doLayoutAfterReposition">
+                        <template v-slot:label><span class="black--text">{{ $t("layouts.cola.do_layout_after_reposition") }}</span></template>
+                    </v-checkbox>
+                    <div class="text--secondary mx-5">
+                        {{ $t("layouts.cola.do_layout_after_reposition_desc") }}
+                    </div>
+                </div>
+            </v-list-item>
+
+            <!-- Todo This is temporarily disabled because the expansion info is not stored -->
+            <v-list-item v-if="false" class="mb-5">
+                <div>
+                    <v-checkbox v-model="layout.options.expansionOnlyThose">
+                        <template v-slot:label><span class="black--text">{{ $t("layouts.cola.expansion_only_those") }}</span></template>
+                    </v-checkbox>
+                    <div class="text--secondary mx-5">
+                        {{ $t("layouts.cola.expansion_only_those_desc") }}
+                    </div>
+                </div>
+            </v-list-item>
+            <v-list-item>
+                <v-row>
+                    <v-col cols="3">
+                        <v-text-field v-model="layout.options.nodeSpacing" :label="$t('layouts.cola.node_spacing')" type="number" suffix="px"></v-text-field>
+                    </v-col>
+                    <v-col cols="9">
+                        <v-subheader>{{ $t("layouts.cola.node_spacing_desc") }}</v-subheader>
+                    </v-col>
+                </v-row>
+            </v-list-item>
+            <v-list-item>
+                <v-row>
+                    <v-col cols="3">
+                        <v-text-field v-model="layout.options.edgeLength" :label="$t('layouts.cola.edge_length')" type="number" suffix="px"></v-text-field>
+                    </v-col>
+                    <v-col cols="9">
+                        <v-subheader>{{ $t("layouts.cola.edge_length_desc") }}</v-subheader>
+                    </v-col>
+                </v-row>
+            </v-list-item>
+        </v-list>
+    </div>
+</template>
+<script lang="ts">
+    import Component from "vue-class-component";
+    import Vue from "vue";
+    import {Prop, PropSync} from "vue-property-decorator";
+    import ColaLayout, {ColaLayoutOptions} from "./ColaLayout";
+
+    @Component
+    export default class ColaLayoutSettingsComponent extends Vue {
+        /**
+         * ColaLayout whose options will be modified by user.
+         */
+        @Prop() layout !: ColaLayout;
+
+        public readonly layoutNameTranslationPath = "layout.cola.name";
+    }
+</script>

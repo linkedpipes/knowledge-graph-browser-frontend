@@ -105,7 +105,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 
 	layout() {
 		// @ts-ignore
-		this.cy.layout({name: "cola", nodeDimensionsIncludeLabels: true}).run();
+		this.cy.layout({name: "cola", nodeDimensionsIncludeLabels: true, fit: false}).run();
 	}
 
 	circle() {
@@ -121,10 +121,9 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		return 'right: ' + this.rightOffset + 'px;';
 	}
 
-	@Watch('graph')
 	@Emit()
 	newManipulator() {
-		return new GraphAreaManipulator(this.cy, this.graph, this.offset);
+		return new GraphAreaManipulator(this.cy, this.offset);
 	}
 
 	/**
@@ -148,6 +147,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	 * Mounts the Cytoscape instance to HTML and registers basic events handlers
 	 */
 	mounted() {
+		console.log("MOUNTED GRAPH AREA");
 		// Mount Cytoscape instance to HTML element
 		this.cy.mount(<Element>this.$refs.graphd);
 

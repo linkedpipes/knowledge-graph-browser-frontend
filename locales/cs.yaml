@@ -6,6 +6,7 @@ menu:
   filter: Filtrování
   view_options: Možnosti pohledu
   hidden_nodes: Skryté uzly
+  layout: Nastavení layoutu
   load: Načíst ze souboru
   save: Uložit do souboru
   configuration: Konfigurace zdroje
@@ -164,3 +165,20 @@ searcher:
   by_id: 'Jako zdroj s ID ''{0}'''
   supported_iri: Jako validní IRI
   unsupported_iri: Jako nevalidní IRI (pravděpodobně špatný formát)
+layouts:
+  cola:
+    name: Cola
+    title: Cola layout
+    do_layout_after_reposition: Spustit layoutování pokud uživatel přetahuje uzly.
+    do_layout_after_reposition_desc: Kdykoli uživatel přesune uzel spustí se layoutování celého grafu. Pokud je vypnuné, musí se layoutování spouštět ručně.
+    expansion_only_those: Při expanzi layoutovat pouze uzly expanze.
+    expansion_only_those_desc: Pokud uživatel provede expanzi, musí proběhnout layoutování. Tímto přepínačem zvolíte, zda se má layoutovat celý graf, nebo jen část, kde proběhla expanze.
+    node_spacing: Mezera mezi uzly
+    node_spacing_desc: Nastaví optimální velikost mezery mezi jednotlivými uzly při layoutování.
+    edge_length: Délka hran
+    edge_length_desc: Nastaví optimální délku hran. Hodí se zvýšit v přápadě že popisky uzlů a hran splývají.
+layout_dialog:
+  title: Nastavení layoutu
+  keep_old_layout: Ponechat původní layout
+  change_layout: Nastavit tento layout
+  close: Zavřít

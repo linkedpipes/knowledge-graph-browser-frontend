@@ -2,6 +2,7 @@ import Cytoscape, {AnimateOptions} from "cytoscape";
 import {Node} from "./Node";
 import {Graph} from "./Graph";
 import ObjectSave from "../file-save/ObjectSave";
+import {LayoutManager} from "../layouts/LayoutManager";
 
 /**
  * This class performs basic operations with graph area like zooming, animations etc.
@@ -9,6 +10,8 @@ import ObjectSave from "../file-save/ObjectSave";
 export default class GraphAreaManipulator implements ObjectSave {
     animateOptions: AnimateOptions = {duration: 300};
     manualZoomScale: number = 2;
+
+    public layoutManager: LayoutManager | null = null;
 
     // Final size of bounding box of elements with respect to size of viewport when doing fit
     bbMaxSize: number = 0.75;
@@ -25,10 +28,26 @@ export default class GraphAreaManipulator implements ObjectSave {
      */
     private readonly offsetArray: [number, number, number, number];
 
-    constructor(cy: Cytoscape.Core, graph: Graph, offsetArray: [number, number, number, number]) {
+    constructor(cy: Cytoscape.Core, offsetArray: [number, number, number, number]) {
         this.cy = cy;
-        this.graph = graph;
         this.offsetArray = offsetArray;
+
+        console.log("Constructing graph area manipulator");
+
+        // Connect cytoscape events with layoutManager
+        let isBeingDragged = false;
+        cy.on('drag', (e) => {
+            if (!isBeingDragged) {
+                this.layoutManager?.currentLayout?.onDrag(true);
+            }
+            isBeingDragged = true;
+        });
+        cy.on('free', () => {
+            if (isBeingDragged) {
+                this.layoutManager?.currentLayout?.onDrag(false);
+            }
+            isBeingDragged = false;
+        });
     }
 
     zoomIn() {

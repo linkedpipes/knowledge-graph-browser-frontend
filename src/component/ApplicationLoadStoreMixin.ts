@@ -10,10 +10,12 @@ import {DataSource} from "../DataSource";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
 import SaveDialog from "./SaveDialog.vue";
 import LoadDialog from "./LoadDialog.vue";
+import {LayoutManager} from "../layouts/LayoutManager";
 
 @Component export default class ApplicationLoadStoreMixin extends Vue implements ObjectSave {
     graph: Graph;
     filter: FiltersList;
+    layouts: LayoutManager;
     viewOptions: ViewOptions;
     stylesheet: ResponseStylesheet;
     dataSource: DataSource;
@@ -67,6 +69,7 @@ import LoadDialog from "./LoadDialog.vue";
         return {
             graph: this.graph.saveToObject(),
             filter: this.filter.saveToObject(),
+            layouts: this.layouts.saveToObject(),
             viewOptions: this.viewOptions.saveToObject(),
             stylesheet: clone(this.stylesheet),
             dataSource: this.dataSource,
@@ -84,6 +87,7 @@ import LoadDialog from "./LoadDialog.vue";
 
         // Now we recreate all non important data because now the graph is empty
         this.filter.restoreFromObject(object.filter);
+        this.layouts.restoreFromObject(object.layouts);
         this.viewOptions.restoreFromObject(object.viewOptions);
         this.stylesheet = object.stylesheet;
         this.areaManipulator.restoreFromObject(object.area);
