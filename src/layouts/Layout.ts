@@ -3,6 +3,7 @@
  */
 import ObjectSave from "../file-save/ObjectSave";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
+import {Expansion} from "../graph/Expansion";
 
 export default abstract class Layout implements ObjectSave {
     /**
@@ -14,7 +15,7 @@ export default abstract class Layout implements ObjectSave {
     /**
      * When layout became active, that means it starts receiving events.
      */
-    abstract activate(): void;
+    activate(): void {};
 
     /**
      * Some other layout became active and therefore this must turn off all animations and disable additional event
@@ -22,11 +23,17 @@ export default abstract class Layout implements ObjectSave {
      *
      * Functions like onDrag or onExpansion won't be called anymore (no need to handle this)
      */
-    abstract deactivate(): void;
+    deactivate(): void {};
 
     onAddedNodes(): void {};
 
-    onExpansion(): void {};
+    /**
+     * This method is called when expansion succeeds.
+     * Newly created nodes are not mounted yet, therefore this function can treat them differently.
+     * To mount the nodes, set node.mount to true and wait until next animation frame.
+     * @param expansion
+     */
+    onExpansion(expansion: Expansion): void {};
 
     onDrag(isStartNotEnd: boolean) {};
 

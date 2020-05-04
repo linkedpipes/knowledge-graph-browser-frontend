@@ -36,11 +36,14 @@
 
 		<graph-element-node
 			v-for="node in graph.nodes"
+			v-if="node.mounted"
 			:key="node.IRI.replace(/\./, '_')"
 			:node="node"
+			:areaManipulator="areaManipulator"
 		/>
 		<graph-element-edge
 			v-for="(edge, identifier) in graph.edges"
+			v-if="edge.source.mounted && edge.target.mounted"
 			:key="identifier.replace(/\./, '_')"
 			:edge="edge"
 		/>

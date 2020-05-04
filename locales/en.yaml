@@ -158,6 +158,9 @@ layouts:
   cola:
     name: Cola
     title: Cola layout
+    performance: Cola layout may affect application performance on large graphs due to complex calculations. We suggest to use different layout for larger graphs.
+    animate: Animate
+    animate_desc: Whether the layout computation should be animated. Turning off this option may increase application performance.
     do_layout_after_reposition: Do layout when user changes nodes positions
     do_layout_after_reposition_desc: Whenever user changes node position, layout will run. All nodes except pinned ones will be layouted.
     expansion_only_those: Layout only those nodes which are part of an expansion
@@ -166,9 +169,15 @@ layouts:
     node_spacing_desc: Sets space around each node where any other node must not be located.
     edge_length: Edge length
     edge_length_desc: This option sets optimal edge length. The greater number is set, the further the nodes are.
+  circle:
+    name: Circle
+    title: Simple circle layout
+    node_spacing: Node spacing
+    node_spacing_desc: Sets how far from each other the nodes should be when their parent is expanded.
 
 layout_dialog:
   title: Layout options
+  active: active
   keep_old_layout: Keep old layout
   change_layout: Change to this layout
   close: Close

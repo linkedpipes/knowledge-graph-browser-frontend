@@ -41,6 +41,8 @@ export default class GraphManipulator {
         }
 
         if (wasNew) {
+            node.mounted = true;
+            await Vue.nextTick();
             node.element.element.position(this.area.getCenterPosition());
         }
 

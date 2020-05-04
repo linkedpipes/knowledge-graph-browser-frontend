@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="dialog" max-width="700">
+    <v-dialog v-model="dialog" max-width="1000">
 
         <v-card>
             <v-toolbar flat color="secondary" dark>
@@ -7,7 +7,10 @@
             </v-toolbar>
 
             <v-tabs v-model="tab" vertical>
-                <v-tab v-for="layout of layouts.list" :key="layout.name">{{ $t("layouts." + layout.name + ".name") }}</v-tab>
+                <v-tab v-for="layout of layouts.list" :key="layout.name" class="flex-column">
+                    {{ $t("layouts." + layout.name + ".name") }}
+                    <v-chip v-if="layouts.currentLayout === layout.layout" class="ml-2" x-small label color="secondary">{{ $t("layout_dialog.active") }}</v-chip>
+                </v-tab>
 
                 <v-tab-item v-for="layout of layouts.list" :key="layout.name">
                     <v-card flat>
@@ -48,30 +51,23 @@ export default class LayoutDialog extends Vue {
     // Which layout is active (as tab number)
     private startTab: number = 0;
 
-    colaTranslate = "dd";
-
-    colaData: ColaLayoutOptions = {
-        edgeLength: 100,
-        nodeSpacing: 10,
-        expansionOnlyThose: false,
-        doLayoutAfterReposition: true,
-    }
-
     show() {
         this.tab = Math.max(0, this.layouts.list.indexOf(this.layouts.currentLayoutData));
         this.startTab = this.tab;
         this.dialog = true;
     }
 
+    /**
+     * Layout is changed only if confirmed is true
+     * @param confirmed
+     */
     close(confirmed: boolean) {
         if (confirmed) {
             this.layouts.switchToLayout(this.layouts.list[this.tab].name);
+        } else {
+            this.tab = this.startTab;
         }
         this.dialog = false;
     }
 }
 </script>
-
-<style scoped>
-
-</style>

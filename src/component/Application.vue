@@ -149,6 +149,8 @@
     import {LayoutManager} from "../layouts/LayoutManager";
     import ColaLayoutSettingsComponent from "../layouts/cola/ColaLayoutSettingsComponent.vue";
     import ColaLayout from "../layouts/cola/ColaLayout";
+    import CircleLayoutSettingsComponent from "../layouts/circle/CircleLayoutSettingsComponent.vue";
+    import CircleLayout from "../layouts/circle/CircleLayout";
     let Configuration: {api: string} = require("../../conf.yaml");
 
     @Component({
@@ -241,6 +243,11 @@
                 settingsComponent: ColaLayoutSettingsComponent,
                 layout: new ColaLayout(),
             },
+            {
+                name: 'circle',
+                settingsComponent: CircleLayoutSettingsComponent,
+                layout: new CircleLayout(),
+            }
         ]);
 
         /**

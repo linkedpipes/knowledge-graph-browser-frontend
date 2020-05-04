@@ -14,6 +14,7 @@ import {NodePreview, NodeView} from '../../graph/NodeView';
 import clone from "clone";
 
 import { mdiPinOutline } from '@mdi/js';
+import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,
@@ -27,6 +28,8 @@ export default class GraphElementNode extends Vue {
      * Node's data passed by parent
      */
     @Prop({type: Object as () => Node}) node: Node;
+
+    @Prop() areaManipulator !: GraphAreaManipulator;
 
     /**
      * Cytoscape instance passed by parent where the node should be rendered
@@ -75,7 +78,7 @@ export default class GraphElementNode extends Vue {
         this.element.on("cxttap", () => this.node.lockedForLayouts = !this.node.lockedForLayouts);
 
         // On moving end, lock the node
-        this.element.on("tapend", () => this.node.lockedForLayouts = true);
+        this.element.on("dragfree", () => this.node.lockedForLayouts = true);
 
         this.node.element = this;
 
@@ -143,7 +146,7 @@ export default class GraphElementNode extends Vue {
             view = this.node.currentView;
         }
 
-        await view.expand();
+        await this.areaManipulator.expandNode(view);
     }
 
     @Watch('node.selected')

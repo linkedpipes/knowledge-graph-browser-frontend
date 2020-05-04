@@ -2,7 +2,21 @@
     <div>
         <h1 class="text--primary mb-5">{{ $t("layouts.cola.title") }}</h1>
 
+        <v-alert text dismissible type="warning">
+            {{ $t("layouts.cola.performance") }}
+        </v-alert>
+
         <v-list>
+            <v-list-item class="mb-5">
+                <div>
+                    <v-checkbox v-model="layout.options.animate">
+                        <template v-slot:label><span class="black--text">{{ $t("layouts.cola.animate") }}</span></template>
+                    </v-checkbox>
+                    <div class="text--secondary mx-5">
+                        {{ $t("layouts.cola.animate_desc") }}
+                    </div>
+                </div>
+            </v-list-item>
             <v-list-item class="mb-5">
                 <div>
                     <v-checkbox v-model="layout.options.doLayoutAfterReposition">
@@ -13,9 +27,7 @@
                     </div>
                 </div>
             </v-list-item>
-
-            <!-- Todo This is temporarily disabled because the expansion info is not stored -->
-            <v-list-item v-if="false" class="mb-5">
+            <v-list-item class="mb-5">
                 <div>
                     <v-checkbox v-model="layout.options.expansionOnlyThose">
                         <template v-slot:label><span class="black--text">{{ $t("layouts.cola.expansion_only_those") }}</span></template>

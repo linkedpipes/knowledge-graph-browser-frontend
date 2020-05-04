@@ -3,6 +3,8 @@ import {Node} from "./Node";
 import {Graph} from "./Graph";
 import ObjectSave from "../file-save/ObjectSave";
 import {LayoutManager} from "../layouts/LayoutManager";
+import {NodeView} from "./NodeView";
+import exp from "constants";
 
 /**
  * This class performs basic operations with graph area like zooming, animations etc.
@@ -57,6 +59,16 @@ export default class GraphAreaManipulator implements ObjectSave {
 
     zoomOut() {
         this.changeZoomByQuotient(1 / this.manualZoomScale);
+    }
+
+    /**
+     * Calls expand on view and handles nodes initial position and layouting.
+     * This method should be called instead of NodeView.prototype.expand.
+     * @param view
+     */
+    async expandNode(view: NodeView) {
+        let expansion = await view.expand();
+        this.layoutManager.currentLayout.onExpansion(expansion);
     }
 
     changeZoomByQuotient(quotient: number) {

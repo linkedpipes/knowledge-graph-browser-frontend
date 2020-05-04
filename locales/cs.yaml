@@ -169,6 +169,9 @@ layouts:
   cola:
     name: Cola
     title: Cola layout
+    performance: Cola layout může značně ovlivnit výkon aplikace na větších grafech kvůli složitým výpočtům. Pro větší grafy zvažte použití jiného, méně náročného, layoutu.
+    animate: Animovat
+    animate_desc: Nastaví, zda výpočet layoutu bude animován, nebo se počká až na koncový stav. Vypnutím animace zvýšíte výkon.
     do_layout_after_reposition: Spustit layoutování pokud uživatel přetahuje uzly.
     do_layout_after_reposition_desc: Kdykoli uživatel přesune uzel spustí se layoutování celého grafu. Pokud je vypnuné, musí se layoutování spouštět ručně.
     expansion_only_those: Při expanzi layoutovat pouze uzly expanze.
@@ -177,8 +180,14 @@ layouts:
     node_spacing_desc: Nastaví optimální velikost mezery mezi jednotlivými uzly při layoutování.
     edge_length: Délka hran
     edge_length_desc: Nastaví optimální délku hran. Hodí se zvýšit v přápadě že popisky uzlů a hran splývají.
+  circle:
+    name: Kruhový
+    title: Jednoduchý kruhový layout
+    node_spacing: Vzdálenost uzlů
+    node_spacing_desc: Nastavuje, jak daleko mají být od sebe uzly po expandování jejich společného předka.
 layout_dialog:
   title: Nastavení layoutu
+  active: aktivní
   keep_old_layout: Ponechat původní layout
   change_layout: Nastavit tento layout
   close: Zavřít

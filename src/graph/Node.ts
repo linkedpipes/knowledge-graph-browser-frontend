@@ -20,6 +20,21 @@ export class Node implements ObjectSave {
      */
     graph: Graph;
 
+    /**
+     * Whether the node should be mounted in the Cytoscape graph.
+     *
+     * This is useful for situations, when many nodes has been downloaded for different reasons than to visualize
+     * them in the graph.
+     *
+     * Each newly created node is not mounted by default.
+     * Edge having not-mounted node is also not mounted.
+     */
+    mounted: boolean = false;
+
+    /**
+     * Even if the node is mounted, this can be still null because the mounting is triggered by Vue every animation
+     * frame.
+     */
     element: GraphElementNode = null;
     onMountPosition: [number, number] | null = null;
 
