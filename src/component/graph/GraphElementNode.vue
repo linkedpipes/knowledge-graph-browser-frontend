@@ -209,6 +209,8 @@ export default class GraphElementNode extends Vue {
             view = this.node.currentView;
         }
 
+        if (!view) return;
+
         await this.areaManipulator.expandNode(view);
     }
 

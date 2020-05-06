@@ -24,7 +24,7 @@ export default class LocalGraphSearcher implements Searcher {
             let success = false;
 
             if (iri == query) success = true;
-            if (node.currentView?.preview?.label.toLocaleLowerCase().indexOf(query.toLowerCase()) > -1) success = true;
+            if (node.currentView?.preview?.label && node.currentView.preview.label.toLocaleLowerCase().indexOf(query.toLowerCase()) > -1) success = true;
 
             if (success) nodes.set(iri, {
                 IRI: iri,
