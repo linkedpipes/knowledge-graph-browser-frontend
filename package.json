@@ -50,6 +50,7 @@
     "clone": "^2.1.2",
     "cytoscape": "^3.14.2",
     "cytoscape-cola": "https://github.com/sstenchlak/cytoscape.js-cola/tarball/master",
+    "cytoscape-dagre": "^2.2.2",
     "cytoscape-popper": "^1.0.7",
     "file-saver": "^2.0.2",
     "jsonpack": "^1.1.5",

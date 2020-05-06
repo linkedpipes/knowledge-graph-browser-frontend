@@ -2,6 +2,10 @@
     <div>
         <h1 class="text--primary mb-5">{{ $t("layouts.circle.title") }}</h1>
 
+        <v-alert text dismissible type="info">
+            {{ $t("layouts.circle.info") }}
+        </v-alert>
+
         <v-list>
             <v-list-item>
                 <v-row>

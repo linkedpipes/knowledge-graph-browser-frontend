@@ -159,6 +159,9 @@
     import CircleLayoutSettingsComponent from "../layouts/circle/CircleLayoutSettingsComponent.vue";
     import CircleLayout from "../layouts/circle/CircleLayout";
     import ColaLayoutButtons from "../layouts/cola/ColaLayoutButtons.vue";
+    import DagreLayout from "../layouts/dagre/DagreLayout";
+    import DagreLayoutSettingsComponent from "../layouts/dagre/DagreLayoutSettingsComponent.vue";
+    import DagreLayoutButtons from "../layouts/dagre/DagreLayoutButtons.vue";
     let Configuration: {api: string} = require("../../conf.yaml");
 
     @Component({
@@ -256,6 +259,12 @@
                 name: 'circle',
                 settingsComponent: CircleLayoutSettingsComponent,
                 layout: new CircleLayout(),
+            },
+            {
+                name: 'dagre',
+                settingsComponent: DagreLayoutSettingsComponent,
+                layout: new DagreLayout(),
+                buttons: DagreLayoutButtons,
             }
         ]);
 

@@ -177,8 +177,21 @@ layouts:
   circle:
     name: Circle
     title: Simple circle layout
+    info: This layout does not support relayouting during noes moving. To run layout explicitly, please press on the layout icon in the right bottom corner.
     node_spacing: Node spacing
     node_spacing_desc: Sets how far from each other the nodes should be when their parent is expanded.
+  dagre:
+    name: Dagre
+    title: Dagre layout
+    description: Dagre layout arranges nodes by its edges into individual groups so that from the starting node, all nodes in the group have the same depth.
+    info: This layout does not support any automatic layouting. To run layout, please click the run button or select it and press on the layout icon in the right bottom corner.
+    top_to_bottom: Layout nodes from top to bottom
+    top_to_bottom_desc: Normally, the nodes are layouted from left to right.
+    node_spacing: Node spacing
+    node_spacing_desc: Set spaces between nodes in the same rank.
+    rank_spacing: Rank spacing
+    rank_spacing_desc: Defines how far from each other are ranks.
+    run: Run this layout
 
 layout_dialog:
   title: Layout options

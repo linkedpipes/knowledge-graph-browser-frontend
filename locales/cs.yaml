@@ -190,8 +190,21 @@ layouts:
   circle:
     name: Kruhový
     title: Jednoduchý kruhový layout
+    info: Tento layout nepodporuje automatické layoutování při přesouvání uzlů a neumožňuje uzly fixovat. Pro manuální spuštění layoutu klikněte na tlačítko s obrázkem layoutu vpravo dole v grafu.
     node_spacing: Vzdálenost uzlů
     node_spacing_desc: Nastavuje, jak daleko mají být od sebe uzly po expandování jejich společného předka.
+  dagre:
+    name: Dagre
+    title: Dagre layout
+    description: Dagre layout uspořádá uzly podle hran do jednotlivých skupin tak, že od počátečního uzlu mají všechny uzly v dané skupině stejnou hloubku.
+    info: Tento layout nepodporuje žádnou formu automatického layoutování. Pro spuštění layoutu klikněte na tlačítko spustit, nebo lauout vyberte a poté kdykoliv klikněte na tlačítko s obrázkem layoutu vpravo dole v grafu.
+    top_to_bottom: Uspořádat shora dolů
+    top_to_bottom_desc: Normálně se uzly uspořádavají zleva doprava.
+    node_spacing: Vzdálenost mezi uzly
+    node_spacing_desc: Nastaví, jak daleko od sebe budou uzly v jené skupině.
+    rank_spacing: Vzdálenost mezi skupinami
+    rank_spacing_desc: Nastaví, jak daleko budou od sebe jednotlivé skupiny.
+    run: Spustit layout
 layout_dialog:
   title: Nastavení layoutu
   active: aktivní

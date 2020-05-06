@@ -116,6 +116,7 @@ export default class GraphElementNode extends Vue {
     }
 
     private lockIconUpdatePopper() {
+        if (!this.lockIcon) return;
         (<HTMLDivElement>this.lockIcon.$el).style.zoom = String(this.element.cy().zoom() * 100) + '%';
     }
     private lockIconPositionUpdater() {
@@ -124,6 +125,8 @@ export default class GraphElementNode extends Vue {
         this.lockIconPopper.scheduleUpdate();
     };
     private lockIconCreatePopper() {
+        if (!this.element || !this.lockIconWrapper) return;
+
         // @ts-ignore no types
         this.lockIconPopper = this.element.popper({
             content: () => this.$refs.lockIconWrapper,
@@ -144,6 +147,8 @@ export default class GraphElementNode extends Vue {
     }
 
     private lockIconDestroyPopper() {
+        if (!this.element || !this.lockIconWrapper) return;
+
         this.lockIconWrapper.style.display = "none";
         if (this.lockIconPopper) {
             // @ts-ignore bad types

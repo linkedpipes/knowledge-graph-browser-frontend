@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-    import {Component, Prop} from "vue-property-decorator";
+    import {Component, Prop, Watch} from "vue-property-decorator";
 import Vue from "vue";
 import ColaLayoutSettingsComponent from "../layouts/cola/ColaLayoutSettingsComponent.vue";
 import {ColaLayoutOptions} from "../layouts/cola/ColaLayout";
@@ -55,6 +55,11 @@ export default class LayoutDialog extends Vue {
         this.tab = Math.max(0, this.layouts.list.indexOf(this.layouts.currentLayoutData));
         this.startTab = this.tab;
         this.dialog = true;
+    }
+
+    @Watch('dialog')
+    private dialogChanged(value: boolean) {
+        if (!value) this.close(false);
     }
 
     /**
