@@ -86,11 +86,11 @@ import {LayoutManager} from "../layouts/LayoutManager";
         this.dataSource = object.dataSource;
 
         // Now we recreate all non important data because now the graph is empty
-        this.filter.restoreFromObject(object.filter);
-        this.layouts.restoreFromObject(object.layouts);
-        this.viewOptions.restoreFromObject(object.viewOptions);
-        this.stylesheet = object.stylesheet;
-        this.areaManipulator.restoreFromObject(object.area);
+        if (object.filter) this.filter.restoreFromObject(object.filter); else this.filter.reset();
+        if (object.layouts) this.layouts.restoreFromObject(object.layouts);
+        if (object.viewOptions) this.viewOptions.restoreFromObject(object.viewOptions);
+        this.stylesheet = object.stylesheet ?? {styles: []};
+        if (object.area) this.areaManipulator.restoreFromObject(object.area);
 
         // Recreate the graph again
         this.createGraph();

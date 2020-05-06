@@ -185,6 +185,7 @@ export class Node implements ObjectSave {
 
         return {
             IRI: this.IRI,
+            mounted: this.mounted,
             selected: this.selected,
             visible: this.visible,
             lockedForLayouts: this.lockedForLayouts,
@@ -195,10 +196,10 @@ export class Node implements ObjectSave {
     }
 
     restoreFromObject(object: any): void {
-        this.selected = object.selected;
-        this.visible = object.visible;
-        this.lockedForLayouts = (object.lockedForLayouts !== undefined) ? object.lockedForLayouts : false;
-        this.onMountPosition = object.onMountPosition;
+        this.selected = object.selected ?? false;
+        this.visible = object.visible ?? true;
+        this.lockedForLayouts = object.lockedForLayouts ?? false;
+        this.onMountPosition = object.onMountPosition ?? [0, 0];
 
         if (object.viewSets === null) {
             this.viewSets = null;
@@ -228,6 +229,8 @@ export class Node implements ObjectSave {
             view.restoreFromObject(object.currentView);
             this.currentView = view;
         }
+
+        this.mounted = object.mounted ?? true;
     }
 
     /**

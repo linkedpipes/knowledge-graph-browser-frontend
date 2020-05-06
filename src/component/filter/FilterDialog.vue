@@ -24,8 +24,8 @@
 
             <!-- Types -->
             <v-tab-item>
-                <enum-tab :available-items="graphData.types" v-model="filtersMapped.propertyFilter.type" :equality-comparator="NodeTypeComparer">
-                    <p>{{ $t("filters.propertyFilter.type.description") }}</p>
+                <enum-tab :available-items="graphData.types" v-model="filtersMapped.propertyFilter.type" :equality-comparator="NodeTypeComparer" properties-are-disjoint>
+                    <!--<p>{{ $t("filters.propertyFilter.type.description") }}</p>-->
                     <template v-slot:title>{{ $t("filters.propertyFilter.type.title") }}</template>
                     <template v-slot:item="item">{{item.item.label}}<div class="text-truncate text--secondary" style="max-width: 700px;">{{item.item.description}}</div></template>
                 </enum-tab>
@@ -34,7 +34,7 @@
             <!-- Classes -->
             <v-tab-item>
                 <enum-tab :available-items="graphData.classes" v-model="filtersMapped.propertyFilter.class" :equality-comparator="EqualityComparer">
-                    <p>{{ $t("filters.propertyFilter.class.description") }}</p>
+                    <!--<p>{{ $t("filters.propertyFilter.class.description") }}</p>-->
                     <template v-slot:title>{{ $t("filters.propertyFilter.class.title") }}</template>
                     <template v-slot:item="item">{{item.item}}</template>
                 </enum-tab>

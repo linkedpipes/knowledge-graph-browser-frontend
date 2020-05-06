@@ -5,6 +5,7 @@ import ObjectSave from "../file-save/ObjectSave";
 import {LayoutManager} from "../layouts/LayoutManager";
 import {NodeView} from "./NodeView";
 import exp from "constants";
+import GraphArea from "../component/graph/GraphArea.vue";
 
 /**
  * This class performs basic operations with graph area like zooming, animations etc.
@@ -17,6 +18,8 @@ export default class GraphAreaManipulator implements ObjectSave {
 
     // Final size of bounding box of elements with respect to size of viewport when doing fit
     bbMaxSize: number = 0.75;
+
+    public graphArea: GraphArea;
 
     /**
      * Cytoscape instance
@@ -33,8 +36,6 @@ export default class GraphAreaManipulator implements ObjectSave {
     constructor(cy: Cytoscape.Core, offsetArray: [number, number, number, number]) {
         this.cy = cy;
         this.offsetArray = offsetArray;
-
-        console.log("Constructing graph area manipulator");
 
         // Connect cytoscape events with layoutManager
         let isBeingDragged = false;
@@ -129,6 +130,29 @@ export default class GraphAreaManipulator implements ObjectSave {
                 },
             }, this.animateOptions);
         }
+    }
+
+    /**
+     * This function sets whether the node is locked or not and triggers the layout.
+     *
+     * TODO Figure out how to solve it nicely.
+     * @param nodes
+     * @param value
+     */
+    public setLockedForLayouts(nodes: Node[], value: boolean) {
+        nodes.forEach(node => node.lockedForLayouts = value);
+        if (this.layoutManager.currentLayout.supportsNodeLocking) {
+            this.layoutManager.currentLayout.onLockedChanged();
+        }
+    }
+
+    /**
+     * This method should optimize removing the whole graph (for example when configuration is changed). The problem
+     * here is that vue is removing elements one by one which can be problematic in large graphs.
+     */
+    public optimizeRemoveWholeGraph() {
+       // this.cy.destroy();
+        //this.graphArea.mountToElement();
     }
 
     saveToObject(): object {

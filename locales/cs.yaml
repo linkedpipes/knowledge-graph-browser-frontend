@@ -47,6 +47,7 @@ side_panel:
     refresh_desc: Znova načte data ze serveru o tomto uzlu
     locate_desc: Lokalizuje uzel v grafu
     visible_desc: Mění viditelnost uzlu
+    locked_for_layouts_desc: Zda je pozice uzlu zamčena vůči layoutování
   list_panel:
     title: Seznam označených vrcholů
     remove: Smazat
@@ -113,12 +114,18 @@ configuration_and_stylesheet_dialog:
   load_from_file: Načíst existující graf ze souboru
 filter_dialog:
   title: Filtrování uzlů
-  only_selected: >-
+  select_all: zaškrtnout vše
+  unselect_all: odškrtnout vše
+  mode_listed_disjoint: >-
     Skrýt vrcholy které budou přidány a nesplňují aktuální podmínky dané
     filtrem.
-  only_selected_description: >-
+  mode_listed_disjoint_description: >-
     Pokud není políčko zatrhnuté, jakákoli možnost co není v seznamu bude
     automaticky povolena.
+  mode_listed: Zobrazit explicitně zvolené vrcholy.
+  mode_listed_description: >-
+    Pokud je zatrhnuto, každý vrchol, co má alespoň jednu vlastnost ze seznamu níže bude zobrazen. Pokud není zatrhnuto,
+    kadžý vrchol co má nezatrhnutou položku bude skrytý.
   close: Zavřít
 filters:
   degreeFilter:
@@ -176,8 +183,8 @@ layouts:
     do_layout_after_reposition_desc: Kdykoli uživatel přesune uzel spustí se layoutování celého grafu. Pokud je vypnuné, musí se layoutování spouštět ručně.
     expansion_only_those: Při expanzi layoutovat pouze uzly expanze.
     expansion_only_those_desc: Pokud uživatel provede expanzi, musí proběhnout layoutování. Tímto přepínačem zvolíte, zda se má layoutovat celý graf, nebo jen část, kde proběhla expanze.
-    node_spacing: Mezera mezi uzly
-    node_spacing_desc: Nastaví optimální velikost mezery mezi jednotlivými uzly při layoutování.
+    node_spacing: Extra prostor pro uzel
+    node_spacing_desc: Nastaví kolem uzlu extra prostor ve kterém se nesmí nacházet žáden jiný uzel.
     edge_length: Délka hran
     edge_length_desc: Nastaví optimální délku hran. Hodí se zvýšit v přápadě že popisky uzlů a hran splývají.
   circle:

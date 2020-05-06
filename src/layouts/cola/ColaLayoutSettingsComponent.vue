@@ -7,7 +7,7 @@
         </v-alert>
 
         <v-list>
-            <v-list-item class="mb-5">
+            <v-list-item>
                 <div>
                     <v-checkbox v-model="layout.options.animate">
                         <template v-slot:label><span class="black--text">{{ $t("layouts.cola.animate") }}</span></template>
@@ -17,7 +17,7 @@
                     </div>
                 </div>
             </v-list-item>
-            <v-list-item class="mb-5">
+            <v-list-item>
                 <div>
                     <v-checkbox v-model="layout.options.doLayoutAfterReposition">
                         <template v-slot:label><span class="black--text">{{ $t("layouts.cola.do_layout_after_reposition") }}</span></template>
@@ -27,7 +27,7 @@
                     </div>
                 </div>
             </v-list-item>
-            <v-list-item class="mb-5">
+            <v-list-item>
                 <div>
                     <v-checkbox v-model="layout.options.expansionOnlyThose">
                         <template v-slot:label><span class="black--text">{{ $t("layouts.cola.expansion_only_those") }}</span></template>
@@ -37,7 +37,7 @@
                     </div>
                 </div>
             </v-list-item>
-            <v-list-item>
+            <v-list-item class="mt-3">
                 <v-row>
                     <v-col cols="3">
                         <v-text-field v-model="layout.options.nodeSpacing" :label="$t('layouts.cola.node_spacing')" type="number" suffix="px"></v-text-field>
@@ -63,8 +63,8 @@
 <script lang="ts">
     import Component from "vue-class-component";
     import Vue from "vue";
-    import {Prop, PropSync} from "vue-property-decorator";
-    import ColaLayout, {ColaLayoutOptions} from "./ColaLayout";
+    import {Prop} from "vue-property-decorator";
+    import ColaLayout from "./ColaLayout";
 
     @Component
     export default class ColaLayoutSettingsComponent extends Vue {
@@ -72,7 +72,19 @@
          * ColaLayout whose options will be modified by user.
          */
         @Prop() layout !: ColaLayout;
-
-        public readonly layoutNameTranslationPath = "layout.cola.name";
     }
 </script>
+<style scoped>
+    ::v-deep .v-messages {
+        display: none;
+    }
+
+    ::v-deep .v-input--selection-controls {
+        margin-top: 0;
+    }
+
+    ::v-deep .col {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+</style>

@@ -14,7 +14,7 @@
 
                 <v-tab-item v-for="layout of layouts.list" :key="layout.name">
                     <v-card flat>
-                        <v-card-text>
+                        <v-card-text class="overflow-y-auto">
                             <component :is="layout.settingsComponent" :layout="layout.layout" />
                         </v-card-text>
                     </v-card>

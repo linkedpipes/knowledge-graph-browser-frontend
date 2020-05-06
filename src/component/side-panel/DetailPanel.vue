@@ -20,27 +20,33 @@
         <div class="v-btn-toggle float-right ml-3 mb-3">
             <v-tooltip bottom>
                 <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" color="red" @click="node.remove()"><v-icon>{{ trash }}</v-icon></v-btn>
+                    <v-btn outlined v-on="on" @click="node.remove()"><v-icon color="red darken-2">{{ icons.remove }}</v-icon></v-btn>
                 </template>
                 <span>{{ $t("side_panel.detail_panel.remove_desc") }}</span>
             </v-tooltip>
             <v-tooltip bottom>
                 <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" @click="nodeRefresh()"><v-icon>{{ refresh }}</v-icon></v-btn>
+                    <v-btn outlined v-on="on" @click="nodeRefresh()"><v-icon>{{ icons.refresh }}</v-icon></v-btn>
                 </template>
                 <span>{{ $t("side_panel.detail_panel.refresh_desc") }}</span>
             </v-tooltip>
             <v-tooltip bottom>
                 <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" @click="areaManipulator.fit(node)" :disabled="!node.isVisible"><v-icon>{{ locate }}</v-icon></v-btn>
+                    <v-btn outlined v-on="on" @click="areaManipulator.fit(node)" :disabled="!node.isVisible"><v-icon>{{ icons.locate }}</v-icon></v-btn>
                 </template>
                 <span>{{ $t("side_panel.detail_panel.locate_desc") }}</span>
             </v-tooltip>
             <v-tooltip bottom>
                 <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" @click="node.visible = !node.visible"><v-icon>{{ visibility[node.visible ? 1 : 0] }}</v-icon></v-btn>
+                    <v-btn outlined v-on="on" @click="node.visible = !node.visible"><v-icon>{{ icons.visibility[node.visible ? 1 : 0] }}</v-icon></v-btn>
                 </template>
                 <span>{{ $t("side_panel.detail_panel.visible_desc") }}</span>
+            </v-tooltip>
+            <v-tooltip v-if="nodeLockingSupported" bottom>
+                <template v-slot:activator="{ on }">
+                    <v-btn outlined v-on="on" @click="areaManipulator.setLockedForLayouts([node], !node.lockedForLayouts)"><v-icon>{{ icons.lockedForLayouts[node.lockedForLayouts ? 1 : 0] }}</v-icon></v-btn>
+                </template>
+                <span>{{ $t("side_panel.detail_panel.locked_for_layouts_desc") }}</span>
             </v-tooltip>
         </div>
 
@@ -124,27 +130,27 @@ import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
 import { NodeViewSet } from '../../graph/NodeViewSet';
 import {DetailValue, NodePreview} from '../../graph/NodeView';
-// Stylesheet
 import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
-
-import {mdiTrashCanOutline, mdiRefresh, mdiCrosshairsGps, mdiEye, mdiEyeOff, mdiWeb} from '@mdi/js';
+import {mdiTrashCanOutline, mdiRefresh, mdiCrosshairsGps, mdiEye, mdiEyeOff, mdiWeb, mdiPinOutline, mdiPinOffOutline} from '@mdi/js';
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import LinkComponent from "../helper/LinkComponent.vue";
+
 @Component({
     components: {LinkComponent}
 })
 export default class DetailPanel extends Vue {
-    @Prop(Object) node: Node;
-    @Prop(Object) areaManipulator: GraphAreaManipulator;
+    @Prop(Object) node !: Node;
+    @Prop(Object) areaManipulator !: GraphAreaManipulator;
+    @Prop(Boolean) nodeLockingSupported !: boolean;
 
     private readonly icons = {
+        remove: mdiTrashCanOutline,
+        refresh: mdiRefresh,
+        locate: mdiCrosshairsGps,
+        visibility: [mdiEyeOff, mdiEye],
         link: mdiWeb,
+        lockedForLayouts: [mdiPinOffOutline, mdiPinOutline],
     }
-
-    trash = mdiTrashCanOutline;
-    refresh = mdiRefresh;
-    locate = mdiCrosshairsGps;
-    visibility = [mdiEyeOff, mdiEye];
 
     currentViewIRI: string = null;
 

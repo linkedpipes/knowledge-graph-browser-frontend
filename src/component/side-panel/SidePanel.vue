@@ -1,7 +1,7 @@
 <template>
     <v-navigation-drawer v-model="active" color="white" absolute stateless right width="650" :permanent="active" ref="panel">
         <div class="detail-panel pa-5">
-            <detail-panel :node="detailNode" :area-manipulator="areaManipulator" v-if="panelMode === 1" />
+            <detail-panel :node="detailNode" :area-manipulator="areaManipulator" :node-locking-supported="nodeLockingSupported" v-if="panelMode === 1" />
             <list-panel :nodes="selectedNodes" v-if="panelMode === 2" />
             <hidden-nodes-panel :graph="graph" v-if="panelMode === 3" @close="showHiddenPanel = false" />
         </div>
@@ -35,6 +35,7 @@ enum PanelModeEnum {
 export default class SidePanel extends Vue {
     @Prop(Object) graph: Graph;
     @Prop(Object) areaManipulator: GraphAreaManipulator;
+    @Prop(Boolean) nodeLockingSupported !: boolean;
     @PropSync('hiddenPanel') showHiddenPanel !: boolean;
     @Ref() readonly panel !: any;
     active: boolean = false;

@@ -13,6 +13,13 @@ export default abstract class Layout implements ObjectSave {
     public areaManipulator: GraphAreaManipulator;
 
     /**
+     * This is a way how layout can tell that it supports or don't node locking. Node locking means, that if user moves
+     * node, it's position became locked, small icon is shown next to it and layout should not move with it. If is
+     * switched to layout which does not support locking, all icons and buttons will be hidden.
+     */
+    public readonly supportsNodeLocking: boolean = false;
+
+    /**
      * When layout became active, that means it starts receiving events.
      */
     activate(): void {};

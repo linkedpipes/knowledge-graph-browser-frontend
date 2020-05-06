@@ -1,8 +1,9 @@
-import {Collection, Layouts, NodeSingular} from "cytoscape";
+import {Collection, Layouts, NodeSingular, Position} from "cytoscape";
 import Layout from "../Layout";
 import clone from "clone";
 import {Expansion} from "../../graph/Expansion";
 import Vue from "vue";
+import {Node} from "../../graph/Node";
 
 export interface ColaLayoutOptions {
     /**
@@ -32,6 +33,8 @@ export interface ColaLayoutOptions {
 }
 
 export default class ColaLayout extends Layout {
+    public readonly supportsNodeLocking = true;
+
     private layoutAnimation: Layouts;
     private isActive: boolean = false;
 
@@ -68,23 +71,41 @@ export default class ColaLayout extends Layout {
         this.executeLayout(this.areaManipulator.cy.elements());
     }
 
+    /**
+     * Preforms simple circle layout to make cola layout easier to find optimal positions
+     * @param nodes nodes to position
+     * @param position parent node position
+     */
+    private circleLayout(nodes: Node[], position: Position) {
+        const distance = 100; // Minimal distance between nodes in px, ignoring bounding boxes
+
+        let circNum = 0; // Actual circle number
+        let phi = 0; // on circle position
+        let circumference = 0; // Number of nodes on actual circle
+        let i = 0; // Node number
+        for (let node of nodes) {
+            if (phi == circumference) {
+                phi = 0;
+                circNum++;
+                // ORIGINAL EQUATION: [2 * PI * distance * circNum / distance]
+                circumference = Math.min(nodes.length - i,  Math.floor(2 * Math.PI * circNum));
+            }
+            node.onMountPosition = [
+                position.x + distance * circNum * Math.cos(2*Math.PI*phi/circumference),
+                position.y + distance * circNum * Math.sin(2*Math.PI*phi/circumference)
+            ];
+            node.mounted = true;
+
+            phi++; i++;
+        }
+    }
+
     async onExpansion(expansion: Expansion) {
         // First step, mount and position the nodes which are not mounted yet
         let notMountedNodes = expansion.nodes.filter(node => !node.mounted);
         let currentPosition = expansion.parentNode.element.element.position();
 
-        // Nodes are positioned clockwise from very right
-        // The trick here is that the radius is not edgeLength, as expected, but nodeSpacing, because this is guaranteed
-        // area where no other expansion "circle" is located.
-        let i = 0;
-        for (let node of notMountedNodes) {
-            node.onMountPosition = [
-                currentPosition.x + this.options.nodeSpacing * Math.cos(2*Math.PI*i/notMountedNodes.length),
-                currentPosition.y + this.options.nodeSpacing * Math.sin(2*Math.PI*i/notMountedNodes.length)
-            ];
-            node.mounted = true;
-            i++;
-        }
+        this.circleLayout(notMountedNodes, currentPosition);
 
         // Wait for nodes to mount
         await Vue.nextTick();
@@ -107,6 +128,13 @@ export default class ColaLayout extends Layout {
 
         // Execute layout on everything
         this.executeLayout(this.areaManipulator.cy.elements(), explicitlyFixed);
+    }
+
+    /**
+     * For explicit layout call.
+     */
+    public run() {
+        this.executeLayout(this.areaManipulator.cy.elements());
     }
 
     private stopLayout() {

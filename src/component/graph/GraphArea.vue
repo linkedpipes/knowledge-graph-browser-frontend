@@ -9,29 +9,20 @@
 		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
 			<div class="my-2">
 				<v-btn color="primary" fab small dark @click="areaManipulator.zoomIn()">
-					<v-icon>mdi-plus</v-icon>
+					<v-icon>{{ icons.zoomIn }}</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
 				<v-btn color="primary" fab small dark @click="areaManipulator.zoomOut()">
-					<v-icon>mdi-minus</v-icon>
+					<v-icon>{{ icons.zoomOut }}</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
 				<v-btn color="primary" fab small dark @click="areaManipulator.fit()">
-					<v-icon>mdi-arrow-expand-all</v-icon>
+					<v-icon>{{ icons.fit }}</v-icon>
 				</v-btn>
 			</div>
-			<div class="my-2">
-				<v-btn color="primary" fab small dark @click="layout()">
-					<v-icon>mdi-star-outline</v-icon>
-				</v-btn>
-			</div>
-			<div class="my-2">
-				<v-btn color="primary" fab small dark @click="circle()">
-					<v-icon>mdi-vector-circle</v-icon>
-				</v-btn>
-			</div>
+			<component v-if="layoutManager.currentLayoutData.buttons" :is="layoutManager.currentLayoutData.buttons" :layout="layoutManager.currentLayout" />
 		</div>
 
 		<graph-element-node
@@ -40,6 +31,7 @@
 			:key="node.IRI.replace(/\./, '_')"
 			:node="node"
 			:areaManipulator="areaManipulator"
+			:node-locking-supported="layoutManager.currentLayout.supportsNodeLocking"
 		/>
 		<graph-element-edge
 			v-for="(edge, identifier) in graph.edges"
@@ -51,7 +43,6 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
 import Component from "vue-class-component";
 import GraphElementNode from "./GraphElementNode.vue";
 import GraphElementEdge from "./GraphElementEdge";
@@ -59,8 +50,7 @@ import Cytoscape from "cytoscape";
 import {Emit, Mixins, Prop, Watch} from "vue-property-decorator";
 import {ResponseStylesheet} from "../../graph-fetcher/response-interfaces";
 import {Graph} from "../../graph/Graph";
-import clone from 'clone';
-import { mdiMagnify } from '@mdi/js';
+import { mdiPlus, mdiMinus, mdiArrowExpandAll } from '@mdi/js';
 import SearchComponent from "../SearchComponent.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import ViewOptions from "../../graph/ViewOptions";
@@ -71,6 +61,7 @@ import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
 
 import cola from 'cytoscape-cola';
 import popper from 'cytoscape-popper';
+import {LayoutManager} from "../../layouts/LayoutManager";
 
 @Component({
 	components: {
@@ -89,6 +80,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	@Prop() private graphSearcher: GraphSearcher;
 	@Prop() private manipulator: GraphManipulator;
 	@Prop(Object) private areaManipulator: GraphAreaManipulator;
+	@Prop(Object) private layoutManager: LayoutManager;
 
 	/**
 	 * How much of the graph area is covered by panels. This array is readonly so it could be passed by reference.
@@ -98,23 +90,17 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	 */
 	private readonly offset: [number, number, number, number] = [0, 0, 0, 0];
 
-	zoomIcon = mdiMagnify;
+	private icons = {
+		zoomIn: mdiPlus,
+		zoomOut: mdiMinus,
+		fit: mdiArrowExpandAll,
+	}
 
 	/**
 	 * Cytoscape instance
 	 * @non-reactive
 	 */
 	cy !: Cytoscape.Core;
-
-	layout() {
-		// @ts-ignore
-		this.cy.layout({name: "cola", nodeDimensionsIncludeLabels: true, fit: false}).run();
-	}
-
-	circle() {
-		// @ts-ignore
-		this.cy.layout({name: "circle"}).run();
-	}
 
 	get leftStyle(): string {
 		return 'left: ' + this.leftOffset + 'px;';
@@ -126,7 +112,9 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 
 	@Emit()
 	newManipulator() {
-		return new GraphAreaManipulator(this.cy, this.offset);
+		let manipulator = new GraphAreaManipulator(this.cy, this.offset);
+		manipulator.graphArea = this;
+		return manipulator;
 	}
 
 	/**
@@ -138,11 +126,13 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 
 		this.cy = Cytoscape();
 
-		// each node gets numeric id instead of IRI because it may cause some bugs if IRI contains some special characters
-		// @ts-ignore
-		this.cy.data("id_counter", 0);
-
 		this.stylesheetUpdated();
+	}
+
+	public mountToElement() {
+		this.cy = Cytoscape();
+		this.stylesheetUpdated();
+		this.cy.mount(<Element>this.$refs.graphd);
 	}
 
 	/**
@@ -150,9 +140,9 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	 * Mounts the Cytoscape instance to HTML and registers basic events handlers
 	 */
 	mounted() {
-		console.log("MOUNTED GRAPH AREA");
 		// Mount Cytoscape instance to HTML element
 		this.cy.mount(<Element>this.$refs.graphd);
+		//this.mountToElement();
 
 		// Double-click handeling
 		let doubleClickDelayMs = 350;

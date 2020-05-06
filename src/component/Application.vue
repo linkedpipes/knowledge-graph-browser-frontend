@@ -11,9 +11,16 @@
                     :graph-searcher="graphSearcher"
                     :manipulator="manipulator"
                     :area-manipulator="areaManipulator"
+                    :layout-manager="layouts"
                     @new-manipulator="areaManipulatorUpdated($event)"
             />
-            <side-panel :graph="graph" :area-manipulator="areaManipulator" :hidden-panel.sync="hiddenPanel" ref="sidePanel" @width-changed="rightOffset = $event"/>
+            <side-panel
+                    :graph="graph"
+                    :area-manipulator="areaManipulator"
+                    :hidden-panel.sync="hiddenPanel"
+                    :node-locking-supported="layouts.currentLayout.supportsNodeLocking"
+                    ref="sidePanel"
+                    @width-changed="rightOffset = $event"/>
 
             <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
                 <v-list dense nav class="py-0">
@@ -151,6 +158,7 @@
     import ColaLayout from "../layouts/cola/ColaLayout";
     import CircleLayoutSettingsComponent from "../layouts/circle/CircleLayoutSettingsComponent.vue";
     import CircleLayout from "../layouts/circle/CircleLayout";
+    import ColaLayoutButtons from "../layouts/cola/ColaLayoutButtons.vue";
     let Configuration: {api: string} = require("../../conf.yaml");
 
     @Component({
@@ -242,6 +250,7 @@
                 name: 'cola',
                 settingsComponent: ColaLayoutSettingsComponent,
                 layout: new ColaLayout(),
+                buttons: ColaLayoutButtons,
             },
             {
                 name: 'circle',
@@ -320,6 +329,7 @@
          * Function to create a new graph (and discard old one).
          */
         createGraph() {
+            this.areaManipulator.optimizeRemoveWholeGraph();
             this.graph = new Graph();
             this.updateFetcher();
             this.updateStylesheet();
@@ -442,27 +452,6 @@
                 this.graphSearcher = new GraphSearcher(searchers);
             }
         }
-
-        //#region Functions that watch graph and trigger layout event handlers
-
-        // All we need is to know that at least one lockedForLayouts has changed.
-        // I was afraid that watching every single node can halt layout when batch change therefore we first count
-        // some number from it and watch the number
-        private get countNodesLockedForLayout(): number {
-            let count: number = 0;
-            for (let IRI in this.graph.nodes) {
-                if (this.graph.nodes[IRI].lockedForLayouts) {
-                    count++;
-                }
-            }
-            return count;
-        }
-
-        @Watch('countNodesLockedForLayout')
-        private countNodesLockedForLayoutChanged() {
-            this.layouts?.currentLayout?.onLockedChanged();
-        }
-        //#endregion Functions that watch graph and trigger layout event handlers
     }
 </script>
 <style>

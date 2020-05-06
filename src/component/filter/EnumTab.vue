@@ -5,30 +5,37 @@
                 <v-card-text>
                     <v-switch v-model="value.active" color="red" class="title">
                         <template v-slot:label>
-                            <v-card-title :class="{'text--primary': value.active}"><slot name="title"></slot></v-card-title>
+                            <v-card-title :class="{'text--primary': value.active}" class="py-0"><slot name="title"></slot></v-card-title>
                         </template>
                     </v-switch>
 
                     <slot></slot>
-                    <v-checkbox :disabled="!value.active" v-model="modeListed" color="red" class="black--label" :label="$t('filter_dialog.only_selected')" :messages="$t('filter_dialog.only_selected_description')"></v-checkbox>
-                    <v-list max-height="400" style="overflow-y: scroll;">
+
+                    <v-checkbox :disabled="!value.active" v-model="modeListed" color="red" class="black--label" :label="$t('filter_dialog.mode_listed' + (propertiesAreDisjoint ? '_disjoint' : ''))" :messages="$t('filter_dialog.mode_listed' + (propertiesAreDisjoint ? '_disjoint' : '') + '_description')"></v-checkbox>
+
+                    <div class="v-btn-toggle mt-5">
+                        <v-btn small @click="changeAll(true)">{{ $t('filter_dialog.select_all') }}</v-btn>
+                        <v-btn small @click="changeAll(false)">{{ $t('filter_dialog.unselect_all') }}</v-btn>
+                    </div>
+
+                    <v-list max-height="400" dense style="overflow-y: scroll;">
                         <v-list-item-group v-model="selectedItems" multiple>
                             <v-list-item :disabled="!value.active" v-for="(item, i) in availableItems" :key="`item-${i}`" :value="i" class="item-invert" active-class="item-invert-selected">
                                 <template v-slot:default="{ active, toggle }">
+                                    <v-list-item-action>
+                                        <v-checkbox
+                                                :input-value="active"
+                                                :true-value="item"
+                                                @click="toggle"
+                                                :disabled="!value.active"
+                                        ></v-checkbox>
+                                    </v-list-item-action>
+
                                     <v-list-item-content>
                                         <v-list-item-title>
                                             <slot name="item" v-bind:item="item"></slot>
                                         </v-list-item-title>
                                     </v-list-item-content>
-
-                                    <v-list-item-action>
-                                        <v-checkbox
-                                        :input-value="active"
-                                        :true-value="item"
-                                        @click="toggle"
-                                        :disabled="!value.active"
-                                        ></v-checkbox>
-                                    </v-list-item-action>
                                 </template>
                             </v-list-item>
                         </v-list-item-group>
@@ -43,11 +50,18 @@
 import Vue from 'vue';
 import {Component, Prop, Watch} from 'vue-property-decorator';
 import FilterDataEnum from "../../filter/FilterDataEnum";
+import clone from "clone";
 
 @Component
 export default class PropertyEnumTab<T> extends Vue {
     @Prop() availableItems: T[];
     @Prop() equalityComparator: (a: T, b: T) => boolean;
+
+    /**
+     * When set to true, the label under the modeListed filed describe this button as "what to do with new nodes" while
+     * normally the description will be how it really works.
+     * */
+    @Prop(Boolean) propertiesAreDisjoint !: boolean;
 
     private modeListed: boolean = false;
 
@@ -55,6 +69,20 @@ export default class PropertyEnumTab<T> extends Vue {
      * Current filter
      */
     @Prop() value: FilterDataEnum<T>;
+
+    /**
+     * Changes value of all items.
+     *
+     * true - check all
+     * false - uncheck all
+     * */
+    public changeAll(value: boolean) {
+        if (value) {
+            this.selectedItems = [...Array(this.availableItems.length).keys()];
+        } else {
+            this.selectedItems = [];
+        }
+    }
 
     @Watch('value.modeListed', {immediate: true})
     private modeListedUpdate(val: boolean) {

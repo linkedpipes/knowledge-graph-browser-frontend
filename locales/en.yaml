@@ -43,6 +43,7 @@ side_panel:
     refresh_desc: Reload all data from server
     locate_desc: Locate node in graph
     visible_desc: Switch user visibility of the node
+    locked_for_layouts_desc: If the node's position is locked for layouting
   list_panel:
     title: List of selected nodes
     remove: Remove
@@ -104,8 +105,12 @@ configuration_and_stylesheet_dialog:
 # Dialog to filter nodes
 filter_dialog:
   title: Filter nodes
-  only_selected: Hide (filter out) new nodes which do not meet current conditions.
-  only_selected_description: When unchecked, any other options which are currently not in list below will be allowed.
+  select_all: select all
+  unselect_all: unselect all
+  mode_listed_disjoint: Hide (filter out) new nodes which do not meet current conditions.
+  mode_listed_disjoint_description: When unchecked, any other options which are currently not in list below will be allowed.
+  mode_listed: Show nodes having properties listed here.
+  mode_listed_description: If checked, only nodes that have at least one property from the list below will be shown. If unchecked, any node having property which is unchecked in the list below will be hidden.
   close: Close
 
 # Translation to different filters
@@ -165,7 +170,7 @@ layouts:
     do_layout_after_reposition_desc: Whenever user changes node position, layout will run. All nodes except pinned ones will be layouted.
     expansion_only_those: Layout only those nodes which are part of an expansion
     expansion_only_those_desc: When user expands node, this option specifies if the whole graph or only expanded nodes should be layouted.
-    node_spacing: Node spacing
+    node_spacing: Node extra space
     node_spacing_desc: Sets space around each node where any other node must not be located.
     edge_length: Edge length
     edge_length_desc: This option sets optimal edge length. The greater number is set, the further the nodes are.

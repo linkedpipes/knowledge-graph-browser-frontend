@@ -11,6 +11,7 @@ export interface LayoutData {
     name: string,
     layout: Layout,
     settingsComponent: typeof Vue,
+    buttons?: typeof Vue,
 }
 
 export class LayoutManager implements ObjectSave {
@@ -39,7 +40,6 @@ export class LayoutManager implements ObjectSave {
         this.currentLayoutData?.layout.activate();
 
         this.currentLayout = this.currentLayoutData?.layout ?? null;
-        console.log("Current layout is", this.currentLayoutData.name, this.currentLayout);
     }
 
     /**

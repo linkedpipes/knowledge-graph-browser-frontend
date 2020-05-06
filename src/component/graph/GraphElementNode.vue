@@ -1,26 +1,28 @@
 <template>
-    <div class="popper lock" ref="lockIconWrapper">
-        <v-icon ref="lockIcon" class="lock-icon" color="secondary" small>{{lockIcon}}</v-icon>
+    <div class="lock" ref="lockIconWrapper">
+        <v-icon ref="lockIcon" color="secondary" small>{{lockIconIcon}}</v-icon>
     </div>
 </template>
 <script lang="ts">
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import {Prop, Ref, Watch} from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
-
 import Cytoscape, {CollectionAnimation} from "cytoscape";
 import Vue from 'vue';
 import {NodePreview, NodeView} from '../../graph/NodeView';
 import clone from "clone";
-
 import { mdiPinOutline } from '@mdi/js';
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
+import {VIcon} from "vuetify/lib";
 
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,
  * the Vuex automatically creates a new instance of this class which registers node
  * in the Cytoscape instance. Also any changes of the Node's data are automatically
  * updated in the Cytoscape instance.
+ *
+ * This component, except the node registration, also renders some HTML. For now, it
+ * renders lock icon used for marking node as locked.
  */
 @Component
 export default class GraphElementNode extends Vue {
@@ -31,6 +33,8 @@ export default class GraphElementNode extends Vue {
 
     @Prop() areaManipulator !: GraphAreaManipulator;
 
+    @Prop(Boolean) private nodeLockingSupported !: boolean;
+
     /**
      * Cytoscape instance passed by parent where the node should be rendered
      */
@@ -40,8 +44,6 @@ export default class GraphElementNode extends Vue {
      * Reference to this node in the Cytoscape container
      */
     element: Cytoscape.NodeSingular;
-
-    private lockIcon = mdiPinOutline;
 
     /**
      * Vue method called after the creation of the object.
@@ -74,11 +76,7 @@ export default class GraphElementNode extends Vue {
         this.element.on("select", () => this.node.selected = true);
         this.element.on("unselect", () => this.node.selected = false);
 
-        // Right-click
-        this.element.on("cxttap", () => this.node.lockedForLayouts = !this.node.lockedForLayouts);
-
-        // On moving end, lock the node
-        this.element.on("dragfree", () => this.node.lockedForLayouts = true);
+        this.nodeLockingSupportedChanged();
 
         this.node.element = this;
 
@@ -88,50 +86,110 @@ export default class GraphElementNode extends Vue {
         this.lockedForLayoutsChanged();
     };
 
-    private popper: any = null;
+    //#region Methods for Popper manipulation and lock icon
 
-    @Watch('node.lockedForLayouts')
-    private lockedForLayoutsChanged() {
-        let updatePopper = () => {
-            // @ts-ignore bad types
-            this.$refs.lockIcon?.$el.style.zoom = String(this.element.cy().zoom() * 100) + '%';
-        }
-        let positionUpdater = () => {
-            updatePopper();
-            this.popper.scheduleUpdate();
-        };
+    @Ref() private readonly lockIconWrapper !: HTMLDivElement;
+    @Ref() private readonly lockIcon !: Vue;
 
-        if (this.node.lockedForLayouts) {
-            // @ts-ignore no types
-            this.popper = this.element.popper({
-                content: () => this.$refs.lockIconWrapper,
-                popper: {
-                    placement: 'right-end',
-                    modifiers: {
-                        preventOverflow: { enabled: false },
-                        hide: { enabled: false },
-                        flip: { enabled: false },
-                    }
-                } // my popper options here
-            });
-            updatePopper();
-            // @ts-ignore
-            this.$refs.lockIconWrapper.style.display = "block";
+    private lockIconIcon = mdiPinOutline;
 
-            this.element.on('position', positionUpdater);
-            this.element.cy().on('pan zoom resize', positionUpdater);
+    private lockIconPopper: any = null;
+    private readonly minZoomToShowLockIcon = 0.35;
+
+    private changeLocked = () => this.areaManipulator.setLockedForLayouts([this.node], !this.node.lockedForLayouts); // Trigger layout
+    private lock = () =>  this.node.lockedForLayouts = true; // Do not trigger layout
+
+    @Watch('nodeLockingSupported')
+    private nodeLockingSupportedChanged() {
+        if (this.nodeLockingSupported) {
+            // Right-click
+            this.element?.on("cxttap", this.changeLocked);
+            // On moving end, lock the node
+            this.element?.on("drag", this.lock);
         } else {
-            // @ts-ignore no types
-            this.$refs.lockIconWrapper.style.display = "none";
-            if (this.popper) {
-                // @ts-ignore bad types
-                this.element.off('position', positionUpdater);
-                // @ts-ignore bad types
-                this.element.cy().off('pan zoom resize', positionUpdater);
+            // @ts-ignore
+            this.element?.off("cxttap", this.changeLocked);
+            // @ts-ignore
+            this.element?.off("drag", this.lock);
+        }
+
+    }
+
+    private lockIconUpdatePopper() {
+        (<HTMLDivElement>this.lockIcon.$el).style.zoom = String(this.element.cy().zoom() * 100) + '%';
+    }
+    private lockIconPositionUpdater() {
+        if (!this.lockIconPopper) return;
+        this.lockIconUpdatePopper();
+        this.lockIconPopper.scheduleUpdate();
+    };
+    private lockIconCreatePopper() {
+        // @ts-ignore no types
+        this.lockIconPopper = this.element.popper({
+            content: () => this.$refs.lockIconWrapper,
+            popper: {
+                placement: 'right-end',
+                modifiers: {
+                    preventOverflow: { enabled: false },
+                    hide: { enabled: false },
+                    flip: { enabled: false },
+                }
             }
-            this.popper?.destroy();
+        });
+        this.lockIconUpdatePopper();
+        this.lockIconWrapper.style.display = "block";
+
+        this.element.on('position', this.lockIconPositionUpdater);
+        this.element.cy().on('pan zoom resize', this.lockIconPositionUpdater);
+    }
+
+    private lockIconDestroyPopper() {
+        this.lockIconWrapper.style.display = "none";
+        if (this.lockIconPopper) {
+            // @ts-ignore bad types
+            this.element.off('position', this.lockIconPositionUpdater);
+            // @ts-ignore bad types
+            this.element.cy().off('pan zoom resize', this.lockIconPositionUpdater);
+        }
+        this.lockIconPopper?.destroy();
+        this.lockIconPopper = null;
+    }
+
+    private lockIconZoomChanged() {
+        let expected = this.element.cy().zoom() > this.minZoomToShowLockIcon;
+        let actual = this.lockIconPopper !== null;
+
+        if (expected !== actual) {
+            if (expected) {
+                this.lockIconCreatePopper();
+            } else {
+                this.lockIconDestroyPopper();
+            }
         }
     }
+
+    @Watch('lockedForLayoutsActive')
+    private lockedForLayoutsChanged() {
+        if (!this.element) return;
+
+        if (this.lockedForLayoutsActive) {
+            this.element.cy().on('zoom', this.lockIconZoomChanged);
+            this.lockIconZoomChanged();
+        } else {
+            // @ts-ignore bad types
+            this.element.cy().off('zoom', this.lockIconZoomChanged);
+            this.lockIconDestroyPopper();
+        }
+    }
+
+    /**
+     * Whether the pin icon should be 'active' or hidden
+     * */
+    private get lockedForLayoutsActive(): boolean {
+        return this.node.lockedForLayouts && this.nodeLockingSupported && this.node.isVisible;
+    }
+
+    //#endregion Methods for Popper manipulation and lock icon
 
     /**
      * Method called by ancestor component GraphArea when doubleclick is registered
@@ -234,21 +292,19 @@ export default class GraphElementNode extends Vue {
     beforeDestroy() {
         this.cy.remove(this.element);
     };
-
-    // render(): null {return null; }
 }
 </script>
-<style scoped>
-    .popper {
+<style scoped lang="scss">
+    .lock {
         display: none;
         pointer-events: none;
         width: 0;
         height: 0;
-    }
 
-    .lock-icon {
-        position: absolute !important;
-        left: 2px;
-        top: -8px;
+        ::v-deep .v-icon {
+            position: absolute !important;
+            left: 2px;
+            top: -8px;
+        }
     }
 </style>
