@@ -21,6 +21,8 @@ export default class DegreeFilterData implements Filter{
         this.outDegree = [null, null];
     }
 
+    //#region Object save methods
+
     saveToObject(): object {
         return {
             sumDegree: clone(this.sumDegree),
@@ -34,4 +36,6 @@ export default class DegreeFilterData implements Filter{
         this.inDegree = object.inDegree;
         this.outDegree = object.outDegree;
     }
+
+    //#endregion Object save methods
 }

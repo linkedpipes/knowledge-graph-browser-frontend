@@ -1,42 +1,56 @@
 import { Node, NodeType } from "./Node";
 import { Edge, EdgeType } from "./Edge";
 import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
-
 import Vue from 'vue';
-import GraphAreaManipulator from "./GraphAreaManipulator";
 import ObjectSave from "../file-save/ObjectSave";
 
 /**
- * Graph class represents graph as a whole structure with additional methods for linking to
+ * This class represents a graph. It is a container for nodes and edges and contains methods to remove or add them.
+ * Usually there is only one graph instance at a time.
  */
-export class Graph implements ObjectSave{
-    layout?: any;
-
+export class Graph implements ObjectSave {
+    /**
+     * List of nodes.
+     * Readonly for public, mutable for internal.
+     *
+     * You should not remove or insert directly to this object. Edges and other nodes may contain references to elements
+     * in this list. This object is watched by Vue, therefore use Vue.set and Vue.delete to properly trigger changes.
+     * Not everything is done automatically by Vue, for example to remove a node, you must remove also all the edges
+     * manually.
+     */
     nodes: {
         [IRI: string]: Node;
     } = {};
 
+    /**
+     * List of edges.
+     * Readonly for public, mutable for internal.
+     *
+     * You should not remove or insert directly to this object. Edges and other nodes may contain references to elements
+     * in this list. This object is watched by Vue, therefore use Vue.set and Vue.delete to properly trigger changes.
+     * Not everything is done automatically by Vue, for example to remove a node, you must remove also all the edges
+     * manually.
+     */
     edges: {
         [Edge_identifier: string]: Edge;
     } = {};
 
-    fetcher: DataGraphFetcher = null;
-
     /**
-     * @non-reactive
+     * From where the new nodes are fetched. It is not expected to be modified after the creation.
      */
-    manipulator !: GraphAreaManipulator;
+    fetcher: DataGraphFetcher = null;
 
     /**
      * Returns existing node by its IRI
      * @param IRI
      */
-    getNodeByIRI(IRI: string): Node|null {
+    public getNodeByIRI(IRI: string): Node|null {
         return this.nodes[IRI];
     }
 
     /**
-     * Creates a new Node wich is properly registered
+     * Creates a new Node which is properly registered.
+     * This node is "empty" and contains only its IRI. It is not mounted by default so it won't show in the graph area.
      * @param IRI
      */
     createNode(IRI: string): Node {
@@ -46,8 +60,8 @@ export class Graph implements ObjectSave{
     }
 
     /**
-     * Method for removing one single node from graph.
-     * Expects that the request came from user so it removes also all edges
+     * Method for removing one single node from graph with all its edges and from all expansions.
+     * Do not use it for removing multiple nodes at once because of performance issues.
      * @internal
      * @param node Node to be removed
      */
@@ -58,12 +72,16 @@ export class Graph implements ObjectSave{
         }
     }
 
+    /**
+     * Generates identifier for edge.
+     * @param edge
+     */
     private static getEdgeIdentifier(edge: Edge) {
         return edge.source.IRI + " " + edge.target.IRI + " " + edge.type.iri;
     }
 
     /**
-     * Creates a new edge represented by a triplet source, target and type
+     * Creates a new edge represented by a triplet source, target and type.
      * @param source
      * @param target
      * @param type
@@ -118,7 +136,9 @@ export class Graph implements ObjectSave{
     }
 
     /**
-     * Creates a new node in the graph based on its IRI
+     * Based on IRI it fetches the node from remote server, sets default view and returns it.
+     *
+     * The node has to be mounted to be shown in the graph area.
      * @param IRI
      */
     async fetchNode(IRI: string): Promise<Node> {
@@ -145,6 +165,8 @@ export class Graph implements ObjectSave{
         return node;
     }
 
+    //#region Object save methods
+
     saveToObject(): object {
         let nodes = [];
         let edges = [];
@@ -166,4 +188,6 @@ export class Graph implements ObjectSave{
             this.createEdge(this.getNodeByIRI(edgeData.source), this.getNodeByIRI(edgeData.target), edgeData.type).restoreFromObject(edgeData);
         }
     }
+
+    //#endregion Object save methods
 }

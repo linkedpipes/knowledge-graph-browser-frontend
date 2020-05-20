@@ -24,6 +24,8 @@ export default class ViewOptions implements ObjectSave {
         return this.edge !== "full" || this.node !== "full";
     }
 
+    //#region Object save methods
+
     saveToObject(): object {
         return {
             node: this.node,
@@ -35,4 +37,6 @@ export default class ViewOptions implements ObjectSave {
         this.node = object.node;
         this.edge = object.edge;
     }
+
+    //#endregion Object save methods
 }

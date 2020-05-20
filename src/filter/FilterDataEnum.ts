@@ -22,6 +22,8 @@ export default class FilterDataEnum<T> implements ObjectSave {
         this.active = false;
     }
 
+    //#region Object save methods
+
     /**
      * Saves current data into the plain javascript object.
      * This implementation works only for simple data types.
@@ -43,4 +45,6 @@ export default class FilterDataEnum<T> implements ObjectSave {
         this.modeListed = object.modeListed;
         this.items = JSON.parse(object.items);
     }
+
+    //#endregion Object save methods
 }

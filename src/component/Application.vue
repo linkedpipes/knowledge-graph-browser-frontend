@@ -20,8 +20,8 @@
                     :hidden-panel.sync="hiddenPanel"
                     :node-locking-supported="layouts.currentLayout.supportsNodeLocking"
                     ref="sidePanel"
-                    @width-changed="rightOffset = $event"/>
-
+                    @width-changed="rightOffset = $event"
+            />
             <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
                 <v-list dense nav class="py-0">
                     <v-list-item two-line style="padding-left: 0;">
@@ -76,9 +76,20 @@
             </v-card>
         </v-footer>
 
-        <add-node ref="addNode" :graph="graph" :manipulator="manipulator" :graph-searcher="graphSearcher"/>
-        <filter-dialog ref="filterDialog" :graph="graph" :filter="filter" />
-        <save-dialog ref="saveDialog" />
+        <add-node
+                ref="addNode"
+                :graph="graph"
+                :manipulator="manipulator"
+                :graph-searcher="graphSearcher"
+        />
+        <filter-dialog
+                ref="filterDialog"
+                :graph="graph"
+                :filter="filter"
+        />
+        <save-dialog
+                ref="saveDialog"
+        />
         <configuration-stylesheet-dialog
                 ref="configurationStylesheetDialog"
                 :oldConfiguration="dataSource ? dataSource.configuration : null"
@@ -90,17 +101,29 @@
                 @changed="configurationStylesheetUpdated"
                 @requestLoadFromFile="doLoadFromFileProcess"
         />
-        <vue-filter-component-creator :graph="graph" :filter="filter" />
-        <view-options-dialog :options="viewOptions" ref="viewOptionsDialog"></view-options-dialog>
+        <vue-filter-component-creator
+                :graph="graph"
+                :filter="filter"
+        />
+        <view-options-dialog
+                :options="viewOptions"
+                ref="viewOptionsDialog"
+        />
         <settings-dialog
                 :remote-url.sync="remoteURL"
                 ref="settingsDialog"
-        ></settings-dialog>
+        />
         <settings
                 :remote-url.sync="remoteURL"
         ></settings>
-        <load-dialog ref="loadDialog" @selected="loadFromFile($event)"></load-dialog>
-        <layout-dialog ref="layoutDialog" :layouts="layouts" />
+        <load-dialog
+                ref="loadDialog"
+                @selected="loadFromFile($event)"
+        />
+        <layout-dialog
+                ref="layoutDialog"
+                :layouts="layouts"
+        />
     </v-app>
 </template>
 
@@ -136,7 +159,7 @@
         mdiImageFilterTiltShift,
         mdiLayersTriple
     } from '@mdi/js';
-    import {VListGroup} from "vuetify/lib";
+    import {VListGroup, VNavigationDrawer} from "vuetify/lib";
     import SettingsDialog from "./SettingsDialog.vue";
     import Settings from "./Settings";
     import ViewOptionsDialog from "./ViewOptionsDialog.vue";
@@ -182,7 +205,7 @@
     })
     export default class Application extends Mixins(ApplicationLoadStoreMixin) {
         /**
-         * Contains all nodes, edges and their information.
+         * Container for all nodes and edges which were downloaded by a user.
          * */
         graph: Graph = new Graph();
 
@@ -288,19 +311,25 @@
          * */
         dataSource: DataSource = null;
 
+        //#region References to components used in Application
+
         @Ref() readonly addNode !: AddNode;
         @Ref() readonly filterDialog !: FilterDialog;
         @Ref() readonly saveDialog !: SaveDialog;
         @Ref() readonly configurationStylesheetDialog !: ConfigurationStylesheetDialog;
-        @Ref() readonly bar !: any;
+        @Ref() readonly bar !: typeof VNavigationDrawer;
         @Ref() readonly languageMenu !: typeof VListGroup;
-        @Ref() readonly settingsDialog !: typeof SettingsDialog;
+        @Ref() readonly settingsDialog !: SettingsDialog;
         @Ref() readonly loadDialog !: LoadDialog;
-        @Ref() readonly layoutDialog !: typeof LayoutDialog;
+        @Ref() readonly layoutDialog !: LayoutDialog;
+
+        //#endregion References to components used in Application
 
         private rightOffset: number = 0;
         private leftOffset: number = 56; // Collapsed width of Vuetify v-navigation-drawer
-        private languageMenuActive: boolean = false; // Whether the item "Language" is opened with all the available languages
+
+        // Whether the item "Language" is opened with all the available languages
+        private languageMenuActive: boolean = false; // This variable is used
 
         /**
          * If is opened the panel with hidden nodes
@@ -420,7 +449,7 @@
 
             // Add watcher after the components are mounted
             this.$watch(
-                () => {return this.bar.computedWidth},
+                () => {return (this.bar as any).computedWidth},
                 (val) => {this.leftOffset = val;}
             );
         }

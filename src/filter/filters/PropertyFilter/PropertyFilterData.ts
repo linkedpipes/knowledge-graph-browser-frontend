@@ -25,6 +25,8 @@ export default class PropertyFilterData implements Filter{
         this.class.reset();
     }
 
+    //#region Object save methods
+
     saveToObject(): object {
         return {
             type: this.type.saveToObject(),
@@ -36,4 +38,6 @@ export default class PropertyFilterData implements Filter{
         this.type.restoreFromObject(object.type);
         this.class.restoreFromObject(object.class);
     }
+
+    //#endregion Object save methods
 }
