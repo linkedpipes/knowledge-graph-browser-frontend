@@ -2,7 +2,7 @@ import Cytoscape, {AnimateOptions} from "cytoscape";
 import {Node} from "./Node";
 import {Graph} from "./Graph";
 import ObjectSave from "../file-save/ObjectSave";
-import {LayoutManager} from "../layouts/LayoutManager";
+import {LayoutManager} from "../layout/LayoutManager";
 import {NodeView} from "./NodeView";
 import exp from "constants";
 import GraphArea from "../component/graph/GraphArea.vue";

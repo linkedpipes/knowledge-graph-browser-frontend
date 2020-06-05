@@ -5,7 +5,7 @@ import {Graph} from "./Graph";
 import {Node} from "./Node";
 import GraphAreaManipulator from "./GraphAreaManipulator";
 import Vue from "vue";
-import {LayoutManager} from "../layouts/LayoutManager";
+import {LayoutManager} from "../layout/LayoutManager";
 
 export default class GraphManipulator {
     private readonly graph: Graph;

@@ -1,5 +1,5 @@
-import Searcher, {SearcherResult} from "./Searcher";
-import {Graph} from "../graph/Graph";
+import Searcher, {SearcherResult} from "../Searcher";
+import {Graph} from "../../graph/Graph";
 import {mdiGraphql} from '@mdi/js';
 
 export default class LocalGraphSearcher implements Searcher {

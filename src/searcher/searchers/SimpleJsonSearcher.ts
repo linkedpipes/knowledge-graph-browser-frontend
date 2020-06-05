@@ -1,4 +1,4 @@
-import Searcher, {SearcherResult} from "./Searcher";
+import Searcher, {SearcherResult} from "../Searcher";
 import { mdiDatabase } from '@mdi/js';
 
 interface Database {

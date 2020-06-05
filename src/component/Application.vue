@@ -169,22 +169,22 @@
     import GraphManipulator from "../graph/GraphManipulator";
     import LoadDialog from "./LoadDialog.vue";
     import ApplicationLoadStoreMixin from "./ApplicationLoadStoreMixin";
-    import GraphSearcher from "../GraphSearcher";
-    import Searcher from "../searchers/Searcher";
-    import LocalGraphSearcher from "../searchers/LocalGraphSearcher";
-    import SimpleJsonSearcher from "../searchers/SimpleJsonSearcher";
-    import IRIConstructorSearcher from "../searchers/IRIConstructorSearcher";
-    import IRIIdentitySearcher from "../searchers/IRIIdentitySearcher";
+    import GraphSearcher from "../searcher/GraphSearcher";
+    import Searcher from "../searcher/Searcher";
+    import LocalGraphSearcher from "../searcher/searchers/LocalGraphSearcher";
+    import SimpleJsonSearcher from "../searcher/searchers/SimpleJsonSearcher";
+    import IRIConstructorSearcher from "../searcher/searchers/IRIConstructorSearcher";
+    import IRIIdentitySearcher from "../searcher/searchers/IRIIdentitySearcher";
     import LayoutDialog from "./LayoutDialog.vue";
-    import {LayoutManager} from "../layouts/LayoutManager";
-    import ColaLayoutSettingsComponent from "../layouts/cola/ColaLayoutSettingsComponent.vue";
-    import ColaLayout from "../layouts/cola/ColaLayout";
-    import CircleLayoutSettingsComponent from "../layouts/circle/CircleLayoutSettingsComponent.vue";
-    import CircleLayout from "../layouts/circle/CircleLayout";
-    import ColaLayoutButtons from "../layouts/cola/ColaLayoutButtons.vue";
-    import DagreLayout from "../layouts/dagre/DagreLayout";
-    import DagreLayoutSettingsComponent from "../layouts/dagre/DagreLayoutSettingsComponent.vue";
-    import DagreLayoutButtons from "../layouts/dagre/DagreLayoutButtons.vue";
+    import {LayoutManager} from "../layout/LayoutManager";
+    import ColaLayoutSettingsComponent from "../layout/layouts/ColaLayout/ColaLayoutSettingsComponent.vue";
+    import ColaLayout from "../layout/layouts/ColaLayout/ColaLayout";
+    import CircleLayoutSettingsComponent from "../layout/layouts/CircleLayout/CircleLayoutSettingsComponent.vue";
+    import CircleLayout from "../layout/layouts/CircleLayout/CircleLayout";
+    import ColaLayoutButtons from "../layout/layouts/ColaLayout/ColaLayoutButtons.vue";
+    import DagreLayout from "../layout/layouts/DagreLayout/DagreLayout";
+    import DagreLayoutSettingsComponent from "../layout/layouts/DagreLayout/DagreLayoutSettingsComponent.vue";
+    import DagreLayoutButtons from "../layout/layouts/DagreLayout/DagreLayoutButtons.vue";
     let Configuration: {api: string} = require("../../conf.yaml");
 
     @Component({

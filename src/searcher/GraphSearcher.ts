@@ -1,7 +1,7 @@
 /**
  * @see searchers/Searcher
  */
-import Searcher, {SearcherResult} from "./searchers/Searcher";
+import Searcher, {SearcherResult} from "./Searcher";
 
 interface SearcherResultEntity {
     // Which searcher gave the results

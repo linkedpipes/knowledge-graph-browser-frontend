@@ -37,8 +37,8 @@
 <script lang="ts">
 import {Component, Emit, Prop, Watch} from "vue-property-decorator";
 import Vue from "vue";
-import GraphSearcher from "../GraphSearcher";
-import {SearcherResult} from "../searchers/Searcher";
+import GraphSearcher from "../searcher/GraphSearcher";
+import {SearcherResult} from "../searcher/Searcher";
 import {mdiMagnify} from "@mdi/js";
 
 @Component

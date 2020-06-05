@@ -10,7 +10,7 @@ import {DataSource} from "../DataSource";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
 import SaveDialog from "./SaveDialog.vue";
 import LoadDialog from "./LoadDialog.vue";
-import {LayoutManager} from "../layouts/LayoutManager";
+import {LayoutManager} from "../layout/LayoutManager";
 
 @Component export default class ApplicationLoadStoreMixin extends Vue implements ObjectSave {
     graph: Graph;

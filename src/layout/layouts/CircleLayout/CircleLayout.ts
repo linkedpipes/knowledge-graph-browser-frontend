@@ -1,7 +1,7 @@
 import {Collection, Layouts, NodeSingular} from "cytoscape";
-import Layout from "../Layout";
+import Layout from "../../Layout";
 import clone from "clone";
-import {Expansion} from "../../graph/Expansion";
+import {Expansion} from "../../../graph/Expansion";
 
 export interface CircleLayoutOptions {
     /**

@@ -1,9 +1,9 @@
 import {Collection, Layouts, NodeSingular, Position} from "cytoscape";
-import Layout from "../Layout";
+import Layout from "../../Layout";
 import clone from "clone";
-import {Expansion} from "../../graph/Expansion";
+import {Expansion} from "../../../graph/Expansion";
 import Vue from "vue";
-import {Node} from "../../graph/Node";
+import {Node} from "../../../graph/Node";
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 

@@ -57,7 +57,7 @@ import {Component, Prop} from 'vue-property-decorator';
 import { Graph } from '../graph/Graph';
 import SearchComponent from "./SearchComponent.vue";
 import GraphManipulator from "../graph/GraphManipulator";
-import GraphSearcher from "../GraphSearcher";
+import GraphSearcher from "../searcher/GraphSearcher";
 @Component({
     components: {SearchComponent}
 })

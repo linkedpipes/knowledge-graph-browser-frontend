@@ -55,13 +55,13 @@ import SearchComponent from "../SearchComponent.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import ViewOptions from "../../graph/ViewOptions";
 import {DataSource} from "../../DataSource";
-import GraphSearcher from "../../GraphSearcher";
+import GraphSearcher from "../../searcher/GraphSearcher";
 import GraphManipulator from "../../graph/GraphManipulator";
 import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
 
 import cola from 'cytoscape-cola';
 import popper from 'cytoscape-popper';
-import {LayoutManager} from "../../layouts/LayoutManager";
+import {LayoutManager} from "../../layout/LayoutManager";
 
 @Component({
 	components: {

@@ -1,4 +1,4 @@
-import Searcher, {SearcherResult} from "./Searcher";
+import Searcher, {SearcherResult} from "../Searcher";
 import { mdiHelp } from '@mdi/js';
 import { mdiSlashForward } from '@mdi/js';
 

@@ -1,4 +1,4 @@
-import Searcher, {SearcherResult} from "./Searcher";
+import Searcher, {SearcherResult} from "../Searcher";
 import { mdiIdentifier } from '@mdi/js';
 
 export default class IRIConstructorSearcher implements Searcher {
