@@ -19,13 +19,14 @@
   resource: https://psp.opendata.cz/zdroj/osoba/5914
   iri_structure: ^https://psp\.opendata\.cz/zdroj/
 - name:
-    en: State administration of the Czech Republic
-    cs: Státní správa České republiky
+    en: Semantic dictionary of terms
+    cs: Sémantický slovník pojmů
   description:
     en:
   configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/sgov
   stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/sgov/style-sheet
   resource: https://slovník.gov.cz/legislativní/sbírka/111/2009/pojem/orgán-veřejné-moci
+  autocomplete: https://raw.githubusercontent.com/martinnec/kgbrowser/master/configurations/sgov-autocomplete.json
   iri_structure: ^https://slovník\.gov\.cz/
 - name:
     en: Wikidata animals
