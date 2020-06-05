@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import {Prop, Watch} from 'vue-property-decorator';
-import Cytoscape from "cytoscape";
+import Cytoscape, {EdgeDataDefinition} from "cytoscape";
 import { Edge } from '../../graph/Edge';
 import clone from "clone";
 
@@ -22,12 +22,14 @@ export default class GraphElementEdge extends Vue {
         // @ts-ignore
         this.cy = this.$parent.cy;
         this.element = <Cytoscape.EdgeSingular>this.cy.add({
+            // @ts-ignore bad types
             group: 'edges',
+            // @ts-ignore bad types
             data: {
                 source: this.edge.source.IRI,
                 target: this.edge.target.IRI,
                 label: this.edge.type.label
-            },
+            } as EdgeDataDefinition,
             // @ts-ignore bad types
             classes: clone(this.edge.classes),
         });

@@ -2,7 +2,7 @@ import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {ResponseStylesheet} from "../../graph-fetcher/response-interfaces";
 import ViewOptions from "../../graph/ViewOptions";
 import clone from "clone";
-import cytoscape, {StylesheetStyle} from "cytoscape";
+import cytoscape from "cytoscape";
 // @ts-ignore
 import {color2tuple} from "cytoscape/src/util/colors";
 import Cytoscape from "cytoscape";
@@ -73,13 +73,13 @@ export default class GraphAreaStylesheetMixin extends Vue {
                 break;
             case "dot":
                 viewOptionsStyles.push({selector: "node",
-                    // @ts-ignore padding has bad types
                     style: {
                         label: "",
                         width: 20,
                         height: 20,
                         shape: "ellipse",
                         "border-width": 0,
+                        // @ts-ignore padding has bad types
                         padding: 0,
                     }
                 });

@@ -7,13 +7,12 @@
 import Component from 'vue-class-component';
 import {Prop, Ref, Watch} from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
-import Cytoscape, {CollectionAnimation} from "cytoscape";
+import Cytoscape, {CollectionAnimation, ElementDefinition, NodeDataDefinition} from "cytoscape";
 import Vue from 'vue';
 import {NodePreview, NodeView} from '../../graph/NodeView';
 import clone from "clone";
 import { mdiPinOutline } from '@mdi/js';
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
-import {VIcon} from "vuetify/lib";
 
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,
@@ -65,11 +64,11 @@ export default class GraphElementNode extends Vue {
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
             // label: Fixes Cytoscape bug when there is no clickable bounding box when node has [width: label] and previous label was empty
-            data: { label: "-", ...clone(this.node.currentView?.preview), id: this.node.IRI },
+            data: { label: "-", ...clone(this.node.currentView?.preview), id: this.node.IRI } as NodeDataDefinition,
             // @ts-ignore bad types
-            classes: clone(this.node.currentView?.preview?.classes),
+            classes: clone(this.node.currentView?.preview?.classes) as string,
             position,
-        });
+        } as ElementDefinition);
 
         this.element.scratch("_component", this);
 
