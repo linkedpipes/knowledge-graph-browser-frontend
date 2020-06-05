@@ -4,15 +4,30 @@ let Configuration: {language: string} = require("../conf.yaml");
 
 Vue.use(VueI18n);
 
-// Slavic language pluralization
+// This loads all the /locales files
+let localesContext = require.context("../locales", true, /\.yaml$/);
+let locales: VueI18n.LocaleMessages = {};
+localesContext.keys().forEach(function(key: string){
+    let code = (key.split('\\').pop().split('/').pop().split('.'))[0];
+    locales[code] = <VueI18n.LocaleMessageObject>localesContext(key);
+});
 
+let i18n = new VueI18n({
+    locale: Configuration.language,
+    fallbackLocale: 'en',
+    messages: locales,
+    silentTranslationWarn: true,
+    silentFallbackWarn: true,
+});
+
+// Slavic language pluralization
 /**
  * @param choice {number} a choice index given by the input to $tc: `$tc('path.to.rule', choiceIndex)`
  * @param choicesLength {number} an overall amount of available choices
  * @returns a final choice index to select plural word by
  **/
-const defaultPluralizationImplementation = VueI18n.prototype.getChoiceIndex;
-VueI18n.prototype.getChoiceIndex = function (choice, choicesLength) {
+const defaultPluralizationImplementation = i18n.getChoiceIndex;
+i18n.getChoiceIndex = function (choice, choicesLength) {
     switch (this.getLocaleMessage(this.locale)["_pluralization"]) {
         case 'slavic':
             switch (choicesLength) {
@@ -36,19 +51,6 @@ VueI18n.prototype.getChoiceIndex = function (choice, choicesLength) {
     }
 }
 
-// This loads all the /locales files
-let localesContext = require.context("../locales", true, /\.yaml$/);
-let locales: VueI18n.LocaleMessages = {};
-localesContext.keys().forEach(function(key: string){
-    let code = (key.split('\\').pop().split('/').pop().split('.'))[0];
-    locales[code] = <VueI18n.LocaleMessageObject>localesContext(key);
-});
 
 // Configure i18n
-export default new VueI18n({
-    locale: Configuration.language,
-    fallbackLocale: 'en',
-    messages: locales,
-    silentTranslationWarn: true,
-    silentFallbackWarn: true,
-});
+export default i18n;
