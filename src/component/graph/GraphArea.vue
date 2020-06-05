@@ -135,6 +135,25 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		this.cy.mount(<Element>this.$refs.graphd);
 	}
 
+	//#region Cytoscape batch optimisation
+	cyBatchInProcessOptimisation: boolean = false;
+
+	beforeUpdate() {
+		if (!this.cyBatchInProcessOptimisation && this.areaManipulator.cy) {
+			this.areaManipulator.cy.startBatch();
+			this.cyBatchInProcessOptimisation = true;
+		}
+	}
+
+	updated() {
+		if (this.cyBatchInProcessOptimisation) {
+			this.areaManipulator.cy.endBatch();
+			this.cyBatchInProcessOptimisation = false;
+		}
+	}
+	//#endregion Cytoscape batch optimisation
+
+
 	/**
 	 * Vue method called after the creation of the object.
 	 * Mounts the Cytoscape instance to HTML and registers basic events handlers
