@@ -1,6 +1,7 @@
 import { NodeView } from "./NodeView";
 import ObjectSave from "../file-save/ObjectSave";
 import {Node} from "./Node";
+import clone from "clone";
 
 export class NodeViewSet implements ObjectSave{
     node: Node;
@@ -22,7 +23,7 @@ export class NodeViewSet implements ObjectSave{
         return {
             IRI: this.IRI,
             label: this.label,
-            defaultView: this.defaultView.IRI,
+            defaultView: this.defaultView?.IRI ?? clone(this.defaultView), // Default view may be corrupted, in that case use the whole data
             views
         };
     }
@@ -40,6 +41,7 @@ export class NodeViewSet implements ObjectSave{
         }
         this.views = views;
 
-        this.defaultView = this.views[object.defaultView];
+        // Default view is either IRI or the whole data structure
+        this.defaultView = (typeof object.defaultView === 'string') ? this.views[object.defaultView] : object.defaultView;
     }
 }
