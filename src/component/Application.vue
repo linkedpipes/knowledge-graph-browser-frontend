@@ -137,10 +137,6 @@
     import SaveDialog from './SaveDialog.vue';
     import FilterDialog from './filter/FilterDialog.vue';
     import VueFilterComponentCreator from '../filter/VueFilterComponentCreator';
-    import PropertyFilterComponent from '../filter/filters/PropertyFilter/PropertyFilterComponent';
-    import PropertyFilterData from "../filter/filters/PropertyFilter/PropertyFilterData";
-    import DegreeFilterComponent from "../filter/filters/DegreeFilter/DegreeFilterComponent";
-    import DegreeFilterData from "../filter/filters/DegreeFilter/DegreeFilterData";
     import Component from "vue-class-component";
     import {LocaleMessage} from "vue-i18n";
     import {Mixins, Ref, Watch} from "vue-property-decorator";
@@ -157,7 +153,7 @@
         mdiCogs,
         mdiEye,
         mdiImageFilterTiltShift,
-        mdiLayersTriple
+        mdiLayersTriple,
     } from '@mdi/js';
     import {VListGroup, VNavigationDrawer} from "vuetify/lib";
     import SettingsDialog from "./SettingsDialog.vue";
@@ -185,6 +181,8 @@
     import DagreLayout from "../layout/layouts/DagreLayout/DagreLayout";
     import DagreLayoutSettingsComponent from "../layout/layouts/DagreLayout/DagreLayoutSettingsComponent.vue";
     import DagreLayoutButtons from "../layout/layouts/DagreLayout/DagreLayoutButtons.vue";
+    import DegreeFilter from "../filter/filters/DegreeFilter/DegreeFilter";
+    import PropertyFilter from "../filter/filters/PropertyFilter/PropertyFilter";
     let Configuration: {api: string} = require("../../conf.yaml");
 
     @Component({
@@ -235,27 +233,11 @@
          * List of node filters supported in the application.
          * Theoretically, the filter list can be dynamically expanded.
          *
-         * filter - object containing filter data (like max, min, whether is active]
-         * component - a Vue component linked to filter field and every node (so programmer can define watchers and
-         * decide whether the node should be visible or not)
-         *
-         * Despite the array here, the FilterDialog component ignores it and shows only those filters which are
-         * programmed in the FilterDialog component. Todo add field with Vue component which renders filter settings
-         * so the FilterDialog will not depend on specific filters and can be dynamically changed.
-         *
          * It is similar to LayoutsList.
          * */
         filter = new FiltersList([
-            {
-                name: "degreeFilter",
-                component: DegreeFilterComponent,
-                filter: new DegreeFilterData(),
-            },
-            {
-                name: "propertyFilter",
-                component: PropertyFilterComponent,
-                filter: new PropertyFilterData()
-            }
+            DegreeFilter,
+            PropertyFilter,
         ]);
 
         /**

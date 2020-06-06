@@ -12,17 +12,26 @@ export interface Filter extends FilterIsActive, ObjectSave {
     reset(): void;
 }
 
+export interface FilterDefinition {
+    name: string,
+    component: typeof Vue,
+    filter: Filter,
+    tabs: {
+        component: typeof Vue,
+        icon: string,
+        // (filter: Filter) => bool same type as filter above
+        active: any,
+        text: string,
+    }[],
+}
+
 /**
  * Represents an ordered list of filters used in the application
  */
 export class FiltersList implements FilterIsActive, ObjectSave {
-    filters: {
-        name: string,
-        component: typeof Vue,
-        filter: Filter,
-    }[];
+    filters: FilterDefinition[];
 
-    constructor(filters: { name: string; component: typeof Vue; filter: Filter }[]) {
+    constructor(filters: typeof FiltersList.prototype.filters) {
         this.filters = filters;
     }
 

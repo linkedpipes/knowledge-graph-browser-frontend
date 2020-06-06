@@ -7,39 +7,11 @@
         </v-toolbar>
 
         <v-tabs vertical>
-            <v-tab><v-icon left>{{graphIcon}}</v-icon><v-badge color="red" dot :value="filtersMapped.degreeFilter.active">{{ $t("filters.degreeFilter.title") }}</v-badge></v-tab>
-            <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="filtersMapped.propertyFilter.type.active">{{ $t("filters.propertyFilter.type.tab") }}</v-badge></v-tab>
-            <v-tab><v-icon left>{{semanticIcon}}</v-icon><v-badge color="red" dot :value="filtersMapped.propertyFilter.class.active">{{ $t("filters.propertyFilter.class.tab") }}</v-badge></v-tab>
+            <v-tab v-for="(tab, index) in tabs" :key="index"><v-icon left>{{tab.icon}}</v-icon><v-badge color="red" dot :value="tab.active(tab.filter)">{{ $t(tab.text) }}</v-badge></v-tab>
 
-            <v-tab-item>
-                <v-card flat>
-                    <v-card-text>
-                        <range-card v-for="filterName in graphFiltersNamesOrder" :key="filterName" :range.sync="filtersMapped.degreeFilter[filterName]">
-                            <template v-slot:title>{{ $t('filters.degreeFilter.' + filterName) }}</template>
-                            <p>{{ $t("filters.degreeFilter." + filterName + "_description") }}</p>
-                        </range-card>
-                    </v-card-text>
-                </v-card>
+            <v-tab-item v-for="(tab, index) in tabs" :key="index">
+                <component :is="tab.component" :filter="tab.filter" :graph="graph"/>
             </v-tab-item>
-
-            <!-- Types -->
-            <v-tab-item>
-                <enum-tab :available-items="graphData.types" v-model="filtersMapped.propertyFilter.type" :equality-comparator="NodeTypeComparer" properties-are-disjoint>
-                    <!--<p>{{ $t("filters.propertyFilter.type.description") }}</p>-->
-                    <template v-slot:title>{{ $t("filters.propertyFilter.type.title") }}</template>
-                    <template v-slot:item="item">{{item.item.label}}<div class="text-truncate text--secondary" style="max-width: 700px;">{{item.item.description}}</div></template>
-                </enum-tab>
-            </v-tab-item>
-
-            <!-- Classes -->
-            <v-tab-item>
-                <enum-tab :available-items="graphData.classes" v-model="filtersMapped.propertyFilter.class" :equality-comparator="EqualityComparer">
-                    <!--<p>{{ $t("filters.propertyFilter.class.description") }}</p>-->
-                    <template v-slot:title>{{ $t("filters.propertyFilter.class.title") }}</template>
-                    <template v-slot:item="item">{{item.item}}</template>
-                </enum-tab>
-            </v-tab-item>
-
         </v-tabs>
 
         <v-card-actions>
@@ -55,91 +27,48 @@
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
 import { Graph } from '../../graph/Graph';
+import { FiltersList } from "../../filter/Filter";
 
-import { mdiGraphql, mdiFormatListBulletedType } from '@mdi/js';
-import EnumTab from './EnumTab.vue';
-import {NodeType} from "../../graph/Node";
-import {FiltersList} from "../../filter/Filter";
-import RangeCard from "./RangeCard.vue";
-import DegreeFilterData from "../../filter/filters/DegreeFilter/DegreeFilterData";
-import PropertyFilterData from "../../filter/filters/PropertyFilter/PropertyFilterData";
-
-interface RangeFilter {
-    active: boolean;
-    range: [number, number];
-}
-
-interface FilterNames {
-    name: string,
-    filter: RangeFilter
-}
-
-@Component({
-	components: {
-        RangeCard,
-		EnumTab
-	}
-})
+@Component
 export default class FilterDialog extends Vue {
-    NodeTypeComparer = (a: NodeType, b: NodeType) => a.iri == b.iri;
-    EqualityComparer = (a: string, b: string) => a == b;
-
-    graphIcon = mdiGraphql;
-    semanticIcon = mdiFormatListBulletedType;
-
-    graphFiltersNamesOrder = [
-        "sumDegree",
-        "inDegree",
-        "outDegree",
-    ];
-
-    dialog: boolean = false;
-
     /**
      * List of filters and their data
      */
     @Prop() filter: FiltersList;
 
-    // Temporary workaround, converts array filter into object
-    filtersMapped: {
-        degreeFilter?: DegreeFilterData,
-        propertyFilter?: PropertyFilterData,
-    } = {};
-
     /**
      * Reference to graph instance because we need to ask some data...
      */
     @Prop() graph: Graph;
-    graphData = {
-        classes: [] as string[],
-        types: [] as NodeType[],
-    };
 
-    created() {
-        this.filtersMapped = {};
-        for (let filter of this.filter.filters) {
-            // @ts-ignore
-            this.filtersMapped[filter.name] = filter.filter;
-        }
-    }
-
-    show() {
-        this.updateData();
+    public show() {
         this.dialog = true;
     }
 
-    updateData() {
-        this.graphData.classes = Array.from(this.graph.getAllClasses());
-        this.graphData.types = Array.from(this.graph.getAllTypes());
-    }
-
-    close() {
+    public close() {
         this.dialog = false;
     }
+
+    /**
+     * Flattens the array of filters.
+     */
+    private get tabs() {
+        let tabs = [];
+
+        for (let specificFilter of this.filter.filters) {
+            for (let tab of specificFilter.tabs) {
+                tabs.push({...tab, filter: specificFilter.filter})
+            }
+        }
+
+        return tabs;
+    }
+
+    dialog: boolean = false;
 }
 </script>
 <style scoped>
-.v-tab {
+>>> .v-tab {
     justify-content: left;
 }
 </style>
