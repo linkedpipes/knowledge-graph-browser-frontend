@@ -30,6 +30,20 @@ export class Edge implements ObjectSave {
         this.graph = graph;
     }
 
+    /**
+     * Decides whether one of the nodes is selected
+     */
+    public get neighbourSelected(): boolean {
+        return this.source.selected || this.target.selected;
+    }
+
+    /**
+     * Decides whether the edge is visible
+     */
+    public get isVisible(): boolean {
+        return this.source.isVisible && this.target.isVisible;
+    }
+
     saveToObject(): object {
         return {
             source: this.source.IRI,

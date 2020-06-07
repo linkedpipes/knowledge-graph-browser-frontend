@@ -97,6 +97,14 @@ export class Node implements ObjectSave {
         [IRI: string]: NodeViewSet;
     } = null;
 
+    get neighbourSelected(): boolean {
+        for (let edge of this.edges) {
+            let neighbour = edge.source == this ? edge.target : edge.source;
+            if (neighbour.selected) return true;
+        }
+        return false;
+    }
+
     remove() {
         this.graph._removeNode(this);
     }

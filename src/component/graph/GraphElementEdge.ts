@@ -11,6 +11,13 @@ import clone from "clone";
 @Component
 export default class GraphElementEdge extends Vue {
     @Prop({type: Object as () => Edge}) edge: Edge;
+
+    /**
+     * .__active cy class makes element to be in full color. This happens when the element is selected or its
+     * neighbour is selected or no node is selected.
+     * */
+    @Prop(Boolean) private explicitlyActive !: boolean;
+
     cy!: Cytoscape.Core;
 
     /**
@@ -31,16 +38,49 @@ export default class GraphElementEdge extends Vue {
                 label: this.edge.type.label
             } as EdgeDataDefinition,
             // @ts-ignore bad types
-            classes: clone(this.edge.classes),
+            classes: this.getClassList(),
         });
     };
+
+    //#region Class list manipulation
+
+    /**
+     * Functions return ready class list which can be used to pass to cytoscape
+     */
+    private getClassList(): string[] {
+        let cls = clone(this.edge.classes);
+
+        if (this.edge.neighbourSelected || this.explicitlyActive) {
+            cls.push("__active");
+        }
+
+        if (!this.edge.isVisible) {
+            cls.push("__hidden_opacity");
+        }
+
+        return cls;
+    }
 
     @Watch('edge.classes', {deep: true})
     private updateClassList() {
         // Function .classes() sets whole new class list (removes the previous one)
         // @ts-ignore bad types
-        this.element?.classes(clone(this.edge.classes));
+        this.element?.classes(this.getClassList());
     }
+
+    @Watch('edge.neighbourSelected')
+    @Watch('explicitlyActive')
+    private neighbourSelectedChanged() {
+        this.element?.toggleClass("__active", this.edge.neighbourSelected || this.explicitlyActive);
+    }
+
+    @Watch('edge.isVisible')
+    private visibilityChanged() {
+        // For now, no need to change display property because the edge can be hidden only by hiding one of its nodes
+        this.element?.toggleClass("__hidden_opacity", !this.edge.isVisible);
+    }
+
+    //#endregion Class list manipulation
 
     beforeDestroy() {
         this.cy.remove(this.element);

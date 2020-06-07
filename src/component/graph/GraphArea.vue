@@ -32,12 +32,14 @@
 			:node="node"
 			:areaManipulator="areaManipulator"
 			:node-locking-supported="layoutManager.currentLayout.supportsNodeLocking"
+			:explicitly-active="!isNodeSelected"
 		/>
 		<graph-element-edge
 			v-for="(edge, identifier) in graph.edges"
 			v-if="edge.source.mounted && edge.target.mounted"
 			:key="identifier.replace(/\./, '_')"
 			:edge="edge"
+			:explicitly-active="!isNodeSelected"
 		/>
 	</div>
 </template>
@@ -153,6 +155,20 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	}
 	//#endregion Cytoscape batch optimisation
 
+	/**
+	 * Computes whether there is at least one node in the graph which is selected and visible.
+	 */
+	private get isNodeSelected(): boolean {
+		for (let iri in this.graph.nodes) {
+			let node = this.graph.nodes[iri];
+
+			if (node.mounted && node.isVisible && node.selected) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	/**
 	 * Vue method called after the creation of the object.

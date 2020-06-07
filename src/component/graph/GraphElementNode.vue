@@ -35,6 +35,12 @@ export default class GraphElementNode extends Vue {
     @Prop(Boolean) private nodeLockingSupported !: boolean;
 
     /**
+     * .__active cy class makes element to be in full color. This happens when the element is selected or its
+     * neighbour is selected or no node is selected.
+     * */
+    @Prop(Boolean) private explicitlyActive !: boolean;
+
+    /**
      * Cytoscape instance passed by parent where the node should be rendered
      */
     cy !: Cytoscape.Core;
@@ -66,7 +72,7 @@ export default class GraphElementNode extends Vue {
             // label: Fixes Cytoscape bug when there is no clickable bounding box when node has [width: label] and previous label was empty
             data: { label: "-", ...clone(this.node.currentView?.preview), id: this.node.IRI } as NodeDataDefinition,
             // @ts-ignore bad types
-            classes: clone(this.node.currentView?.preview?.classes) as string,
+            classes: this.getClassList() as string,
             position,
         } as ElementDefinition);
 
@@ -79,8 +85,8 @@ export default class GraphElementNode extends Vue {
 
         this.node.element = this;
 
-        // For hidden nodes, disable animations
-        this.visibilityChanged(this.node.isVisible, undefined);
+        this.visibilityChanged(this.node.isVisible);
+
         this.selectedChanged();
         this.lockedForLayoutsChanged();
     };
@@ -222,41 +228,6 @@ export default class GraphElementNode extends Vue {
         }
     }
 
-    visibilityAnimation: CollectionAnimation;
-
-    @Watch('node.isVisible')
-    private visibilityChanged(visible: boolean, old: boolean | undefined) {
-        if (this.visibilityAnimation) this.visibilityAnimation.stop(true, false);
-
-        if (visible) {
-            if (old === undefined) {
-                this.element.style({
-                    opacity: 1,
-                    display: "element",
-                });
-            } else {
-                this.visibilityAnimation = this.element.style("display", "element").animate({
-                    style: {opacity: 1}
-                }, {
-                    duration: 300
-                });
-            }
-        } else {
-            if (old === undefined) {
-                this.element.style({
-                    opacity: 0,
-                    display: "none",
-                });
-            } else {
-                this.visibilityAnimation = this.element.animate({
-                    style: { opacity: 0 }
-                }, {
-                    duration: 300
-                }).animate({style: {display: "none"}});
-            }
-        }
-    }
-
     get previewData(): NodePreview {
         return this.node.currentView?.preview;
     }
@@ -287,13 +258,61 @@ export default class GraphElementNode extends Vue {
                 ...clone(this.previewData),
                 id: this.node.IRI
             });
-
-            // Function .classes() sets whole new class list (removes the previous one)
-            // @ts-ignore bad types
-            this.element?.classes(clone(this.previewData?.classes));
         }
-        this.element?.toggleClass("_preview_loading", this.previewData === null);
+
+        // @ts-ignore bad types
+        this.element?.classes(this.getClassList());
     }
+
+    //#region Class list manipulation
+
+    hiddenDisplayAnimation: number | null = null;
+
+    @Watch('node.isVisible')
+    private visibilityChanged(visible: boolean) {
+        if (this.hiddenDisplayAnimation !== null) {
+            clearTimeout(this.hiddenDisplayAnimation);
+            this.hiddenDisplayAnimation = null;
+        }
+
+        if (visible) {
+            this.element?.removeClass("__hidden_display")
+        }
+        this.element?.toggleClass("__hidden_opacity", !visible);
+        if (!visible) {
+            this.hiddenDisplayAnimation = setTimeout(() => {
+                this.element?.addClass("__hidden_display");
+                this.hiddenDisplayAnimation = null;
+            }, 250);
+        }
+    }
+
+    @Watch('node.neighbourSelected')
+    @Watch('node.selected')
+    @Watch('explicitlyActive')
+    private neighbourSelectedChanged() {
+        this.element?.toggleClass("__active", this.node.neighbourSelected || this.explicitlyActive || this.node.selected);
+    }
+
+    /**
+     * Functions return ready class list which can be used to pass to cytoscape
+     */
+    private getClassList(): string[] {
+        let cls = clone(this.previewData?.classes ?? []);
+
+        if (this.node.neighbourSelected || this.explicitlyActive || this.node.selected) {
+            cls.push("__active");
+        }
+
+        if (!this.node.isVisible) {
+            cls.push("__hidden_opacity");
+            if (this.hiddenDisplayAnimation === null) cls.push("__hidden_display");
+        }
+
+        return cls;
+    }
+
+    //#endregion Class list manipulation
 
     beforeDestroy() {
         this.cy.remove(this.element);
