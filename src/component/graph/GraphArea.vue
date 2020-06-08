@@ -33,6 +33,7 @@
 			:areaManipulator="areaManipulator"
 			:node-locking-supported="layoutManager.currentLayout.supportsNodeLocking"
 			:explicitly-active="!isNodeSelected"
+			:mode-compact="modeCompact"
 		/>
 		<graph-element-edge
 			v-for="(edge, identifier) in graph.edges"
@@ -40,6 +41,7 @@
 			:key="identifier.replace(/\./, '_')"
 			:edge="edge"
 			:explicitly-active="!isNodeSelected"
+            :mode-compact="modeCompact"
 		/>
 	</div>
 </template>
@@ -64,6 +66,8 @@ import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
 import cola from 'cytoscape-cola';
 import popper from 'cytoscape-popper';
 import {LayoutManager} from "../../layout/LayoutManager";
+import {Node} from "../../graph/Node";
+import {Edge} from "../../graph/Edge";
 
 @Component({
 	components: {
@@ -83,6 +87,11 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	@Prop() private manipulator: GraphManipulator;
 	@Prop(Object) private areaManipulator: GraphAreaManipulator;
 	@Prop(Object) private layoutManager: LayoutManager;
+
+	/**
+	 * Compact mode is a mode where selected nodes with all its neighbours are layouted independently of others
+	 * */
+	@Prop(Boolean) private modeCompact !: boolean;
 
 	/**
 	 * How much of the graph area is covered by panels. This array is readonly so it could be passed by reference.
@@ -154,6 +163,54 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		}
 	}
 	//#endregion Cytoscape batch optimisation
+
+    @Watch('dataForCompactMode')
+    private dataForCompactModeChanged() {
+	    let [nodes, edges] = this.dataForCompactMode;
+
+	    if (nodes && !nodes.length) {
+	    	this.emitLeftCompactMode();
+	    	return;
+		}
+
+        this.layoutManager.currentLayout.onCompactMode(nodes, edges);
+
+        if (nodes) {
+			this.areaManipulator.fitFollowSet(nodes);
+		} else {
+        	this.areaManipulator.fitFollowStop();
+		}
+    }
+
+    /**
+     * This getter returns which nodes and edges are in compact mode. If compact mode is turned off, the return values
+     * are [null, null].
+     * */
+    private get dataForCompactMode(): [Node[], Edge[]] {
+	    if (this.modeCompact) {
+	        let nodes: Node[] = [];
+	        let edges: Edge[] = [];
+
+	        for (let iri in this.graph.nodes) {
+	            if ((this.graph.nodes[iri].selected || this.graph.nodes[iri].neighbourSelected) && this.graph.nodes[iri].element) {
+	                nodes.push(this.graph.nodes[iri]);
+                }
+            }
+
+            for (let iri in this.graph.edges) {
+                if (this.graph.edges[iri].neighbourSelected && this.graph.edges[iri].element) {
+                    edges.push(this.graph.edges[iri]);
+                }
+            }
+
+            return [nodes, edges];
+        } else {
+	        return [null, null];
+        }
+    }
+
+    @Emit('left-compact-mode')
+	private emitLeftCompactMode() {}
 
 	/**
 	 * Computes whether there is at least one node in the graph which is selected and visible.

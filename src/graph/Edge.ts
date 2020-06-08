@@ -3,6 +3,7 @@ import { ResponseElementType } from "../graph-fetcher/response-interfaces"
 import { Graph } from "./Graph";
 import ObjectSave from "../file-save/ObjectSave";
 import clone from 'clone';
+import GraphElementEdge from "../component/graph/GraphElementEdge";
 
 /**
  * Information about the type of Edge. Same as ResponseElementType
@@ -22,6 +23,8 @@ export class Edge implements ObjectSave {
     target: Node;
     type: EdgeType;
     classes: string[] = [];
+
+    element: GraphElementEdge = null;
 
     constructor (source: Node, target: Node, type: EdgeType, graph: Graph) {
         this.source = source;

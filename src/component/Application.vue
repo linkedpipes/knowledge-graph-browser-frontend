@@ -12,6 +12,8 @@
                     :manipulator="manipulator"
                     :area-manipulator="areaManipulator"
                     :layout-manager="layouts"
+                    :mode-compact="modeCompact"
+                    @left-compact-mode="modeCompact = false"
                     @new-manipulator="areaManipulatorUpdated($event)"
             />
             <side-panel
@@ -64,6 +66,7 @@
                     </v-list-group>
 
                     <v-list-item link @click="$refs.settingsDialog.show()"><v-list-item-icon><v-icon>{{ icons.settings }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.settings") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="modeCompact = !modeCompact"><v-list-item-icon><v-badge dot :value="modeCompact"><v-icon></v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.compact") }}</v-list-item-title></v-list-item-content></v-list-item>
                 </v-list>
             </v-navigation-drawer>
         </v-content>
@@ -202,6 +205,7 @@
         }
     })
     export default class Application extends Mixins(ApplicationLoadStoreMixin) {
+        modeCompact: boolean = false;
         /**
          * Container for all nodes and edges which were downloaded by a user.
          * */
@@ -352,7 +356,6 @@
             this.areaManipulator.optimizeRemoveWholeGraph();
             this.graph = new Graph();
             this.updateFetcher();
-            this.updateStylesheet();
         }
 
         /**
@@ -365,7 +368,7 @@
             this.graph.fetcher = new DataGraphFetcher(this.remoteURL, this.dataSource?.configuration);
         }
 
-        async updateStylesheet() {
+        async fetchStylesheet() {
             try {
                 this.stylesheet = await this.graph.fetcher.getStylesheet(this.dataSource.stylesheet);
             } catch (e) {
@@ -445,7 +448,7 @@
                 this.createGraph();
                 this.filter.reset();
             }
-            if (!fullUpdate && stylesheetUpdated) this.updateStylesheet();
+            if (stylesheetUpdated) this.fetchStylesheet();
 
             if (fullUpdate) this.addNode.show(update.resource ?? null);
         }

@@ -97,6 +97,8 @@ export default class GraphAreaManipulator implements ObjectSave {
     }
 
     fit(nodes?: Node|Node[]) {
+        this.cy.stop();
+
         if (nodes instanceof Node) {
             nodes = [nodes];
         }
@@ -129,6 +131,30 @@ export default class GraphAreaManipulator implements ObjectSave {
                     y: clientVP[1]/2 + this.offsetArray[0] - zoom * (bb.y1 + bb.h/2),
                 },
             }, this.animateOptions);
+        }
+    }
+
+    private fitFollowTimeout: number | null = null;
+
+    /**
+     * Starts or update the nodes to be followed by viewport
+     * @param nodes
+     */
+    public fitFollowSet(nodes?: Node|Node[]) {
+        this.fitFollowStop();
+        this.fit(nodes);
+        this.fitFollowTimeout = setTimeout(() => {
+            this.fitFollowSet(nodes);
+        }, this.animateOptions.duration / 2);
+    }
+
+    /**
+     * Stops following selected nodes to fit.
+     */
+    public fitFollowStop() {
+        if (this.fitFollowTimeout !== null) {
+            clearTimeout(this.fitFollowTimeout);
+            this.fitFollowTimeout = null;
         }
     }
 

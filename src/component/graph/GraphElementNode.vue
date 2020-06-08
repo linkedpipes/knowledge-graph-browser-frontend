@@ -7,7 +7,7 @@
 import Component from 'vue-class-component';
 import {Prop, Ref, Watch} from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
-import Cytoscape, {CollectionAnimation, ElementDefinition, NodeDataDefinition} from "cytoscape";
+import Cytoscape, {ElementDefinition, NodeDataDefinition, Position} from "cytoscape";
 import Vue from 'vue';
 import {NodePreview, NodeView} from '../../graph/NodeView';
 import clone from "clone";
@@ -41,6 +41,11 @@ export default class GraphElementNode extends Vue {
     @Prop(Boolean) private explicitlyActive !: boolean;
 
     /**
+     * Compact mode is a mode where selected nodes with all its neighbours are layouted independently of others
+     * */
+    @Prop(Boolean) private modeCompact !: boolean;
+
+    /**
      * Cytoscape instance passed by parent where the node should be rendered
      */
     cy !: Cytoscape.Core;
@@ -49,6 +54,31 @@ export default class GraphElementNode extends Vue {
      * Reference to this node in the Cytoscape container
      */
     element: Cytoscape.NodeSingular;
+
+    private originalPositionBeforeCompact: Position = null;
+
+    private get compactModeLocked(): boolean {
+        return this.modeCompact && (!this.node.selected && !this.node.neighbourSelected);
+    }
+
+    private get compactModeUnlocked(): boolean {
+        return this.modeCompact && (this.node.selected || this.node.neighbourSelected);
+    }
+
+    @Watch('compactModeLocked')
+    private compactModeLockedChanged() {
+        this.element.toggleClass("__compact_inactive", this.compactModeLocked);
+    }
+
+    @Watch('compactModeUnlocked')
+    private compactModeUnlockedChanged() {
+        if (this.compactModeUnlocked) {
+            // Mode compact started
+            this.originalPositionBeforeCompact = clone(this.element.position());
+        } else {
+            this.element.position(this.originalPositionBeforeCompact);
+        }
+    }
 
     /**
      * Vue method called after the creation of the object.
@@ -307,6 +337,10 @@ export default class GraphElementNode extends Vue {
         if (!this.node.isVisible) {
             cls.push("__hidden_opacity");
             if (this.hiddenDisplayAnimation === null) cls.push("__hidden_display");
+        }
+
+        if (this.compactModeLocked) {
+            cls.push("__compact_inactive");
         }
 
         return cls;

@@ -1,9 +1,10 @@
-import {Collection, Layouts, NodeSingular, Position} from "cytoscape";
+import cytoscape, {Collection, Layouts, NodeSingular, Position} from "cytoscape";
 import Layout from "../../Layout";
 import clone from "clone";
 import {Expansion} from "../../../graph/Expansion";
 import Vue from "vue";
 import {Node} from "../../../graph/Node";
+import {Edge} from "../../../graph/Edge";
 
 export interface ColaLayoutOptions {
     /**
@@ -60,15 +61,14 @@ export default class ColaLayout extends Layout {
     }
 
     onDrag(isStartNotEnd: boolean) {
-        // Execute layout on everything
         if (this.options.doLayoutAfterReposition && (!isStartNotEnd || this.options.animate)) {
-            this.executeLayout(this.areaManipulator.cy.elements());
+            this.executeLayout(this.getCollectionToAnimate());
         }
     };
 
     onLockedChanged() {
         // Execute layout on everything
-        this.executeLayout(this.areaManipulator.cy.elements());
+        this.executeLayout(this.getCollectionToAnimate());
     }
 
     /**
@@ -131,10 +131,53 @@ export default class ColaLayout extends Layout {
     }
 
     /**
+     * Contains elements in the compact mode or null if the compact mode is turned off.
+     * @non-reactive
+     */
+    private compactMode: cytoscape.Collection | null;
+
+    private isCompactModeActive(): boolean {
+        return !!this.compactMode;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    onCompactMode(nodes: Node[] | null, edges: Edge[] | null) {
+        if (nodes === null && edges === null) {
+            if (this.compactMode) this.stopLayout();
+            this.compactMode = null;
+        } else {
+            if (this.compactMode === null) this.stopLayout();
+            this.compactMode = this.areaManipulator.cy.collection();
+
+            for (let node of nodes) {
+                this.compactMode = this.compactMode.union(node.element.element);
+            }
+
+            for (let edge of edges) {
+                this.compactMode = this.compactMode.union(edge.element.element);
+            }
+
+            // Run layout
+            this.executeLayout(this.getCollectionToAnimate());
+        }
+    }
+
+    /**
+     * Decides which elements should animate.
+     *
+     * If a compact mode is active, use its elements. Otherwise, use all elements.
+     */
+    private getCollectionToAnimate() {
+        return this.compactMode ?? this.areaManipulator.cy.elements();
+    }
+
+    /**
      * For explicit layout call.
      */
     public run() {
-        this.executeLayout(this.areaManipulator.cy.elements());
+        this.executeLayout(this.getCollectionToAnimate());
     }
 
     private stopLayout() {
@@ -160,7 +203,7 @@ export default class ColaLayout extends Layout {
             fit: false,
             centerGraph: false,
             animate: this.options.animate,
-            extraLocked: (node: any) => fixed.has(node.id()) || node.scratch("_component").node.lockedForLayouts,
+            extraLocked: (node: any) => fixed.has(node.id()) || (!this.isCompactModeActive() && node.scratch("_component").node.lockedForLayouts),
             nodeSpacing: this.options.nodeSpacing,
             edgeLength: this.options.edgeLength,
         });

@@ -4,6 +4,8 @@
 import ObjectSave from "../file-save/ObjectSave";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
 import {Expansion} from "../graph/Expansion";
+import {Node} from "../graph/Node";
+import {Edge} from "../graph/Edge";
 
 export default abstract class Layout implements ObjectSave {
     /**
@@ -43,6 +45,16 @@ export default abstract class Layout implements ObjectSave {
     onExpansion(expansion: Expansion): void {};
 
     onDrag(isStartNotEnd: boolean) {};
+
+    /**
+     * When user turns on a compact mode this function is called with nodes and edges which figures in the mode. Turning
+     * the mode off is represented by null arrays.
+     * Layout should terminate all animations started before the mode has changed.
+     * Layout should not manipulate with viewport, because is is not its job.
+     * @param nodes List of nodes presented in the compact mode
+     * @param edges List of edges presented in the compact mode
+     */
+    onCompactMode(nodes: Node[] | null, edges: Edge[] | null) {}
 
     /**
      * When some node changed its lockedForLayout property

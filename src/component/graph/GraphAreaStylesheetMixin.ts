@@ -41,7 +41,8 @@ export default class GraphAreaStylesheetMixin extends Vue {
             {
                 selector: "node",
                 style: {
-                    label: "data(label)"
+                    label: "data(label)",
+                    "z-index": 100,
                 }
             },
             {
@@ -132,6 +133,15 @@ export default class GraphAreaStylesheetMixin extends Vue {
                 selector: ".__hidden_display",
                 style: {
                     display: "none"
+                }
+            },
+
+            {
+                selector: ".__compact_inactive",
+                style: {
+                    opacity: 0.05,
+                    events: "no",
+                    "z-index": 0,
                 }
             },
 
