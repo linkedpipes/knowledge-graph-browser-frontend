@@ -1,5 +1,5 @@
 <template>
-    <div class="lock" ref="lockIconWrapper">
+    <div class="lock" :class="lockClasses" ref="lockIconWrapper">
         <v-icon ref="lockIcon" color="secondary" small>{{lockIconIcon}}</v-icon>
     </div>
 </template>
@@ -121,6 +121,8 @@ export default class GraphElementNode extends Vue {
         this.lockedForLayoutsChanged();
     };
 
+
+
     //#region Methods for Popper manipulation and lock icon
 
     @Ref() private readonly lockIconWrapper !: HTMLDivElement;
@@ -135,8 +137,9 @@ export default class GraphElementNode extends Vue {
     private lock = () =>  this.node.lockedForLayouts = true; // Do not trigger layout
 
     @Watch('nodeLockingSupported')
+    @Watch('modeCompact')
     private nodeLockingSupportedChanged() {
-        if (this.nodeLockingSupported) {
+        if (this.nodeLockingSupported && !this.modeCompact) {
             // Right-click
             this.element?.on("cxttap", this.changeLocked);
             // On moving end, lock the node
@@ -150,9 +153,17 @@ export default class GraphElementNode extends Vue {
 
     }
 
+    private get lockClasses(): string[] {
+        let classes = this.getClassList();
+        let result: string[] = [];
+        if (classes.includes("__active")) result.push("__active");
+        if (classes.includes("__compact_inactive")) result.push("__compact_inactive");
+        return result;
+    }
+
     private lockIconUpdatePopper() {
         if (!this.lockIcon) return;
-        (<HTMLDivElement>this.lockIcon.$el).style.zoom = String(this.element.cy().zoom() * 100) + '%';
+        (<HTMLDivElement>this.lockIcon.$el).style.transform = "scale(" + String(this.element.cy().zoom()) + ')';
     }
     private lockIconPositionUpdater() {
         if (!this.lockIconPopper) return;
@@ -230,6 +241,8 @@ export default class GraphElementNode extends Vue {
     }
 
     //#endregion Methods for Popper manipulation and lock icon
+
+
 
     /**
      * Method called by ancestor component GraphArea when doubleclick is registered
@@ -359,11 +372,17 @@ export default class GraphElementNode extends Vue {
         pointer-events: none;
         width: 0;
         height: 0;
+        opacity: 0.5;
 
         ::v-deep .v-icon {
             position: absolute !important;
             left: 2px;
             top: -8px;
+            transform-origin: center left;
+            transition: transfrm 0s ease 0s;
         }
     }
+
+    .__active {opacity: 1;}
+    .__compact_inactive {opacity: 0.05;}
 </style>

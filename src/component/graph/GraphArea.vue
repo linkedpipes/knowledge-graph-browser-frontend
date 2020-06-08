@@ -22,6 +22,11 @@
 					<v-icon>{{ icons.fit }}</v-icon>
 				</v-btn>
 			</div>
+			<div class="my-2">
+				<v-btn color="primary" fab small :dark="isNodeSelected" :disabled="!isNodeSelected" @click="compactModeChange(!modeCompact)">
+					<v-icon>{{ icons.compactMode[modeCompact ? 1 : 0] }}</v-icon>
+				</v-btn>
+			</div>
 			<component v-if="layoutManager.currentLayoutData.buttons" :is="layoutManager.currentLayoutData.buttons" :layout="layoutManager.currentLayout" />
 		</div>
 
@@ -54,7 +59,7 @@ import Cytoscape from "cytoscape";
 import {Emit, Mixins, Prop, Watch} from "vue-property-decorator";
 import {ResponseStylesheet} from "../../graph-fetcher/response-interfaces";
 import {Graph} from "../../graph/Graph";
-import { mdiPlus, mdiMinus, mdiArrowExpandAll } from '@mdi/js';
+import {mdiPlus, mdiMinus, mdiArrowExpandAll, mdiChartBubble, mdiArrowDecisionOutline} from '@mdi/js';
 import SearchComponent from "../SearchComponent.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import ViewOptions from "../../graph/ViewOptions";
@@ -105,6 +110,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		zoomIn: mdiPlus,
 		zoomOut: mdiMinus,
 		fit: mdiArrowExpandAll,
+		compactMode: [mdiArrowDecisionOutline, mdiChartBubble]
 	}
 
 	/**
@@ -169,7 +175,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	    let [nodes, edges] = this.dataForCompactMode;
 
 	    if (nodes && !nodes.length) {
-	    	this.emitLeftCompactMode();
+	    	this.compactModeChange(false);
 	    	return;
 		}
 
@@ -209,8 +215,8 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
         }
     }
 
-    @Emit('left-compact-mode')
-	private emitLeftCompactMode() {}
+    @Emit()
+	private compactModeChange(val: boolean) { return val; }
 
 	/**
 	 * Computes whether there is at least one node in the graph which is selected and visible.
