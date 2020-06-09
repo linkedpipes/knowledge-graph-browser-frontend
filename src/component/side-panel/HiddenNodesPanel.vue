@@ -18,7 +18,7 @@
             {{ $t('side_panel.hidden_nodes_panel.description') }}
         </div>
 
-        <node-grouped-list mode-hidden-nodes select-button unselect-button hide-button show-button delete-button :groups="groupedNodes" @nodeSelected="nodeSelected" />
+        <node-grouped-list mode-hidden-nodes select-button unselect-button hide-button show-button delete-button :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="nodeSelected" />
     </div>
 </template>
 <script lang="ts">
@@ -32,6 +32,7 @@
     import { mdiClose, mdiTrashCanOutline } from '@mdi/js';
     import {Graph} from "../../graph/Graph";
     import NodeGroupedList from "./NodeGroupedList.vue";
+    import GraphManipulator from "../../graph/GraphManipulator";
 
     interface NodeTypeGroup {
         type: NodeType;
@@ -43,6 +44,7 @@
     })
     export default class HiddenNodesPanel extends Vue {
         @Prop(Object) graph: Graph;
+        @Prop() manipulator !: GraphManipulator;
         @Emit('close') private closePanel() {}
 
         private readonly icons = {

@@ -5,14 +5,14 @@
 </template>
 <script lang="ts">
 import Component from 'vue-class-component';
-import {Prop, Ref, Watch} from 'vue-property-decorator';
+import {Mixins, Prop, Ref, Watch} from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
-import Cytoscape, {ElementDefinition, NodeDataDefinition, Position} from "cytoscape";
+import Cytoscape, {ElementDefinition, NodeDataDefinition} from "cytoscape";
 import Vue from 'vue';
 import {NodePreview, NodeView} from '../../graph/NodeView';
 import clone from "clone";
 import { mdiPinOutline } from '@mdi/js';
-import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
+import GraphElementNodeMixin from "./GraphElementNodeMixin";
 
 /**
  * This is Vue component representing single node in graph. When a new node is loaded,
@@ -24,76 +24,17 @@ import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
  * renders lock icon used for marking node as locked.
  */
 @Component
-export default class GraphElementNode extends Vue {
+export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
     /**
      * Node's data passed by parent
      */
     @Prop({type: Object as () => Node}) node: Node;
 
-    @Prop() areaManipulator !: GraphAreaManipulator;
-
-    @Prop(Boolean) private nodeLockingSupported !: boolean;
-
     /**
-     * .__active cy class makes element to be in full color. This happens when the element is selected or its
-     * neighbour is selected or no node is selected.
-     * */
-    @Prop(Boolean) private explicitlyActive !: boolean;
-
-    /**
-     * Compact mode is a mode where selected nodes with all its neighbours are layouted independently of others
-     * */
-    @Prop(Boolean) private modeCompact !: boolean;
-
-    /**
-     * Cytoscape instance passed by parent where the node should be rendered
+     * @inheritDoc
      */
-    cy !: Cytoscape.Core;
-
-    /**
-     * Reference to this node in the Cytoscape container
-     */
-    element: Cytoscape.NodeSingular;
-
-    private originalPositionBeforeCompact: Position = null;
-
-    private get compactModeLocked(): boolean {
-        return this.modeCompact && (!this.node.selected && !this.node.neighbourSelected);
-    }
-
-    private get compactModeUnlocked(): boolean {
-        return this.modeCompact && (this.node.selected || this.node.neighbourSelected);
-    }
-
-    @Watch('compactModeLocked')
-    private compactModeLockedChanged() {
-        this.element.toggleClass("__compact_inactive", this.compactModeLocked);
-    }
-
-    @Watch('compactModeUnlocked')
-    private compactModeUnlockedChanged() {
-        if (this.compactModeUnlocked) {
-            // Mode compact started
-            this.originalPositionBeforeCompact = clone(this.element.position());
-        } else {
-            this.element.position(this.originalPositionBeforeCompact);
-        }
-    }
-
-    /**
-     * Vue method called after the creation of the object.
-     * Registers node in the Cytoscape instance
-     * @vue
-     */
-    mounted() {
-        // @ts-ignore
-        this.cy = this.$parent.cy;
+    protected registerElement(): void {
         let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
-
-        // @ts-ignore
-        let id = this.cy.data("id_counter");
-        // @ts-ignore
-        this.cy.data("id_counter", id + 1);
 
         // All parameters here must correspond to functions trigger by watchers
         // The objects are considered owned by Cytoscape therefore are copied to remove Vue observers
@@ -101,27 +42,14 @@ export default class GraphElementNode extends Vue {
             group: 'nodes',
             // label: Fixes Cytoscape bug when there is no clickable bounding box when node has [width: label] and previous label was empty
             data: { label: "-", ...clone(this.node.currentView?.preview), id: this.node.IRI } as NodeDataDefinition,
-            // @ts-ignore bad types
-            classes: this.getClassList() as string,
+            classes: this.getClassList() as unknown as string,
             position,
         } as ElementDefinition);
 
-        this.element.scratch("_component", this);
-
-        this.element.on("select", () => this.node.selected = true);
-        this.element.on("unselect", () => this.node.selected = false);
-
         this.nodeLockingSupportedChanged();
 
-        this.node.element = this;
-
-        this.visibilityChanged(this.node.isVisible);
-
-        this.selectedChanged();
         this.lockedForLayoutsChanged();
-    };
-
-
+    }
 
     //#region Methods for Popper manipulation and lock icon
 
@@ -242,8 +170,6 @@ export default class GraphElementNode extends Vue {
 
     //#endregion Methods for Popper manipulation and lock icon
 
-
-
     /**
      * Method called by ancestor component GraphArea when doubleclick is registered
      */
@@ -260,15 +186,6 @@ export default class GraphElementNode extends Vue {
         if (!view) return;
 
         await this.areaManipulator.expandNode(view);
-    }
-
-    @Watch('node.selected')
-    private selectedChanged() {
-        if (this.node.selected) {
-            this.element.select();
-        } else {
-            this.element.unselect();
-        }
     }
 
     get previewData(): NodePreview {
@@ -307,63 +224,13 @@ export default class GraphElementNode extends Vue {
         this.element?.classes(this.getClassList());
     }
 
-    //#region Class list manipulation
-
-    hiddenDisplayAnimation: number | null = null;
-
-    @Watch('node.isVisible')
-    private visibilityChanged(visible: boolean) {
-        if (this.hiddenDisplayAnimation !== null) {
-            clearTimeout(this.hiddenDisplayAnimation);
-            this.hiddenDisplayAnimation = null;
-        }
-
-        if (visible) {
-            this.element?.removeClass("__hidden_display")
-        }
-        this.element?.toggleClass("__hidden_opacity", !visible);
-        if (!visible) {
-            this.hiddenDisplayAnimation = setTimeout(() => {
-                this.element?.addClass("__hidden_display");
-                this.hiddenDisplayAnimation = null;
-            }, 250);
-        }
-    }
-
-    @Watch('node.neighbourSelected')
-    @Watch('node.selected')
-    @Watch('explicitlyActive')
-    private neighbourSelectedChanged() {
-        this.element?.toggleClass("__active", this.node.neighbourSelected || this.explicitlyActive || this.node.selected);
-    }
-
     /**
      * Functions return ready class list which can be used to pass to cytoscape
      */
-    private getClassList(): string[] {
-        let cls = clone(this.previewData?.classes ?? []);
-
-        if (this.node.neighbourSelected || this.explicitlyActive || this.node.selected) {
-            cls.push("__active");
-        }
-
-        if (!this.node.isVisible) {
-            cls.push("__hidden_opacity");
-            if (this.hiddenDisplayAnimation === null) cls.push("__hidden_display");
-        }
-
-        if (this.compactModeLocked) {
-            cls.push("__compact_inactive");
-        }
-
-        return cls;
+    protected getClassList(): string[] {
+        return ["__node", ...this._getClassList(), ...clone(this.previewData?.classes ?? [])];
     }
 
-    //#endregion Class list manipulation
-
-    beforeDestroy() {
-        this.cy.remove(this.element);
-    };
 }
 </script>
 <style scoped lang="scss">
@@ -378,7 +245,7 @@ export default class GraphElementNode extends Vue {
             position: absolute !important;
             left: 2px;
             top: -8px;
-            transform-origin: center left;
+            transform-origin: left center;
             transition: transfrm 0s ease 0s;
         }
     }

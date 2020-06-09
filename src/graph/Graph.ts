@@ -3,6 +3,7 @@ import { Edge, EdgeType } from "./Edge";
 import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 import Vue from 'vue';
 import ObjectSave from "../file-save/ObjectSave";
+import NodeGroup from "./NodeGroup";
 
 /**
  * This class represents a graph. It is a container for nodes and edges and contains methods to remove or add them.
@@ -35,6 +36,8 @@ export class Graph implements ObjectSave {
         [Edge_identifier: string]: Edge;
     } = {};
 
+    groups: NodeGroup[] = [];
+
     /**
      * From where the new nodes are fetched. It is not expected to be modified after the creation.
      */
@@ -46,6 +49,12 @@ export class Graph implements ObjectSave {
      */
     public getNodeByIRI(IRI: string): Node|null {
         return this.nodes[IRI];
+    }
+
+    createGroup(): NodeGroup {
+        let group = new NodeGroup();
+        this.groups.push(group);
+        return group;
     }
 
     /**

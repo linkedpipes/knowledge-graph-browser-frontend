@@ -19,6 +19,7 @@
             <side-panel
                     :graph="graph"
                     :area-manipulator="areaManipulator"
+                    :manipulator="manipulator"
                     :hidden-panel.sync="hiddenPanel"
                     :node-locking-supported="layouts.currentLayout.supportsNodeLocking"
                     ref="sidePanel"

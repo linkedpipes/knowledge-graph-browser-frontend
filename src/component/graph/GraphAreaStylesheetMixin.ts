@@ -146,6 +146,16 @@ export default class GraphAreaStylesheetMixin extends Vue {
             },
 
             {
+                selector: ".__node_group",
+                style: {
+                    ghost: "yes",
+                    "ghost-offset-x": 5,
+                    "ghost-offset-y": -5,
+                    "ghost-opacity": 1,
+                }
+            },
+
+            {
                 selector: "node:selected",
                 style: {
                     "overlay-color": "#000000",

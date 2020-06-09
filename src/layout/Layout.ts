@@ -46,6 +46,8 @@ export default abstract class Layout implements ObjectSave {
 
     onDrag(isStartNotEnd: boolean) {};
 
+    run(): void {};
+
     /**
      * When user turns on a compact mode this function is called with nodes and edges which figures in the mode. Turning
      * the mode off is represented by null arrays.

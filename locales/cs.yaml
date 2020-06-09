@@ -211,3 +211,6 @@ layout_dialog:
   keep_old_layout: Ponechat původní layout
   change_layout: Nastavit tento layout
   close: Zavřít
+
+graph:
+  groupNode: jeden uzel | {n} uzly | {n} uzlů

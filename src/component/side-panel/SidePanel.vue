@@ -2,8 +2,9 @@
     <v-navigation-drawer v-model="active" color="white" absolute stateless right width="650" :permanent="active" ref="panel">
         <div class="detail-panel pa-5">
             <detail-panel :node="detailNode" :area-manipulator="areaManipulator" :node-locking-supported="nodeLockingSupported" v-if="panelMode === 1" />
-            <list-panel :nodes="selectedNodes" v-if="panelMode === 2" />
-            <hidden-nodes-panel :graph="graph" v-if="panelMode === 3" @close="showHiddenPanel = false" />
+            <node-group-panel :node="detailNodeGroup" :area-manipulator="areaManipulator" :node-locking-supported="nodeLockingSupported" v-if="panelMode === 4" />
+            <list-panel :nodes="selectedNodes" :manipulator="manipulator" v-if="panelMode === 2" />
+            <hidden-nodes-panel :graph="graph" :manipulator="manipulator" v-if="panelMode === 3" @close="showHiddenPanel = false" />
         </div>
     </v-navigation-drawer>
 </template>
@@ -17,30 +18,36 @@ import DetailPanel from './DetailPanel.vue';
 import ListPanel from './ListPanel.vue';
 import HiddenNodesPanel from "./HiddenNodesPanel.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
+import GraphManipulator from "../../graph/GraphManipulator";
+import NodeGroupPanel from "./NodeGroupPanel.vue";
+import NodeGroup from "../../graph/NodeGroup";
 
 enum PanelModeEnum {
     Nothing = 0,
     SingleDetail = 1,
     List = 2,
     HiddenNodes = 3,
+    SingleDetailNodeGroup = 4,
 }
 
 @Component({
 	components: {
         HiddenNodesPanel,
 		DetailPanel,
-		ListPanel
+		ListPanel,
+        NodeGroupPanel,
 	}
 })
 export default class SidePanel extends Vue {
     @Prop(Object) graph: Graph;
     @Prop(Object) areaManipulator: GraphAreaManipulator;
+    @Prop() manipulator !: GraphManipulator;
     @Prop(Boolean) nodeLockingSupported !: boolean;
     @PropSync('hiddenPanel') showHiddenPanel !: boolean;
     @Ref() readonly panel !: any;
     active: boolean = false;
 
-    get selectedNodes() {
+    get selectedNodes(): Node[] {
         let selected: Node[] = [];
         for (const IRI in this.graph?.nodes) {
             if (this.graph.nodes[IRI].selected) {
@@ -48,6 +55,10 @@ export default class SidePanel extends Vue {
             }
         }
         return selected;
+    }
+
+    get selectedGroups(): NodeGroup[] {
+        return this.graph?.groups.filter(group => group.selected && group.mounted);
     }
 
     mounted () {
@@ -72,10 +83,12 @@ export default class SidePanel extends Vue {
         if (this.showHiddenPanel)
             return PanelModeEnum.HiddenNodes;
 
-        if (this.selectedNodes.length == 0) {
+        if (this.selectedNodes.length == 0 && this.selectedGroups.length == 0) {
             return PanelModeEnum.Nothing;
-        } else if (this.selectedNodes.length == 1) {
+        } else if (this.selectedNodes.length == 1 && this.selectedGroups.length == 0) {
             return PanelModeEnum.SingleDetail;
+        } else if (this.selectedNodes.length == 0 && this.selectedGroups.length == 1) {
+            return PanelModeEnum.SingleDetailNodeGroup;
         } else {
             return PanelModeEnum.List;
         }
@@ -83,6 +96,10 @@ export default class SidePanel extends Vue {
 
     get detailNode(): Node {
         return (this.panelMode == PanelModeEnum.SingleDetail) ? this.selectedNodes[0] : null;
+    }
+
+    get detailNodeGroup(): NodeGroup {
+        return (this.panelMode == PanelModeEnum.SingleDetailNodeGroup) ? this.selectedGroups[0] : null;
     }
 
     @Watch("panelMode")

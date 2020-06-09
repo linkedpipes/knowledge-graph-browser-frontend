@@ -66,9 +66,14 @@ side_panel:
     show: Show
     select: Select
     unselect: Unselect
+    make_group: Make group
     no_type: No type provided
     no_type_desc: You can try to fetch types of these nodes.
     no_type_button: Fetch
+  node_group:
+    title: Group of nodes
+    remove: Remove
+    remove_desc: Remove this group with all nodes inside from the graph
 
 # Dialog to add new nodes
 add_node_dialog:
@@ -199,3 +204,6 @@ layout_dialog:
   keep_old_layout: Keep old layout
   change_layout: Change to this layout
   close: Close
+
+graph:
+  groupNode: single node | {n} resources

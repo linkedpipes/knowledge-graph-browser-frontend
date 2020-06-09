@@ -20,6 +20,7 @@
                         <v-btn v-if="showButton" @click="groupVisibility(group, true)">{{ $t('side_panel.node_grouped_list.show') }}</v-btn>
                         <v-btn v-if="selectButton" @click="groupSelection(group, true)">{{ $t('side_panel.node_grouped_list.select') }}</v-btn>
                         <v-btn v-if="unselectButton" @click="groupSelection(group, false)">{{ $t('side_panel.node_grouped_list.unselect') }}</v-btn>
+                        <v-btn v-if="groupButton" @click="groupMakeGroup(group)">{{ $t('side_panel.node_grouped_list.make_group') }}</v-btn>
                     </div>
 
                     <v-simple-table dense>
@@ -55,6 +56,7 @@
     import {Node, NodeType} from "../../graph/Node";
     import {mdiEye, mdiEyeOff, mdiFilter, mdiFilterOutline} from "@mdi/js";
     import LinkComponent from "../helper/LinkComponent.vue";
+    import GraphManipulator from "../../graph/GraphManipulator";
 
     interface NodeTypeGroup {
         type: NodeType;
@@ -67,12 +69,14 @@
     export default class NodeGroupedList extends Vue {
         @Prop() groups: NodeTypeGroup[];
         @Prop(Boolean) modeHiddenNodes: boolean;
+        @Prop() manipulator !: GraphManipulator;
 
         @Prop(Boolean) deleteButton!: boolean;
         @Prop(Boolean) hideButton!: boolean;
         @Prop(Boolean) showButton!: boolean;
         @Prop(Boolean) selectButton!: boolean;
         @Prop(Boolean) unselectButton!: boolean;
+        @Prop(Boolean) groupButton!: boolean;
 
         private readonly icons = {
             visibility: [mdiEyeOff, mdiEye],
@@ -116,6 +120,10 @@
             for (let node of group.nodes) {
                 node.selected = selection;
             }
+        }
+
+        private groupMakeGroup(group: NodeTypeGroup) {
+            this.manipulator.groupExistingNodes(group.nodes);
         }
     }
 </script>

@@ -32,7 +32,7 @@
 
 		<graph-element-node
 			v-for="node in graph.nodes"
-			v-if="node.mounted"
+			v-if="node.mounted && !node.belongsToGroup"
 			:key="node.IRI.replace(/\./, '_')"
 			:node="node"
 			:areaManipulator="areaManipulator"
@@ -40,13 +40,31 @@
 			:explicitly-active="!isNodeSelected"
 			:mode-compact="modeCompact"
 		/>
+		<graph-element-node-group
+			v-for="group in graph.groups"
+			v-if="group.mounted"
+			:key="group.id"
+			:node="group"
+			:areaManipulator="areaManipulator"
+			:node-locking-supported="layoutManager.currentLayout.supportsNodeLocking"
+			:explicitly-active="!isNodeSelected"
+			:mode-compact="modeCompact"
+		/>
 		<graph-element-edge
-			v-for="(edge, identifier) in graph.edges"
-			v-if="edge.source.mounted && edge.target.mounted"
-			:key="identifier.replace(/\./, '_')"
+			v-for="edge in graph.edges"
+			v-if="edge.source.mounted && edge.target.mounted && !edge.source.belongsToGroup && !edge.target.belongsToGroup"
+			:key="edge.identifier.replace(/\./, '_')"
 			:edge="edge"
 			:explicitly-active="!isNodeSelected"
             :mode-compact="modeCompact"
+		/>
+		<graph-element-edge
+				v-for="edge in groupEdges"
+				v-if="edge.source.mounted && edge.target.mounted"
+				:key="edge.identifier.replace(/\./, '_')"
+				:edge="edge"
+				:explicitly-active="!isNodeSelected"
+				:mode-compact="modeCompact"
 		/>
 	</div>
 </template>
@@ -73,12 +91,16 @@ import popper from 'cytoscape-popper';
 import {LayoutManager} from "../../layout/LayoutManager";
 import {Node} from "../../graph/Node";
 import {Edge} from "../../graph/Edge";
+import NodeGroup from "../../graph/NodeGroup";
+import GraphElementNodeGroup from "./GraphElementNodeGroup.vue";
+import GroupEdge from "../../graph/GroupEdge";
 
 @Component({
 	components: {
 		SearchComponent,
 		GraphElementNode,
-		GraphElementEdge
+		GraphElementEdge,
+		GraphElementNodeGroup,
 	}
 })
 export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
@@ -132,6 +154,19 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		let manipulator = new GraphAreaManipulator(this.cy, this.offset);
 		manipulator.graphArea = this;
 		return manipulator;
+	}
+
+	/**
+	 * From all groups returns edges
+	 */
+	get groupEdges(): GroupEdge[] {
+		let edges: GroupEdge[] = [];
+
+		for (let group of this.graph.groups) {
+			edges = [...edges, ...group.visibleGroupEdges];
+		}
+
+		return edges;
 	}
 
 	/**

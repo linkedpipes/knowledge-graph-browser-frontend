@@ -8,7 +8,7 @@ import GraphElementEdge from "../component/graph/GraphElementEdge";
 /**
  * Information about the type of Edge. Same as ResponseElementType
  */
-export interface EdgeType extends ResponseElementType {};
+export interface EdgeType extends ResponseElementType {}
 
 /**
  * Represents oriented edge in the graph
@@ -31,6 +31,10 @@ export class Edge implements ObjectSave {
         this.target = target;
         this.type = type;
         this.graph = graph;
+    }
+
+    get identifier(): string {
+        return `${this.source.identifier} ${this.type.iri} ${this.target.identifier}`;
     }
 
     /**

@@ -1,10 +1,12 @@
-import { Graph } from "./Graph";
-import { NodeView } from "./NodeView";
-import { NodeViewSet } from "./NodeViewSet";
-import { ResponseElementType } from "../graph-fetcher/response-interfaces";
+import {Graph} from "./Graph";
+import {NodePreview, NodeView} from "./NodeView";
+import {NodeViewSet} from "./NodeViewSet";
+import {ResponseElementType} from "../graph-fetcher/response-interfaces";
 import {Edge} from "./Edge";
 import GraphElementNode from "../component/graph/GraphElementNode.vue";
 import ObjectSave from "../file-save/ObjectSave";
+import NodeGroup from "./NodeGroup";
+import NodeCommon from "./NodeCommon";
 
 /**
  * Information about the type of Node. Same as ResponseElementType
@@ -14,34 +16,30 @@ export interface NodeType extends ResponseElementType {}
 /**
  * Node as a part of graph. Each Node belongs to exactly one Graph.
  */
-export class Node implements ObjectSave {
-    /**
-     * Each Node must belong to one and only one Graph. Every update is reported to the graph instance. Also provides fetcher.
-     */
-    graph: Graph;
-
-    /**
-     * Whether the node should be mounted in the Cytoscape graph.
-     *
-     * This is useful for situations, when many nodes has been downloaded for different reasons than to visualize
-     * them in the graph.
-     *
-     * Each newly created node is not mounted by default.
-     * Edge having not-mounted node is also not mounted.
-     */
-    mounted: boolean = false;
-
+export class Node extends NodeCommon implements ObjectSave {
     /**
      * Even if the node is mounted, this can be still null because the mounting is triggered by Vue every animation
      * frame.
      */
     element: GraphElementNode = null;
-    onMountPosition: [number, number] | null = null;
 
     /**
      * Node unique identifier
      * */
     IRI: string;
+
+    get identifier(): string {
+        return this.IRI;
+    }
+
+    /**
+     * To which group does the node belongs to.
+     */
+    belongsToGroup: NodeGroup | null = null;
+
+    get classes(): string[] {
+        return this.currentView?.preview?.classes ?? [];
+    }
 
     /**
      * List of edges connected to this Node
@@ -76,20 +74,10 @@ export class Node implements ObjectSave {
     }
 
     constructor(IRI: string, graph: Graph) {
+        super();
         this.IRI = IRI;
         this.graph = graph;
     }
-
-    /**
-     * Whether the node is selected on the board
-     */
-    selected: boolean = false;
-    visible: boolean = true;
-
-    /**
-     * Whether the node can not be moved by layouts.
-     */
-    lockedForLayouts: boolean = false;
 
     currentView: NodeView = null;
 
@@ -101,6 +89,7 @@ export class Node implements ObjectSave {
         for (let edge of this.edges) {
             let neighbour = edge.source == this ? edge.target : edge.source;
             if (neighbour.selected) return true;
+            if (neighbour.belongsToGroup && neighbour.belongsToGroup.selected) return true;
         }
         return false;
     }

@@ -92,4 +92,32 @@ export default class GraphManipulator {
             }
         }
     }
+
+    /**
+     * This function creates a new group from already existing nodes
+     * @param nodes
+     */
+    groupExistingNodes(nodes: Node[]) {
+        let nodeGroup = this.graph.createGroup();
+        let position_add = {x: 0, y: 0};
+        let position_count = 0;
+
+        for (let node of nodes) {
+            nodeGroup.addNode(node);
+            node.selected = false;
+
+            let pos = node.element?.element.position();
+            if (pos) {
+                position_add.x += pos.x;
+                position_add.y += pos.y;
+                position_count++;
+            }
+        }
+        nodeGroup.onMountPosition = [position_add.x / position_count, position_add.y / position_count];
+        nodeGroup.mounted = true;
+        nodeGroup.selected = true;
+
+        // In the next tick run the layout
+        Vue.nextTick(() => this.area.layoutManager.currentLayout.run());
+    }
 }

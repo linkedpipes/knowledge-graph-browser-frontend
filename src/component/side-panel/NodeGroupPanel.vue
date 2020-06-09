@@ -1,29 +1,23 @@
 <template>
     <div>
-        <h1 class="mb-5">{{ $t("side_panel.list_panel.title") }}</h1>
+        <h1 class="mb-5">{{ $t("side_panel.node_group.title") }}</h1>
 
         <div class="v-btn-toggle btn-full mb-5">
             <v-tooltip bottom>
                 <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" color="red" @click="remove()"><v-icon>{{ icons.remove }}</v-icon>{{ $t('side_panel.list_panel.remove') }}</v-btn>
+                    <v-btn v-on="on" color="red" @click="remove()"><v-icon>{{ icons.remove }}</v-icon>{{ $t('side_panel.node_group.remove') }}</v-btn>
                 </template>
-                <span>{{ $t("side_panel.list_panel.remove_desc") }}</span>
+                <span>{{ $t("side_panel.node_group.remove_desc") }}</span>
             </v-tooltip>
             <v-tooltip bottom>
                 <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" @click="changeVisibility(false)"><v-icon>{{ icons.visibility[0] }}</v-icon>{{ $t('side_panel.list_panel.hide') }}</v-btn>
+                    <v-btn outlined v-on="on" @click="node.visible = !node.visible"><v-icon>{{ icons.visibility[node.visible ? 1 : 0] }}</v-icon></v-btn>
                 </template>
-                <span>{{ $t("side_panel.list_panel.hide_desc") }}</span>
-            </v-tooltip>
-            <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" @click="changeVisibility(true)"><v-icon>{{ icons.visibility[1] }}</v-icon>{{ $t('side_panel.list_panel.show') }}</v-btn>
-                </template>
-                <span>{{ $t("side_panel.list_panel.show_desc") }}</span>
+                <span>{{ $t("side_panel.detail_panel.visible_desc") }}</span>
             </v-tooltip>
         </div>
 
-        <node-grouped-list delete-button unselect-button hide-button show-button group-button :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
+        <node-grouped-list delete-button unselect-button hide-button show-button :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
     </div>
 </template>
 <script lang="ts">
@@ -38,6 +32,8 @@ import { mdiTrashCanOutline, mdiEye, mdiEyeOff } from '@mdi/js';
 import NodeGroupedList from "./NodeGroupedList.vue";
 import {Graph} from "../../graph/Graph";
 import GraphManipulator from "../../graph/GraphManipulator";
+import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
+import NodeGroup from "../../graph/NodeGroup";
 
 interface NodeTypeGroup {
     type: NodeType;
@@ -47,10 +43,10 @@ interface NodeTypeGroup {
 @Component({
     components: {NodeGroupedList}
 })
-export default class ListPanel extends Vue {
-    @Prop(Array) nodes: Node[];
-    @Prop(String) mode: string;
-    @Prop() manipulator !: GraphManipulator;
+export default class NodeGroupPanel extends Vue {
+    @Prop() node: NodeGroup;
+    @Prop(Object) areaManipulator !: GraphAreaManipulator;
+    @Prop(Boolean) nodeLockingSupported !: boolean;
 
     private readonly icons = {
         remove: mdiTrashCanOutline,
@@ -59,7 +55,7 @@ export default class ListPanel extends Vue {
 
     get groupedNodes(): NodeTypeGroup[] {
         let map = new Map<string, NodeTypeGroup>();
-        for (let node of this.nodes) {
+        for (let node of this.node.nodes) {
             let type = node.currentView?.preview?.type;
             let group: NodeTypeGroup;
             if (map.has(type?.iri)) {
@@ -78,16 +74,8 @@ export default class ListPanel extends Vue {
         return Array.from(map.values());
     }
 
-    changeVisibility(visibility: boolean) {
-        for (let node of this.nodes) {
-            node.visible = visibility;
-        }
-    }
-
     remove() {
-        for (let node of this.nodes) {
-            node.remove();
-        }
+        alert("not supported");
     }
 }
 </script>
