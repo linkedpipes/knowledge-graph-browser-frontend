@@ -45,6 +45,7 @@
 			v-if="group.mounted"
 			:key="group.id"
 			:node="group"
+			:manipulator="manipulator"
 			:areaManipulator="areaManipulator"
 			:node-locking-supported="layoutManager.currentLayout.supportsNodeLocking"
 			:explicitly-active="!isNodeSelected"
@@ -261,6 +262,12 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 			let node = this.graph.nodes[iri];
 
 			if (node.mounted && node.isVisible && node.selected) {
+				return true;
+			}
+		}
+
+		for (let group of this.graph.groups) {
+			if (group.mounted && group.selected) {
 				return true;
 			}
 		}

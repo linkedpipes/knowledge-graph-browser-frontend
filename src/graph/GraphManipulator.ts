@@ -6,6 +6,8 @@ import {Node} from "./Node";
 import GraphAreaManipulator from "./GraphAreaManipulator";
 import Vue from "vue";
 import {LayoutManager} from "../layout/LayoutManager";
+import NodeGroup from "./NodeGroup";
+import clone from "clone";
 
 export default class GraphManipulator {
     private readonly graph: Graph;
@@ -116,6 +118,32 @@ export default class GraphManipulator {
         nodeGroup.onMountPosition = [position_add.x / position_count, position_add.y / position_count];
         nodeGroup.mounted = true;
         nodeGroup.selected = true;
+
+        // In the next tick run the layout
+        Vue.nextTick(() => this.area.layoutManager.currentLayout.run());
+    }
+
+    /**
+     * Removes the group and restores the nodes.
+     * @param group
+     */
+    deGroup(group: NodeGroup) {
+        let gpos = group.element.element?.position();
+        let pos: [number, number];
+
+        if (gpos) {
+            pos = [gpos.x, gpos.y];
+        } else {
+            pos = [this.area.getCenterPosition().x, this.area.getCenterPosition().y];
+        }
+
+        for (let node of group.nodes) {
+            node.belongsToGroup = null;
+            node.mounted = true; // todo resolve what mounted means
+            node.onMountPosition = clone(pos);
+        }
+
+        this.graph.removeGroupIgnoreNodes(group);
 
         // In the next tick run the layout
         Vue.nextTick(() => this.area.layoutManager.currentLayout.run());

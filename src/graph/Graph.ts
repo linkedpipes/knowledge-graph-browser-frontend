@@ -58,6 +58,16 @@ export class Graph implements ObjectSave {
     }
 
     /**
+     * This function only removes group from list of groups. It does not care about unregistering nodes. Caller has to
+     * do it manually.
+     * @internal
+     * @param group
+     */
+    removeGroupIgnoreNodes(group: NodeGroup) {
+        this.groups = this.groups.filter(item => item !== group);
+    }
+
+    /**
      * Creates a new Node which is properly registered.
      * This node is "empty" and contains only its IRI. It is not mounted by default so it won't show in the graph area.
      * @param IRI

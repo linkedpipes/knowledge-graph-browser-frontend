@@ -174,7 +174,7 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
 
     get neighbourSelected(): boolean {
         // Neighbour is selected or its group is selected
-        return this.nodes.some((node) => node.selected || node.belongsToGroup?.selected);
+        return this.nodes.some((node) => node.neighbourSelected);
     }
 
     restoreFromObject(object: any): void {};

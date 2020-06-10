@@ -46,6 +46,7 @@ interface NodeTypeGroup {
 export default class NodeGroupPanel extends Vue {
     @Prop() node: NodeGroup;
     @Prop(Object) areaManipulator !: GraphAreaManipulator;
+    @Prop(Object) manipulator !: GraphManipulator;
     @Prop(Boolean) nodeLockingSupported !: boolean;
 
     private readonly icons = {

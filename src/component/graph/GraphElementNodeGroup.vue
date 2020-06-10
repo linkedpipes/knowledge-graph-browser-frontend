@@ -8,6 +8,7 @@ import Cytoscape, {ElementDefinition, NodeDataDefinition} from "cytoscape";
 import {Mixins, Prop, Watch} from "vue-property-decorator";
 import NodeGroup from "../../graph/NodeGroup";
 import GraphElementNodeMixin from "./GraphElementNodeMixin";
+import GraphManipulator from "../../graph/GraphManipulator";
 
 @Component
 export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin) {
@@ -15,6 +16,8 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
      * Node group data passed by parent
      */
     @Prop({type: Object as () => NodeGroup}) node: NodeGroup;
+
+    @Prop() manipulator !: GraphManipulator;
 
     /**
      * @inheritDoc
@@ -46,6 +49,14 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
     @Watch('label')
     private labelChanged() {
         this.element?.data("label", this.label);
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    /**
+     * Event handler for double-clicking on the node, which is defined in GraphArea.vue
+     */
+    public onDoubleClicked() {
+        this.manipulator.deGroup(this.node);
     }
 }
 </script>
