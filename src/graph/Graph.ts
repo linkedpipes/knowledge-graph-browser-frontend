@@ -4,6 +4,9 @@ import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
 import Vue from 'vue';
 import ObjectSave from "../file-save/ObjectSave";
 import NodeGroup from "./NodeGroup";
+import NodeCommon from "./NodeCommon";
+import GroupEdge from "./GroupEdge";
+import EdgeCommon from "./EdgeCommon";
 
 /**
  * This class represents a graph. It is a container for nodes and edges and contains methods to remove or add them.
@@ -37,6 +40,37 @@ export class Graph implements ObjectSave {
     } = {};
 
     groups: NodeGroup[] = [];
+
+    /**
+     * Gets mounted Node[] which are not part of the group together with mounted NodeGroup[].
+     * Useful for visual graph operations, because that are the nodes which are important.
+     */
+    public get nodesVisual(): NodeCommon[] {
+        let nodes: NodeCommon[] = [];
+        for (let iri in this.nodes) {
+            let node = this.nodes[iri];
+            if (node.mounted && !node.belongsToGroup) {
+                nodes.push(node);
+            }
+        }
+
+        return [...nodes, ...this.groups.filter(group => group.mounted)];
+    }
+
+    public get groupEdges(): GroupEdge[] {
+        let edges: GroupEdge[] = [];
+        for (let group of this.groups) {
+            edges = [...edges, ...group.visibleGroupEdges];
+        }
+        return edges;
+    }
+
+    /**
+     * Gets mounted Edge[] which does not point to a group and group edges.
+     */
+    public get edgesVisual(): EdgeCommon[] {
+        return [...this.groupEdges, ...Object.values(this.edges)].filter(edge => edge.isVisual);
+    }
 
     /**
      * From where the new nodes are fetched. It is not expected to be modified after the creation.

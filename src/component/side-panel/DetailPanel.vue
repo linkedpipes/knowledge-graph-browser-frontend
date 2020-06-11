@@ -1,132 +1,132 @@
 <template>
-    <div>
-        <v-carousel hide-delimiters :show-arrows="detailImages.lenght > 1" cycle v-if="detailImages" height="300" class="mb-5">
-            <v-carousel-item v-for="detail in detailImages" :key="detail.IRI">
-                <v-img
-                    :src="detail.value"
-                    aspect-ratio="1"
-                    class="grey lighten-2"
-                    max-height="100%"
-                >
-                    <v-row v-if="detail.type" class="fill-height flex-column pa-3">
-                    <v-card-text class="white--text">
-                    <div class="text-right">{{detail.type.label}}</div>
-                    </v-card-text>
-                    </v-row>
-                </v-img>
-            </v-carousel-item>
-        </v-carousel>
+    <panel-template>
+                <v-carousel hide-delimiters :show-arrows="detailImages.length > 1" cycle v-if="detailImages" height="300" class="mb-5">
+                    <v-carousel-item v-for="detail in detailImages" :key="detail.IRI">
+                        <v-img
+                                :src="detail.value"
+                                aspect-ratio="1"
+                                max-height="100%"
+                                contain
+                        >
+                            <v-row v-if="detail.type" class="fill-height flex-column-reverse pa-3">
+                                <div class="image-title"><span>{{detail.type.label}}</span></div>
+                            </v-row>
+                        </v-img>
+                    </v-carousel-item>
+                </v-carousel>
 
-        <div class="v-btn-toggle float-right ml-3 mb-3">
-            <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                    <v-btn outlined v-on="on" @click="node.remove()"><v-icon color="red darken-2">{{ icons.remove }}</v-icon></v-btn>
-                </template>
-                <span>{{ $t("side_panel.detail_panel.remove_desc") }}</span>
-            </v-tooltip>
-            <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                    <v-btn outlined v-on="on" @click="nodeRefresh()"><v-icon>{{ icons.refresh }}</v-icon></v-btn>
-                </template>
-                <span>{{ $t("side_panel.detail_panel.refresh_desc") }}</span>
-            </v-tooltip>
-            <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                    <v-btn outlined v-on="on" @click="areaManipulator.fit(node)" :disabled="!node.isVisible"><v-icon>{{ icons.locate }}</v-icon></v-btn>
-                </template>
-                <span>{{ $t("side_panel.detail_panel.locate_desc") }}</span>
-            </v-tooltip>
-            <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                    <v-btn outlined v-on="on" @click="node.visible = !node.visible"><v-icon>{{ icons.visibility[node.visible ? 1 : 0] }}</v-icon></v-btn>
-                </template>
-                <span>{{ $t("side_panel.detail_panel.visible_desc") }}</span>
-            </v-tooltip>
-            <v-tooltip v-if="nodeLockingSupported" bottom>
-                <template v-slot:activator="{ on }">
-                    <v-btn outlined v-on="on" @click="areaManipulator.setLockedForLayouts([node], !node.lockedForLayouts)"><v-icon>{{ icons.lockedForLayouts[node.lockedForLayouts ? 1 : 0] }}</v-icon></v-btn>
-                </template>
-                <span>{{ $t("side_panel.detail_panel.locked_for_layouts_desc") }}</span>
-            </v-tooltip>
-        </div>
-
-        <!-- NODE NAME AND CLASSES -->
-        <div class="mb-5">
-            <div v-if="lastFullPreview">
-                <h1 class="mb-2">{{lastFullPreview.label}}</h1>
-                <div><v-chip label v-for="cls in previewClasses" :key="cls.label" :color="cls.color" class="mx-2">{{cls.label}}</v-chip></div>
-            </div>
-            <h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
-        </div>
-
-        <v-alert v-if="!node.isVisible" type="warning" dense text>{{ $t("side_panel.detail_panel.hidden.f" + (node.shownByFilters ? "t" : "f") + "u" + (node.visible ? "t" : "f")) }}</v-alert>
-
-        <!-- TYPE OF THE NODE -->
-        <v-card outlined class="mb-5">
-            <v-card-text>
-                <a :href="node.IRI" target="_blank" class="text--primary" style="text-decoration: none;">{{node.IRI}}</a>
-            </v-card-text>
-
-            <v-divider></v-divider>
-
-            <v-card-text v-if="lastFullPreview && lastFullPreview.type" class="text--primary">
-                <link-component :href="lastFullPreview.type.iri" /> &nbsp;
-                <b>{{lastFullPreview.type.label}}</b> &nbsp;
-                <span v-if="lastFullPreview.type.description">{{lastFullPreview.type.description}}</span>
-            </v-card-text>
-            <v-card-text v-else class="text--primary">
-                {{ $t("side_panel.detail_panel.no_type_info") }}
-            </v-card-text>
-        </v-card>
-
-        <!-- EXPANSIONS AND VIEWS -->
-        <v-card outlined :loading="viewSets === null" class="mb-5">
-            <v-card-title>{{ $t("side_panel.detail_panel.views") }}</v-card-title>
-            <template v-if="viewSets !== null">
-                <v-list v-if="viewSets.length">
-                    <v-list-item-group v-model="currentViewIRI" mandatory color="secondary">
-                        <template v-for="viewSet in viewSets">
-                            <v-list-item :key="viewSet.IRI" disabled>{{viewSet.label}}</v-list-item>
-                            <v-list-item v-for="view in viewSet.views" :key="view.IRI" :value="view.IRI" @click="view.use()">
-                                <v-list-item-content>
-                                    <v-list-item-title style="flex-basis: auto;" class="flex-grow-1">{{view.label}}</v-list-item-title>
-                                    <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="secondary" :loading="view.expansionInProgress" @click.stop="areaManipulator.expandNode(view)">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
-                                </v-list-item-content>
-                            </v-list-item>
-                        </template>
-                    </v-list-item-group>
-                </v-list>
-                <div v-else style="padding-bottom: 1px;">
-                    <v-alert dense outlined type="error" class="mx-5">
-                        {{ $t("side_panel.detail_panel.no_views") }}
-                    </v-alert>
+                <!-- NODE NAME AND CLASSES -->
+                <div class="mb-5">
+                    <div v-if="lastFullPreview">
+                        <h1 class="mb-2 d-inline">{{lastFullPreview.label}}</h1>
+                        <v-chip label v-for="cls in previewClasses" :key="cls.label" :color="cls.color" style="vertical-align: super;" class="mx-2">{{cls.label}}</v-chip>
+                    </div>
+                    <h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
                 </div>
-            </template>
-            <v-card-text v-else>
-                {{ $t("side_panel.detail_panel.fetching_views") }}
-            </v-card-text>
-        </v-card>
 
-        <!-- DETAIL -->
-        <v-card outlined :disabled="!node.currentView" :loading="node.currentView && !node.currentView.detail" class="mb-5 detail">
-            <v-card-title>{{ $t("side_panel.detail_panel.detail") }}</v-card-title>
-            <v-card-text v-if="!node.currentView">{{ $t("side_panel.detail_panel.please_select_view") }}</v-card-text>
-            <v-card-text v-else-if="!node.currentView.detail">{{ $t("side_panel.detail_panel.fetching_detail") }}</v-card-text>
-            <v-simple-table v-else>
-                <tbody>
-                    <tr v-for="detail in node.currentView.detail" :key="detail.IRI">
-                        <td>
-                            <link-component :href="detail.IRI" /> &nbsp; <b v-if="detail.type">{{detail.type.label}}</b> &nbsp; {{detail.value}}
-                        </td>
-                    </tr>
-                </tbody>
-            </v-simple-table>
-        </v-card>
-    </div>
+                <v-alert v-if="!node.isVisible" type="warning" dense text>{{ $t("side_panel.detail_panel.hidden.f" + (node.shownByFilters ? "t" : "f") + "u" + (node.visible ? "t" : "f")) }}</v-alert>
+
+                <!-- DETAIL -->
+                <v-card outlined :disabled="!node.currentView" :loading="node.currentView && !node.currentView.detail" class="mb-5 detail">
+                    <v-card-title>{{ $t("side_panel.detail_panel.detail") }}</v-card-title>
+                    <v-card-text v-if="!node.currentView">{{ $t("side_panel.detail_panel.please_select_view") }}</v-card-text>
+                    <v-card-text v-else-if="!node.currentView.detail">{{ $t("side_panel.detail_panel.fetching_detail") }}</v-card-text>
+                    <v-simple-table v-else>
+                        <tbody>
+                        <tr v-for="detail in node.currentView.detail" :key="detail.IRI">
+                            <td>
+                                <link-component :href="detail.IRI" /> &nbsp; <b v-if="detail.type">{{detail.type.label}}</b> &nbsp; {{detail.value}}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </v-simple-table>
+                </v-card>
+
+                <!-- EXPANSIONS AND VIEWS -->
+                <v-card outlined :loading="viewSets === null" class="mb-5">
+                    <v-card-title>{{ $t("side_panel.detail_panel.views") }}</v-card-title>
+                    <template v-if="viewSets !== null">
+                        <v-list v-if="viewSets.length">
+                            <v-list-item-group v-model="currentViewIRI" mandatory color="secondary">
+                                <template v-for="viewSet in viewSets">
+                                    <v-list-item :key="viewSet.IRI" disabled>{{viewSet.label}}</v-list-item>
+                                    <v-list-item v-for="view in viewSet.views" :key="view.IRI" :value="view.IRI" @click="view.use()">
+                                        <v-list-item-content>
+                                            <v-list-item-title style="flex-basis: auto;" class="flex-grow-1">{{view.label}}</v-list-item-title>
+                                            <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="secondary" :loading="view.expansionInProgress" @click.stop="areaManipulator.expandNode(view)">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </template>
+                            </v-list-item-group>
+                        </v-list>
+                        <div v-else style="padding-bottom: 1px;">
+                            <v-alert dense outlined type="error" class="mx-5">
+                                {{ $t("side_panel.detail_panel.no_views") }}
+                            </v-alert>
+                        </div>
+                    </template>
+                    <v-card-text v-else>
+                        {{ $t("side_panel.detail_panel.fetching_views") }}
+                    </v-card-text>
+                </v-card>
+
+                <!-- TYPE OF THE NODE -->
+                <v-card outlined class="mb-5">
+                    <v-card-text>
+                        <a :href="node.IRI" target="_blank" class="text--primary" style="text-decoration: none;">{{node.IRI}}</a>
+                    </v-card-text>
+
+                    <v-divider></v-divider>
+
+                    <v-card-text v-if="lastFullPreview && lastFullPreview.type" class="text--primary">
+                        <link-component :href="lastFullPreview.type.iri" /> &nbsp;
+                        <b>{{lastFullPreview.type.label}}</b> &nbsp;
+                        <span v-if="lastFullPreview.type.description">{{lastFullPreview.type.description}}</span>
+                    </v-card-text>
+                    <v-card-text v-else class="text--primary">
+                        {{ $t("side_panel.detail_panel.no_type_info") }}
+                    </v-card-text>
+                </v-card>
+
+        <template v-slot:actions>
+            <panel-action-button
+                    @click="node.remove"
+                    danger
+                    :icon="icons.remove"
+                    :text="$tc('side_panel.remove', 1)"
+                    :help="$tc('side_panel.remove_desc', 1)"
+            />
+            <panel-action-button
+                    @click="nodeRefresh"
+                    :icon="icons.refresh"
+                    :text="$tc('side_panel.refresh', 1)"
+                    :help="$tc('side_panel.refresh_desc', 1)"
+            />
+            <panel-action-button
+                    @click="areaManipulator.fit(node)"
+                    :disabled="!node.isVisible"
+                    :icon="icons.locate"
+                    :text="$tc('side_panel.locate', 1)"
+                    :help="$tc('side_panel.locate_desc', 1)"
+            />
+            <panel-action-button
+                    @click="node.visible = !node.visible"
+                    :icon="icons.visibility[node.visible ? 1 : 0]"
+                    :text="$tc('side_panel.' + (node.visible ? 'hide' : 'unhide'), 1)"
+                    :help="$tc('side_panel.' + (node.visible ? 'hide' : 'unhide') + '_desc', 1)"
+            />
+            <panel-action-button
+                    v-if="nodeLockingSupported"
+                    @click="areaManipulator.setLockedForLayouts([node], !node.lockedForLayouts)"
+                    :icon="icons.lockedForLayouts[node.lockedForLayouts ? 0 : 1]"
+                    :text="$tc('side_panel.' + (node.lockedForLayouts ? 'unlock' : 'lock') + '_for_layouts', 1)"
+                    :help="$tc('side_panel.' + (node.lockedForLayouts ? 'unlock' : 'lock') + '_for_layouts_desc', 1)"
+            />
+        </template>
+    </panel-template>
 </template>
 <script lang="ts">
-import Vue from 'vue';
-import { Component, Prop, Watch } from 'vue-property-decorator';
+import {Component, Mixins, Prop, Watch} from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
 import { NodeViewSet } from '../../graph/NodeViewSet';
 import {DetailValue, NodePreview} from '../../graph/NodeView';
@@ -134,11 +134,14 @@ import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
 import {mdiTrashCanOutline, mdiRefresh, mdiCrosshairsGps, mdiEye, mdiEyeOff, mdiWeb, mdiPinOutline, mdiPinOffOutline} from '@mdi/js';
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import LinkComponent from "../helper/LinkComponent.vue";
+import NodeCommonPanelMixin from "./NodeCommonPanelMixin";
+import PanelTemplate from "./components/PanelTemplate.vue";
+import PanelActionButton from "./components/PanelActionButton.vue";
 
 @Component({
-    components: {LinkComponent}
+    components: {PanelActionButton, PanelTemplate, LinkComponent}
 })
-export default class DetailPanel extends Vue {
+export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
     @Prop(Object) node !: Node;
     @Prop(Object) areaManipulator !: GraphAreaManipulator;
     @Prop(Boolean) nodeLockingSupported !: boolean;
@@ -180,21 +183,9 @@ export default class DetailPanel extends Vue {
      * Returns classes list with deterministic color based on name.
      *
      * Uses lastFullPreview to prevent unnecessary blinking when switching the views
-     * @todo take out the color logic somewhere else
      */
     get previewClasses(): {label: string; color: string}[] {
-        if (!this.lastFullPreview) {
-            return null;
-        }
-
-        let colors = ['red', 'pink', 'purple', 'deep-purple', 'indigo', 'blue', 'light-blue', 'green', 'light-green', 'lime', 'yellow', 'amber', 'orange', 'deep-orange'];
-
-        return this.lastFullPreview.classes.map(cls => {
-            return {
-                label: cls,
-                color: colors[Math.abs(cls.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)) % colors.length]
-            }
-        });
+        return this.getClassesColors(this.lastFullPreview?.classes);
     }
 
     /**
@@ -250,9 +241,51 @@ export default class DetailPanel extends Vue {
     }
 }
 </script>
-<style scoped>
-    .detail >>> td {
+<style scoped lang="scss">
+    .detail ::v-deep td {
         padding-top: 6px;
         padding-bottom: 6px;
+    }
+
+    .panel-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+
+        .content-wrapper {
+            flex-grow: 1;
+            position: relative;
+
+            .content {
+                position: absolute;
+                height: 100%;
+                width: 100%;
+                overflow-y: scroll;
+            }
+        }
+
+        .actions {
+            border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+            ::v-deep .v-btn-toggle {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            ::v-deep .v-btn {
+                width: 20%;
+            }
+        }
+    }
+
+    .image-title {
+        text-align: right;
+        color: white;
+        margin-right: 1em;
+
+        span {
+            background: black;
+            padding: .2em 1em;
+        }
     }
 </style>

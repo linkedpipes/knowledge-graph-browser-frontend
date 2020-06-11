@@ -51,6 +51,17 @@ export default class GraphElementEdge extends Vue {
         this.edge.element = this;
     };
 
+    /**
+     * GroupEdges are dynamically generated and therefore we need to set element again and again.
+     */
+    @Watch('edge.element')
+    private edgeChanged(to: object) {
+        if (to === null) {
+            this.edge.element = this;
+            console.log("Updated edge");
+        }
+    }
+
     //#region Class list manipulation
 
     /**

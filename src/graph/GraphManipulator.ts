@@ -8,6 +8,7 @@ import Vue from "vue";
 import {LayoutManager} from "../layout/LayoutManager";
 import NodeGroup from "./NodeGroup";
 import clone from "clone";
+import NodeCommon from "./NodeCommon";
 
 export default class GraphManipulator {
     private readonly graph: Graph;
@@ -96,24 +97,33 @@ export default class GraphManipulator {
     }
 
     /**
-     * This function creates a new group from already existing nodes
+     * This function creates a new group from already existing nodes or groups
      * @param nodes
      */
-    groupExistingNodes(nodes: Node[]) {
+    groupExistingNodes(nodes: NodeCommon[]) {
         let nodeGroup = this.graph.createGroup();
         let position_add = {x: 0, y: 0};
         let position_count = 0;
 
         for (let node of nodes) {
-            nodeGroup.addNode(node);
-            node.selected = false;
-
+            // Average position
             let pos = node.element?.element.position();
             if (pos) {
                 position_add.x += pos.x;
                 position_add.y += pos.y;
                 position_count++;
             }
+
+            if (node instanceof NodeGroup) {
+                for (let inNode of node.nodes) {
+                    nodeGroup.addNode(inNode, true);
+                }
+                this.graph.removeGroupIgnoreNodes(node);
+            } else if (node instanceof Node) {
+                nodeGroup.addNode(node);
+            }
+
+            node.selected = false;
         }
         nodeGroup.onMountPosition = [position_add.x / position_count, position_add.y / position_count];
         nodeGroup.mounted = true;

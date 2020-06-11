@@ -4,8 +4,9 @@
 import ObjectSave from "../file-save/ObjectSave";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
 import {Expansion} from "../graph/Expansion";
-import {Node} from "../graph/Node";
-import {Edge} from "../graph/Edge";
+import {Graph} from "../graph/Graph";
+import NodeCommon from "../graph/NodeCommon";
+import EdgeCommon from "../graph/EdgeCommon";
 
 export default abstract class Layout implements ObjectSave {
     /**
@@ -13,6 +14,8 @@ export default abstract class Layout implements ObjectSave {
      * @non-reactive Must not be set until Vue inits its reactivity (even null is forbidden)
      */
     public areaManipulator: GraphAreaManipulator;
+    public graph: Graph;
+
 
     /**
      * This is a way how layout can tell that it supports or don't node locking. Node locking means, that if user moves
@@ -56,7 +59,7 @@ export default abstract class Layout implements ObjectSave {
      * @param nodes List of nodes presented in the compact mode
      * @param edges List of edges presented in the compact mode
      */
-    onCompactMode(nodes: Node[] | null, edges: Edge[] | null) {}
+    onCompactMode(nodes: NodeCommon[] | null, edges: EdgeCommon[] | null) {}
 
     /**
      * When some node changed its lockedForLayout property

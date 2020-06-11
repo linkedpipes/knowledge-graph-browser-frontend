@@ -1,8 +1,9 @@
-import {Component, Prop, Vue, Watch} from "vue-property-decorator";
+import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import Cytoscape, {Position} from "cytoscape";
 import clone from "clone";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import NodeCommon from "../../graph/NodeCommon";
+import {mdiPinOutline} from "@mdi/js";
 
 @Component
 export default class GraphElementNodeMixin extends Vue {
@@ -58,7 +59,8 @@ export default class GraphElementNodeMixin extends Vue {
         this.element.on("select", () => this.node.selected = true);
         this.element.on("unselect", () => this.node.selected = false);
 
-        //this.nodeLockingSupportedChanged();
+        this.showPopperChanged();
+        this.nodeLockingSupportedChanged();
 
         // @ts-ignore
         this.node.element = this;
@@ -66,7 +68,8 @@ export default class GraphElementNodeMixin extends Vue {
         this.visibilityChanged(this.node.isVisible);
 
         this.selectedChanged();
-        //this.lockedForLayoutsChanged();
+
+        this.lockedForLayoutsChanged();
     }
 
     //#region Compact mode
@@ -102,6 +105,144 @@ export default class GraphElementNodeMixin extends Vue {
     }
 
     //#endregion Compact mode
+
+    //#region Popper
+    protected popperIsActive: boolean = false;
+
+    private iconsPopper: any = null;
+    private readonly minZoomToShowIcons = 0.35;
+    protected readonly icons !: HTMLDivElement;
+    protected readonly iconsWrapper !: HTMLDivElement;
+
+    /**
+     * Decides if the popper should be shown
+     */
+    private get showPopper() {
+        return this.elementExistsWithRespectToAnimation && this.popperIsActive;
+    }
+
+    @Watch('showPopper')
+    showPopperChanged() {
+        if (!this.element) return;
+
+        if (this.showPopper) {
+            this.element.cy().on('zoom', this.iconsZoomChanged);
+            this.iconsZoomChanged();
+        } else {
+            // @ts-ignore bad types
+            this.element.cy().off('zoom', this.iconsZoomChanged);
+            this.iconsDestroyPopper();
+        }
+    }
+
+    /**
+     * Set classes for Popper icons
+     */
+    protected get iconsClasses(): string[] {
+        let classes = this._getClassList();
+        let result: string[] = [];
+        if (classes.includes("__active")) result.push("__active");
+        if (classes.includes("__compact_inactive")) result.push("__compact_inactive");
+        if (classes.includes("__hidden_opacity")) result.push("__hidden_opacity");
+        return result;
+    }
+
+    private updateIconsZoom() {
+        if (!this.icons) return;
+        this.icons.style.transform = "scale(" + String(this.element.cy().zoom()) + ')';
+    }
+    private updateIconsPosition() {
+        if (!this.iconsPopper) return;
+        this.updateIconsZoom();
+        this.iconsPopper.scheduleUpdate();
+    };
+    private iconsCreatePopper() {
+        if (!this.element || !this.iconsWrapper) return;
+
+        // @ts-ignore no types
+        this.iconsPopper = this.element.popper({
+            content: () => this.iconsWrapper,
+            popper: {
+                placement: 'right-end',
+                modifiers: {
+                    preventOverflow: { enabled: false },
+                    hide: { enabled: false },
+                    flip: { enabled: false },
+                }
+            }
+        });
+        this.updateIconsZoom();
+        this.iconsWrapper.style.display = "block";
+
+        this.element.on('position', this.updateIconsPosition);
+        this.element.cy().on('pan zoom resize', this.updateIconsPosition);
+    }
+
+    private iconsDestroyPopper() {
+        if (!this.element || !this.iconsWrapper) return;
+
+        this.iconsWrapper.style.display = "none";
+        if (this.iconsPopper) {
+            // @ts-ignore bad types
+            this.element.off('position', this.updateIconsPosition);
+            // @ts-ignore bad types
+            this.element.cy().off('pan zoom resize', this.updateIconsPosition);
+        }
+        this.iconsPopper?.destroy();
+        this.iconsPopper = null;
+    }
+
+    private iconsZoomChanged() {
+        let expected = this.element.cy().zoom() > this.minZoomToShowIcons;
+        let actual = this.iconsPopper !== null;
+
+        if (expected !== actual) {
+            if (expected) {
+                this.iconsCreatePopper();
+            } else {
+                this.iconsDestroyPopper();
+            }
+        }
+    }
+    //#endregion Popper
+
+    //#region Locked for layouts manipulation
+    protected lockIconIcon = mdiPinOutline;
+    protected readonly lockIcon !: Vue;
+
+    private changeLocked = () => this.areaManipulator.setLockedForLayouts([this.node], !this.node.lockedForLayouts); // Trigger layout
+    private lock = () =>  this.node.lockedForLayouts = true; // Do not trigger layout
+
+    @Watch('nodeLockingSupported')
+    @Watch('modeCompact')
+    private nodeLockingSupportedChanged() {
+        if (this.nodeLockingSupported && !this.modeCompact) {
+            // Right-click
+            this.element?.on("cxttap", this.changeLocked);
+            // On moving end, lock the node
+            this.element?.on("drag", this.lock);
+        } else {
+            // @ts-ignore
+            this.element?.off("cxttap", this.changeLocked);
+            // @ts-ignore
+            this.element?.off("drag", this.lock);
+        }
+
+    }
+
+    /**
+     * Whether the pin icon should be 'active' or hidden
+     * */
+    protected get lockedForLayoutsActive(): boolean {
+        return this.node.lockedForLayouts && this.nodeLockingSupported;
+    }
+
+    @Watch('lockedForLayoutsActive')
+    private lockedForLayoutsChanged() {
+        // @ts-ignore bad types
+        this.lockIcon.$el.style.display = this.lockedForLayoutsActive ? null : "none";
+    }
+    //#endregion Locked for layouts manipulation
 
     // noinspection JSUnusedGlobalSymbols Vue method
     beforeDestroy() {
@@ -159,6 +300,13 @@ export default class GraphElementNodeMixin extends Vue {
         }
 
         return cls;
+    }
+
+    /**
+     * Because the element visibility is animated, element exists even after tis visibility was turned off.
+     */
+    get elementExistsWithRespectToAnimation(): boolean {
+        return this.node.isVisible || !!this.hiddenDisplayAnimation;
     }
 
     //#endregion Class list manipulation

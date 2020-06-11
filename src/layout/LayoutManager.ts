@@ -2,6 +2,7 @@ import ObjectSave from "../file-save/ObjectSave";
 import {Vue} from "vue/types/vue";
 import Layout from "./Layout";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
+import {Graph} from "../graph/Graph";
 
 /**
  * Represents all data about a layout. Not just the layout core class, but also name of the layout and Vue component
@@ -49,6 +50,10 @@ export class LayoutManager implements ObjectSave {
      */
     graphAreaManipulatorChanged(manipulator: GraphAreaManipulator) {
         this.list.forEach(data => data.layout.areaManipulator = manipulator);
+    }
+
+    graphChanged(graph: Graph) {
+        this.list.forEach(data => data.layout.graph = graph);
     }
 
     //#region Object save methods

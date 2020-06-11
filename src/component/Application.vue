@@ -384,6 +384,7 @@
         @Watch('graph', {immediate: true})
         private graphChanged(graph: Graph) {
             if (this.areaManipulator) this.areaManipulator.graph = graph;
+            this.layouts.graphChanged(graph);
         }
 
         /**

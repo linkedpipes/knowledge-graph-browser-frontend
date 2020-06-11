@@ -1,11 +1,35 @@
 <template>
     <v-navigation-drawer v-model="active" color="white" absolute stateless right width="650" :permanent="active" ref="panel">
-        <div class="detail-panel pa-5">
-            <detail-panel :node="detailNode" :area-manipulator="areaManipulator" :node-locking-supported="nodeLockingSupported" v-if="panelMode === 1" />
-            <node-group-panel :node="detailNodeGroup" :area-manipulator="areaManipulator" :node-locking-supported="nodeLockingSupported" v-if="panelMode === 4" />
-            <list-panel :nodes="selectedNodes" :manipulator="manipulator" v-if="panelMode === 2" />
-            <hidden-nodes-panel :graph="graph" :manipulator="manipulator" v-if="panelMode === 3" @close="showHiddenPanel = false" />
-        </div>
+        <detail-panel
+                v-if="panelMode === 1"
+                :node="detailNode"
+
+                :area-manipulator="areaManipulator"
+                :node-locking-supported="nodeLockingSupported"
+        />
+        <detail-group-panel
+                v-if="panelMode === 4"
+                :node="detailNodeGroup"
+
+                :area-manipulator="areaManipulator"
+                :manipulator="manipulator"
+                :node-locking-supported="nodeLockingSupported"
+        />
+        <list-panel
+                v-if="panelMode === 2"
+                :nodes="selectedNodes"
+                :groups="selectedGroups"
+
+                :area-manipulator="areaManipulator"
+                :manipulator="manipulator"
+                :node-locking-supported="nodeLockingSupported"
+        />
+        <hidden-nodes-panel
+                v-if="panelMode === 3"
+                :graph="graph"
+                :manipulator="manipulator"
+                @close="showHiddenPanel = false"
+        />
     </v-navigation-drawer>
 </template>
 <script lang="ts">
@@ -19,8 +43,8 @@ import ListPanel from './ListPanel.vue';
 import HiddenNodesPanel from "./HiddenNodesPanel.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import GraphManipulator from "../../graph/GraphManipulator";
-import NodeGroupPanel from "./NodeGroupPanel.vue";
 import NodeGroup from "../../graph/NodeGroup";
+import DetailGroupPanel from "./DetailGroupPanel.vue";
 
 enum PanelModeEnum {
     Nothing = 0,
@@ -35,11 +59,11 @@ enum PanelModeEnum {
         HiddenNodesPanel,
 		DetailPanel,
 		ListPanel,
-        NodeGroupPanel,
+        DetailGroupPanel,
 	}
 })
 export default class SidePanel extends Vue {
-    @Prop(Object) graph: Graph;
+    @Prop() graph: Graph;
     @Prop(Object) areaManipulator: GraphAreaManipulator;
     @Prop() manipulator !: GraphManipulator;
     @Prop(Boolean) nodeLockingSupported !: boolean;
@@ -50,7 +74,7 @@ export default class SidePanel extends Vue {
     get selectedNodes(): Node[] {
         let selected: Node[] = [];
         for (const IRI in this.graph?.nodes) {
-            if (this.graph.nodes[IRI].selected) {
+            if (this.graph.nodes[IRI].selected && !this.graph.nodes[IRI].belongsToGroup) {
                 selected.push(this.graph.nodes[IRI]);
             }
         }

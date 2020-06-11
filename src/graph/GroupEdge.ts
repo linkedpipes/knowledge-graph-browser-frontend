@@ -6,16 +6,18 @@ import {Node} from "./Node";
 import NodeGroup from "./NodeGroup";
 import {EdgeType} from "./Edge";
 import GraphElementEdge from "../component/graph/GraphElementEdge";
+import EdgeCommon from "./EdgeCommon";
 
-export default class GroupEdge {
+export default class GroupEdge extends EdgeCommon {
     public readonly source: Node | NodeGroup = null;
     public readonly target: Node | NodeGroup = null;
     public readonly type: EdgeType = null;
 
     public classes: string[] = [];
-    public element: GraphElementEdge;
+    public element: GraphElementEdge = null;
 
     constructor(source: typeof GroupEdge.prototype.source, target: typeof GroupEdge.prototype.target, type: EdgeType) {
+        super();
         this.source = source;
         this.target = target;
         this.type = type;
@@ -31,6 +33,14 @@ export default class GroupEdge {
         let target = (this.target instanceof Node) ? this.target.IRI : this.target.id;
 
         return `group_edge ${source} ${edge} ${target}`;
+    }
+
+    /**
+     * Gets if the edge is currently in the visual graph.
+     */
+    public get isVisual(): boolean {
+        return this.source.mounted &&
+            this.target.mounted;
     }
 
     /**

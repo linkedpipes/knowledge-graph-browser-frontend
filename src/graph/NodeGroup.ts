@@ -5,9 +5,7 @@ import {Node} from "./Node";
 import NodeCommon from "./NodeCommon";
 import ObjectSave from "../file-save/ObjectSave";
 import GraphElementNodeGroup from "../component/graph/GraphElementNodeGroup.vue";
-import {Edge, EdgeType} from "./Edge";
 import GroupEdge from "./GroupEdge";
-import clone from "clone";
 
 export default class NodeGroup extends NodeCommon implements ObjectSave {
     /**
@@ -24,8 +22,18 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      */
     id: string = `__node_group/${ NodeGroup.IDCounter++ }`;
 
-    get identifier(): string {
+    /**
+     * @inheritDoc
+     */
+    public get identifier(): string {
         return this.id;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public get selfOrGroup(): NodeGroup {
+        return this;
     }
 
     /**
@@ -38,14 +46,24 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
     /**
      * Adds node to this group.
      * @param node
+     * @param overrideExistingGroup Ignore existence in other group
      */
-    public addNode(node: Node) {
-        console.assert(!node.belongsToGroup, "Unable to add node", node, "into group", this, "because is already in", node.belongsToGroup);
+    public addNode(node: Node, overrideExistingGroup: boolean = false) {
+        console.assert(!node.belongsToGroup || overrideExistingGroup, "Unable to add node", node, "into group", this, "because is already in", node.belongsToGroup);
 
-        if (!node.belongsToGroup) {
+        if (!node.belongsToGroup || overrideExistingGroup) {
             node.belongsToGroup = this;
             this.nodes.push(node);
         }
+    }
+
+    /**
+     * Completely removes NodeGroup with all Nodes from the graph.
+     * Safe to call anytime.
+     */
+    public remove() {
+        this.nodes.forEach(node => node.remove());
+        this.graph.removeGroupIgnoreNodes(this);
     }
 
     /**
@@ -64,6 +82,15 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
     }
 
     /**
+     * @non-reactive
+     */
+    private groupEdgesCache: {
+        out: {[identifier: string]: GroupEdge},
+        in: {[identifier: string]: GroupEdge},
+        in_group: {[identifier: string]: GroupEdge},
+    };
+
+    /**
      * This function returns array of graph-unique GroupEdges which connects this NodeGroup, but does not point from
      * other NodeGroup (to avoid duplicity from other NodeGroup). We need to keep in mind that there could be multiple
      * edges of the same type between a group and a single node (or other node). Therefore the map is used to catalog
@@ -73,7 +100,16 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      *     - the edge type ------------>  -- |       |
      *         - final groupEdge --------->   -------
      */
-    private getGroupEdgesInDirection(outNotIn: boolean): GroupEdge[] {
+    private getGroupEdgesInDirection(outNotIn: boolean, exclusivelyTargetIsGroup: boolean = false): GroupEdge[] {
+        // Initialize cache
+        if (!this.groupEdgesCache) {
+            this.groupEdgesCache = {
+                in_group: {},
+                in: {},
+                out: {},
+            }
+        }
+
         let targetTypeGroupEdge: Map<string, Map<string, {
             groupEdge: GroupEdge,
             classes: Set<string>,
@@ -99,7 +135,8 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
                 } else {
                     targetNode = edge.source;
 
-                    if (targetNode.belongsToGroup) continue;
+                    // XOR
+                    if ((targetNode.belongsToGroup && !exclusivelyTargetIsGroup) || (!targetNode.belongsToGroup && exclusivelyTargetIsGroup)) continue;
                 }
 
                 if (
@@ -151,6 +188,23 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
             }
         }
 
+        // Use cache
+        let cache = outNotIn ? this.groupEdgesCache.out : (exclusivelyTargetIsGroup ? this.groupEdgesCache.in_group : this.groupEdgesCache.in);
+        let newCache = {} as {[identifier: string]: GroupEdge};
+        for (let i in edges) { // Replace by cache
+            if (cache.hasOwnProperty(edges[i].identifier)) edges[i] = cache[edges[i].identifier];
+            newCache[edges[i].identifier] = edges[i];
+        }
+        if (outNotIn) {
+            this.groupEdgesCache.out = newCache;
+        } else {
+            if (exclusivelyTargetIsGroup) {
+                this.groupEdgesCache.in_group = newCache;
+            } else {
+                this.groupEdgesCache.in = newCache;
+            }
+        }
+
         return edges;
     }
 
@@ -160,6 +214,13 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      */
     get visibleGroupEdges(): GroupEdge[] {
         return [...this.getGroupEdgesInDirection(false), ...this.getGroupEdgesInDirection(true)];
+    }
+
+    /**
+     * @see visibleGroupEdges
+     */
+    get restOfVisibleGroupEdges(): GroupEdge[] {
+        return this.getGroupEdgesInDirection(false, true);
     }
 
     /**
@@ -174,7 +235,12 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
 
     get neighbourSelected(): boolean {
         // Neighbour is selected or its group is selected
-        return this.nodes.some((node) => node.neighbourSelected);
+        for (let edge of [...this.visibleGroupEdges, ...this.restOfVisibleGroupEdges]) {
+            if (edge.source === this && edge.target.selected) return true;
+            if (edge.target === this && edge.source.selected) return true;
+        }
+
+        return false;
     }
 
     restoreFromObject(object: any): void {};

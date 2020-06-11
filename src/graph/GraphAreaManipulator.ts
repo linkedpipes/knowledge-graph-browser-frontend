@@ -1,11 +1,10 @@
 import Cytoscape, {AnimateOptions} from "cytoscape";
-import {Node} from "./Node";
 import {Graph} from "./Graph";
 import ObjectSave from "../file-save/ObjectSave";
 import {LayoutManager} from "../layout/LayoutManager";
 import {NodeView} from "./NodeView";
-import exp from "constants";
 import GraphArea from "../component/graph/GraphArea.vue";
+import NodeCommon from "./NodeCommon";
 
 /**
  * This class performs basic operations with graph area like zooming, animations etc.
@@ -96,25 +95,24 @@ export default class GraphAreaManipulator implements ObjectSave {
         }
     }
 
-    fit(nodes?: Node|Node[]) {
+    /**
+     * Fit several nodes in the screen. If null, fit all of them.
+     * @param nodes
+     */
+    fit(nodes?: NodeCommon|NodeCommon[]|null) {
         this.cy.stop();
 
-        if (nodes instanceof Node) {
+        if (nodes instanceof NodeCommon) {
             nodes = [nodes];
         }
 
         let collection: Cytoscape.NodeCollection;
         if (nodes == null) {
             collection = this.cy.nodes();
-            for (let IRI in this.graph.nodes) {
-                if (this.graph.nodes[IRI].isVisible) {
-                    collection.merge(this.graph.nodes[IRI].element.element);
-                }
-            }
         } else {
             collection = this.cy.collection();
             for (let node of nodes) {
-                collection.merge(node.element.element);
+                collection.merge(node.selfOrGroup.element.element);
             }
         }
 
@@ -140,7 +138,7 @@ export default class GraphAreaManipulator implements ObjectSave {
      * Starts or update the nodes to be followed by viewport
      * @param nodes
      */
-    public fitFollowSet(nodes?: Node|Node[]) {
+    public fitFollowSet(nodes?: NodeCommon|NodeCommon[]) {
         this.fitFollowStop();
         this.fit(nodes);
         this.fitFollowTimeout = setTimeout(() => {
@@ -165,7 +163,7 @@ export default class GraphAreaManipulator implements ObjectSave {
      * @param nodes
      * @param value
      */
-    public setLockedForLayouts(nodes: Node[], value: boolean) {
+    public setLockedForLayouts(nodes: NodeCommon[], value: boolean) {
         nodes.forEach(node => node.lockedForLayouts = value);
         if (this.layoutManager.currentLayout.supportsNodeLocking) {
             this.layoutManager.currentLayout.onLockedChanged();

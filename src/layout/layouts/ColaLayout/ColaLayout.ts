@@ -4,7 +4,9 @@ import clone from "clone";
 import {Expansion} from "../../../graph/Expansion";
 import Vue from "vue";
 import {Node} from "../../../graph/Node";
-import {Edge} from "../../../graph/Edge";
+import NodeGroup from "../../../graph/NodeGroup";
+import NodeCommon from "../../../graph/NodeCommon";
+import EdgeCommon from "../../../graph/EdgeCommon";
 
 export interface ColaLayoutOptions {
     /**
@@ -103,30 +105,39 @@ export default class ColaLayout extends Layout {
     async onExpansion(expansion: Expansion) {
         // First step, mount and position the nodes which are not mounted yet
         let notMountedNodes = expansion.nodes.filter(node => !node.mounted);
-        let currentPosition = expansion.parentNode.element.element.position();
+        let currentPosition = expansion.parentNode.selfOrGroup.element.element.position();
+        let group: NodeGroup = null;
 
-        this.circleLayout(notMountedNodes, currentPosition);
+        if (notMountedNodes.length > 5) {
+            group = this.graph.createGroup();
+            for (let node of notMountedNodes) {
+                node.mounted = true;
+                group.addNode(node);
+            }
+            group.onMountPosition = [currentPosition.x + 100, currentPosition.y];
+            group.mounted = true;
+        } else {
+            this.circleLayout(notMountedNodes, currentPosition);
+        }
 
         // Wait for nodes to mount
         await Vue.nextTick();
         if (!this.isActive) return;
 
-        // For now, layout will run for all nodes
         let explicitlyFixed: Set<string> = new Set<string>();
         if (this.options.expansionOnlyThose) {
             // @ts-ignore bad types
             for (let node: NodeSingular of this.areaManipulator.cy.nodes()) {
                 explicitlyFixed.add(node.id());
             }
-            for (let node of expansion.nodes) {
-                explicitlyFixed.delete(node.element.element.id());
-            }
 
-            // Unfix parent node
-            explicitlyFixed.delete(expansion.parentNode.element.element.id());
+            // Exclude expanded nodes
+            expansion.nodes.forEach(node => explicitlyFixed.delete(node.selfOrGroup.identifier));
+
+            // Exclude parent node
+            explicitlyFixed.delete(expansion.parentNode.selfOrGroup.identifier);
         }
 
-        // Execute layout on everything
         this.executeLayout(this.areaManipulator.cy.elements(), explicitlyFixed);
     }
 
@@ -143,7 +154,7 @@ export default class ColaLayout extends Layout {
     /**
      * @inheritDoc
      */
-    onCompactMode(nodes: Node[] | null, edges: Edge[] | null) {
+    onCompactMode(nodes: NodeCommon[] | null, edges: EdgeCommon[] | null) {
         if (nodes === null && edges === null) {
             if (this.compactMode) this.stopLayout();
             this.compactMode = null;

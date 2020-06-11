@@ -1,14 +1,20 @@
 <template>
-    <div></div>
+    <div class="icons" :class="iconsClasses" ref="iconsWrapper">
+        <div ref="icons">
+            <v-icon color="secondary" small>{{groupIcon}}</v-icon><v-icon ref="lockIcon" color="secondary" small>{{lockIconIcon}}</v-icon>
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
 import Component from "vue-class-component";
 import Cytoscape, {ElementDefinition, NodeDataDefinition} from "cytoscape";
-import {Mixins, Prop, Watch} from "vue-property-decorator";
+import {Mixins, Prop, Ref, Watch} from "vue-property-decorator";
 import NodeGroup from "../../graph/NodeGroup";
 import GraphElementNodeMixin from "./GraphElementNodeMixin";
 import GraphManipulator from "../../graph/GraphManipulator";
+import {mdiCheckboxMultipleBlankOutline} from "@mdi/js";
+import Vue from "vue";
 
 @Component
 export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin) {
@@ -18,6 +24,14 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
     @Prop({type: Object as () => NodeGroup}) node: NodeGroup;
 
     @Prop() manipulator !: GraphManipulator;
+
+    //#region Methods for Popper manipulation and group icon
+    groupIcon = mdiCheckboxMultipleBlankOutline;
+    protected popperIsActive = true;
+    @Ref() protected readonly iconsWrapper !: HTMLDivElement;
+    @Ref() protected readonly icons !: HTMLDivElement;
+    @Ref() protected readonly lockIcon !: Vue;
+    //#endregion Methods for Popper manipulation and group icon
 
     /**
      * @inheritDoc
@@ -60,7 +74,4 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
     }
 }
 </script>
-
-<style scoped>
-
-</style>
+<style scoped lang="scss" src="./icons.scss" />

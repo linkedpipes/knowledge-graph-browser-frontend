@@ -8,17 +8,17 @@
 
 		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
 			<div class="my-2">
-				<v-btn color="primary" fab small dark @click="areaManipulator.zoomIn()">
+				<v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact" @click="areaManipulator.zoomIn()">
 					<v-icon>{{ icons.zoomIn }}</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="primary" fab small dark @click="areaManipulator.zoomOut()">
+				<v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact" @click="areaManipulator.zoomOut()">
 					<v-icon>{{ icons.zoomOut }}</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="primary" fab small dark @click="areaManipulator.fit()">
+				<v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact" @click="areaManipulator.fit()">
 					<v-icon>{{ icons.fit }}</v-icon>
 				</v-btn>
 			</div>
@@ -90,11 +90,10 @@ import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
 import cola from 'cytoscape-cola';
 import popper from 'cytoscape-popper';
 import {LayoutManager} from "../../layout/LayoutManager";
-import {Node} from "../../graph/Node";
-import {Edge} from "../../graph/Edge";
-import NodeGroup from "../../graph/NodeGroup";
 import GraphElementNodeGroup from "./GraphElementNodeGroup.vue";
 import GroupEdge from "../../graph/GroupEdge";
+import NodeCommon from "../../graph/NodeCommon";
+import EdgeCommon from "../../graph/EdgeCommon";
 
 @Component({
 	components: {
@@ -206,6 +205,13 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	}
 	//#endregion Cytoscape batch optimisation
 
+	@Watch('modeCompact')
+	modeCompactChanged() {
+		this.cy.userPanningEnabled(!this.modeCompact);
+		this.cy.userZoomingEnabled(!this.modeCompact);
+		this.cy.boxSelectionEnabled(!this.modeCompact);
+	}
+
     @Watch('dataForCompactMode')
     private dataForCompactModeChanged() {
 	    let [nodes, edges] = this.dataForCompactMode;
@@ -228,22 +234,10 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
      * This getter returns which nodes and edges are in compact mode. If compact mode is turned off, the return values
      * are [null, null].
      * */
-    private get dataForCompactMode(): [Node[], Edge[]] {
+    private get dataForCompactMode(): [NodeCommon[], EdgeCommon[]] {
 	    if (this.modeCompact) {
-	        let nodes: Node[] = [];
-	        let edges: Edge[] = [];
-
-	        for (let iri in this.graph.nodes) {
-	            if ((this.graph.nodes[iri].selected || this.graph.nodes[iri].neighbourSelected) && this.graph.nodes[iri].element) {
-	                nodes.push(this.graph.nodes[iri]);
-                }
-            }
-
-            for (let iri in this.graph.edges) {
-                if (this.graph.edges[iri].neighbourSelected && this.graph.edges[iri].element) {
-                    edges.push(this.graph.edges[iri]);
-                }
-            }
+	        let nodes: NodeCommon[] = this.graph.nodesVisual.filter(node => (node.selected || node.neighbourSelected) && node.element);
+	        let edges: EdgeCommon[] = this.graph.edgesVisual.filter(edge => (edge.source.selected || edge.target.selected) && edge.element);
 
             return [nodes, edges];
         } else {

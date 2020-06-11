@@ -1,5 +1,5 @@
 import {Graph} from "./Graph";
-import {NodePreview, NodeView} from "./NodeView";
+import {NodeView} from "./NodeView";
 import {NodeViewSet} from "./NodeViewSet";
 import {ResponseElementType} from "../graph-fetcher/response-interfaces";
 import {Edge} from "./Edge";
@@ -28,8 +28,18 @@ export class Node extends NodeCommon implements ObjectSave {
      * */
     IRI: string;
 
-    get identifier(): string {
+    /**
+     * @inheritDoc
+     */
+    public get identifier(): string {
         return this.IRI;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public get selfOrGroup(): NodeCommon {
+        return this.belongsToGroup ?? this;
     }
 
     /**
@@ -88,8 +98,7 @@ export class Node extends NodeCommon implements ObjectSave {
     get neighbourSelected(): boolean {
         for (let edge of this.edges) {
             let neighbour = edge.source == this ? edge.target : edge.source;
-            if (neighbour.selected) return true;
-            if (neighbour.belongsToGroup && neighbour.belongsToGroup.selected) return true;
+            if (neighbour.selfOrGroup.selected) return true;
         }
         return false;
     }

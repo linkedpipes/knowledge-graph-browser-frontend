@@ -18,32 +18,67 @@ export default abstract class NodeCommon implements ObjectSave {
      *
      * Each newly created node is not mounted by default.
      * Edge having not-mounted node is also not mounted.
+     * Node in the group should be mounted.
      */
     mounted: boolean = false;
 
-    element: GraphElementNodeMixin | GraphElementNode | GraphElementNodeGroup;
-
     /**
-     * Unique identifier for both Node and NodeGroup.
+     * You can specify the initial position of node.
+     * VISUAL GRAPH FEATURE
      */
-    abstract get identifier(): string;
-
     onMountPosition: [number, number] | null = null;
 
     /**
-     * Whether the node is selected on the board
+     * Vue component responsible for registering the node in the Cytoscape instance.
+     * GraphElementNodeMixin is a common ancestor for both GraphElementNode and GraphElementNodeGroup.
+     */
+    element: GraphElementNodeMixin | GraphElementNode | GraphElementNodeGroup;
+
+    /**
+     * Safely removes the element from the graph.
+     * This method should properly unregister everything about the node.
+     */
+    public abstract remove(): void;
+
+    /**
+     * Unique identifier for both Node and NodeGroup.
+     * The same identifier has Cytoscape element which can be obtained as `this.element.element.id()`
+     */
+    abstract get identifier(): string;
+
+    /**
+     * Returns the node or the group it belongs to.
+     * Can be used to obtain NodeCommon which is drawn in the graph.
+     */
+    abstract get selfOrGroup(): NodeCommon;
+
+    /**
+     * Whether the node is selected on the board.
      */
     selected: boolean = false;
 
+    /**
+     * Computes whether neighbour node is selected.
+     */
+    abstract get neighbourSelected(): boolean;
+
+    /**
+     * User visibility of the node
+     */
     visible: boolean = true;
+
+    /**
+     * Combines user visibility and filter visibility.
+     * It can be true even if the node is part of a group.
+     */
     public abstract get isVisible(): boolean;
 
     /**
      * Whether the node can not be moved by layouts.
+     * Only some layouts support this.
+     * VISUAL GRAPH FEATURE
      */
     lockedForLayouts: boolean = false;
-
-    abstract get neighbourSelected(): boolean;
 
     abstract restoreFromObject(object: any): void;
     abstract saveToObject(): object;

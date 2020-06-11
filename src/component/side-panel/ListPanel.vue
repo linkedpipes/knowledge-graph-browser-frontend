@@ -1,30 +1,64 @@
 <template>
-    <div>
+    <panel-template>
         <h1 class="mb-5">{{ $t("side_panel.list_panel.title") }}</h1>
 
-        <div class="v-btn-toggle btn-full mb-5">
-            <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" color="red" @click="remove()"><v-icon>{{ icons.remove }}</v-icon>{{ $t('side_panel.list_panel.remove') }}</v-btn>
-                </template>
-                <span>{{ $t("side_panel.list_panel.remove_desc") }}</span>
-            </v-tooltip>
-            <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" @click="changeVisibility(false)"><v-icon>{{ icons.visibility[0] }}</v-icon>{{ $t('side_panel.list_panel.hide') }}</v-btn>
-                </template>
-                <span>{{ $t("side_panel.list_panel.hide_desc") }}</span>
-            </v-tooltip>
-            <v-tooltip bottom>
-                <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" @click="changeVisibility(true)"><v-icon>{{ icons.visibility[1] }}</v-icon>{{ $t('side_panel.list_panel.show') }}</v-btn>
-                </template>
-                <span>{{ $t("side_panel.list_panel.show_desc") }}</span>
-            </v-tooltip>
-        </div>
-
         <node-grouped-list delete-button unselect-button hide-button show-button group-button :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
-    </div>
+
+        <template v-slot:actions>
+            <panel-action-button
+                    @click="remove"
+                    danger
+                    :width="1/3"
+                    :icon="icons.remove"
+                    :text="$tc('side_panel.remove', 2)"
+                    :help="$tc('side_panel.remove_desc', 2)"
+            />
+            <panel-action-button
+                    @click="areaManipulator.fit(elements)"
+                    :width="1/3"
+                    :icon="icons.locate"
+                    :text="$tc('side_panel.locate', 2)"
+                    :help="$tc('side_panel.locate_desc', 2)"
+            />
+            <panel-action-button
+                    @click="manipulator.groupExistingNodes(elements)"
+                    :width="1/3"
+                    :icon="icons.group"
+                    :text="$tc('side_panel.group', 2)"
+                    :help="$tc('side_panel.group_desc', 2)"
+            />
+            <panel-action-button
+                    @click="changeVisibility(false)"
+                    :width="1/4"
+                    :icon="icons.visibility[0]"
+                    :text="$tc('side_panel.hide', 2)"
+                    :help="$tc('side_panel.hide_desc', 2)"
+            />
+            <panel-action-button
+                    @click="changeVisibility(true)"
+                    :width="1/4"
+                    :icon="icons.visibility[1]"
+                    :text="$tc('side_panel.unhide', 2)"
+                    :help="$tc('side_panel.unhide_desc', 2)"
+            />
+            <panel-action-button
+                    v-if="nodeLockingSupported"
+                    :width="1/4"
+                    @click="areaManipulator.setLockedForLayouts(elements, false)"
+                    :icon="icons.lockedForLayouts[0]"
+                    :text="$tc('side_panel.unlock_for_layouts', 2)"
+                    :help="$tc('side_panel.unlock_for_layouts_desc', 2)"
+            />
+            <panel-action-button
+                    v-if="nodeLockingSupported"
+                    @click="areaManipulator.setLockedForLayouts(elements, true)"
+                    :width="1/4"
+                    :icon="icons.lockedForLayouts[1]"
+                    :text="$tc('side_panel.lock_for_layouts', 2)"
+                    :help="$tc('side_panel.lock_for_layouts_desc', 2)"
+            />
+        </template>
+    </panel-template>
 </template>
 <script lang="ts">
 import Vue from 'vue';
@@ -34,10 +68,23 @@ import { Node, NodeType } from '../../graph/Node';
 // Stylesheet
 import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
 
-import { mdiTrashCanOutline, mdiEye, mdiEyeOff } from '@mdi/js';
-import NodeGroupedList from "./NodeGroupedList.vue";
+import {
+    mdiTrashCanOutline,
+    mdiEye,
+    mdiEyeOff,
+    mdiGroup,
+    mdiCrosshairsGps,
+    mdiPinOffOutline,
+    mdiPinOutline
+} from '@mdi/js';
+import NodeGroupedList from "./components/NodeGroupedList.vue";
 import {Graph} from "../../graph/Graph";
 import GraphManipulator from "../../graph/GraphManipulator";
+import PanelTemplate from "./components/PanelTemplate.vue";
+import PanelActionButton from "./components/PanelActionButton.vue";
+import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
+import NodeGroup from "../../graph/NodeGroup";
+import NodeCommon from "../../graph/NodeCommon";
 
 interface NodeTypeGroup {
     type: NodeType;
@@ -45,16 +92,27 @@ interface NodeTypeGroup {
 }
 
 @Component({
-    components: {NodeGroupedList}
+    components: {PanelActionButton, PanelTemplate, NodeGroupedList}
 })
 export default class ListPanel extends Vue {
     @Prop(Array) nodes: Node[];
+    @Prop(Array) groups: NodeGroup[];
+
     @Prop(String) mode: string;
     @Prop() manipulator !: GraphManipulator;
+    @Prop(Object) areaManipulator !: GraphAreaManipulator;
+    @Prop(Boolean) nodeLockingSupported !: boolean;
 
     private readonly icons = {
         remove: mdiTrashCanOutline,
         visibility: [mdiEyeOff, mdiEye],
+        group: mdiGroup,
+        locate: mdiCrosshairsGps,
+        lockedForLayouts: [mdiPinOffOutline, mdiPinOutline],
+    }
+
+    private get elements(): NodeCommon[] {
+        return [...this.nodes, ...this.groups];
     }
 
     get groupedNodes(): NodeTypeGroup[] {
@@ -79,13 +137,13 @@ export default class ListPanel extends Vue {
     }
 
     changeVisibility(visibility: boolean) {
-        for (let node of this.nodes) {
+        for (let node of this.elements) {
             node.visible = visibility;
         }
     }
 
     remove() {
-        for (let node of this.nodes) {
+        for (let node of this.elements) {
             node.remove();
         }
     }

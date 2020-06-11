@@ -53,10 +53,10 @@
 <script lang="ts">
     import {Component, Emit, Prop, Watch} from "vue-property-decorator";
     import Vue from "vue";
-    import {Node, NodeType} from "../../graph/Node";
+    import {Node, NodeType} from "../../../graph/Node";
     import {mdiEye, mdiEyeOff, mdiFilter, mdiFilterOutline} from "@mdi/js";
-    import LinkComponent from "../helper/LinkComponent.vue";
-    import GraphManipulator from "../../graph/GraphManipulator";
+    import LinkComponent from "../../helper/LinkComponent.vue";
+    import GraphManipulator from "../../../graph/GraphManipulator";
 
     interface NodeTypeGroup {
         type: NodeType;
