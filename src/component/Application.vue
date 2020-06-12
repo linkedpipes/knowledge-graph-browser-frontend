@@ -127,6 +127,9 @@
                 ref="layoutDialog"
                 :layouts="layouts"
         />
+        <graph-vuex
+            :graph="graph"
+        />
     </v-app>
 </template>
 
@@ -186,10 +189,12 @@
     import DagreLayoutButtons from "../layout/layouts/DagreLayout/DagreLayoutButtons.vue";
     import DegreeFilter from "../filter/filters/DegreeFilter/DegreeFilter";
     import PropertyFilter from "../filter/filters/PropertyFilter/PropertyFilter";
+    import GraphVuex from "../graph/component/GraphVuex.vue";
     let Configuration: {api: string} = require("../../conf.yaml");
 
     @Component({
         components: {
+            GraphVuex,
             LayoutDialog,
             LoadDialog,
             ViewOptionsDialog,

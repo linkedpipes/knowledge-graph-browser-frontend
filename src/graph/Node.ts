@@ -7,6 +7,7 @@ import GraphElementNode from "../component/graph/GraphElementNode.vue";
 import ObjectSave from "../file-save/ObjectSave";
 import NodeGroup from "./NodeGroup";
 import NodeCommon from "./NodeCommon";
+import NodeVuex from "./component/NodeVuex";
 
 /**
  * Information about the type of Node. Same as ResponseElementType
@@ -17,6 +18,8 @@ export interface NodeType extends ResponseElementType {}
  * Node as a part of graph. Each Node belongs to exactly one Graph.
  */
 export class Node extends NodeCommon implements ObjectSave {
+    public nodeVuexComponent: NodeVuex;
+
     /**
      * Even if the node is mounted, this can be still null because the mounting is triggered by Vue every animation
      * frame.
@@ -54,7 +57,7 @@ export class Node extends NodeCommon implements ObjectSave {
     /**
      * List of edges connected to this Node
      */
-    get edges(): Edge[] {
+    get nocache_edges(): Edge[] {
         let edges: Edge[] = [];
         for (let eid in this.graph.edges) {
             if (this.graph.edges[eid].source === this || this.graph.edges[eid].target === this) edges.push(this.graph.edges[eid]);
@@ -62,12 +65,16 @@ export class Node extends NodeCommon implements ObjectSave {
         return edges;
     }
 
+    get edges(): Edge[] {
+        return this.nodeVuexComponent?.edges ?? this.nocache_edges;
+    }
+
     /**
      * Represents results of a different filters
      */
     filters: {[filter: string]: boolean} = {};
 
-    get shownByFilters(): boolean {
+    get nocache_shownByFilters(): boolean {
         let show = true;
         for(let filter in this.filters) {
             if (!this.filters[filter]) {
@@ -77,6 +84,29 @@ export class Node extends NodeCommon implements ObjectSave {
         }
 
         return show;
+    }
+
+    get shownByFilters(): boolean {
+        //return this.nocache_shownByFilters;
+        return this.nodeVuexComponent?.shownByFilters ?? this.nocache_shownByFilters;
+    }
+
+    /**
+     * Gets a set of nodes which are currently visibly connected to the current node.
+     */
+    get nocache_neighbourVisualVisibleNodes(): Set<NodeCommon> {
+        let nodes = new Set<NodeCommon>();
+        for (let edge of this.edges) {
+            let neighbour = edge.source == this ? edge.target : edge.source;
+            if (neighbour.mounted && neighbour.isVisible && neighbour.selfOrGroup.mounted && neighbour.selfOrGroup.isVisible) {
+                nodes.add(neighbour.selfOrGroup);
+            }
+        }
+        return nodes;
+    }
+
+    get neighbourVisualVisibleNodes(): Set<NodeCommon> {
+        return this.nodeVuexComponent?.neighbourVisualVisibleNodes ?? this.nocache_neighbourVisualVisibleNodes;
     }
 
     get isVisible(): boolean {
@@ -95,12 +125,15 @@ export class Node extends NodeCommon implements ObjectSave {
         [IRI: string]: NodeViewSet;
     } = null;
 
-    get neighbourSelected(): boolean {
-        for (let edge of this.edges) {
-            let neighbour = edge.source == this ? edge.target : edge.source;
-            if (neighbour.selfOrGroup.selected) return true;
+    get nocache_neighbourSelected(): boolean {
+        for (let node of this.neighbourVisualVisibleNodes) {
+            if (node.selected) return true;
         }
         return false;
+    }
+
+    get neighbourSelected(): boolean {
+        return this.nodeVuexComponent?.neighbourSelected ?? this.nocache_neighbourSelected;
     }
 
     remove() {

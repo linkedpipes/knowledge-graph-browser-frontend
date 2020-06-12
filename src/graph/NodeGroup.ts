@@ -6,8 +6,11 @@ import NodeCommon from "./NodeCommon";
 import ObjectSave from "../file-save/ObjectSave";
 import GraphElementNodeGroup from "../component/graph/GraphElementNodeGroup.vue";
 import GroupEdge from "./GroupEdge";
+import NodeGroupVuex from "./component/NodeGroupVuex";
 
 export default class NodeGroup extends NodeCommon implements ObjectSave {
+    public vuexComponent: NodeGroupVuex;
+
     /**
      * Even if the node is mounted, this can be still null because the mounting is triggered by Vue every animation
      * frame.
@@ -69,7 +72,7 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
     /**
      * Computes which classes should the grouped node have based on intersection of its child nodes.
      */
-    public get classes(): string[] {
+    public get nocache_classes(): string[] {
         let classes = new Set(this.nodes[0]?.classes ?? []);
         for (let node of this.nodes) {
             for (let cls of classes) {
@@ -79,6 +82,10 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
             }
         }
         return Array.from(classes);
+    }
+
+    public get classes(): string[] {
+        return this.vuexComponent?.classes ?? this.nocache_classes;
     }
 
     /**
@@ -212,15 +219,23 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      * Returns all visible `GroupEdge` associated with this `NodeGroup` **except** those having as a source other
      * `NodeGroup` to avoid duplicity. These edges are used to draw edges from and to grouped nodes in the graph.
      */
-    get visibleGroupEdges(): GroupEdge[] {
+    get nocache_visibleGroupEdges(): GroupEdge[] {
         return [...this.getGroupEdgesInDirection(false), ...this.getGroupEdgesInDirection(true)];
+    }
+
+    get visibleGroupEdges(): GroupEdge[] {
+        return this.vuexComponent?.visibleGroupEdges ?? this.nocache_visibleGroupEdges;
     }
 
     /**
      * @see visibleGroupEdges
      */
-    get restOfVisibleGroupEdges(): GroupEdge[] {
+    get nocache_restOfVisibleGroupEdges(): GroupEdge[] {
         return this.getGroupEdgesInDirection(false, true);
+    }
+
+    get restOfVisibleGroupEdges(): GroupEdge[] {
+        return this.vuexComponent?.restOfVisibleGroupEdges ?? this.nocache_restOfVisibleGroupEdges;
     }
 
     /**
@@ -228,12 +243,16 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      *
      * For group nodes it depends on user visibility of the grouped node and if at least one node in the group is visible.
      */
-    public get isVisible(): boolean {
+    public get nocache_isVisible(): boolean {
         if (!this.visible) return false;
         return this.nodes.some((node) => node.isVisible);
     }
 
-    get neighbourSelected(): boolean {
+    public get isVisible(): boolean {
+        return this.vuexComponent?.isVisible ?? this.nocache_isVisible;
+    }
+
+    get nocache_neighbourSelected(): boolean {
         // Neighbour is selected or its group is selected
         for (let edge of [...this.visibleGroupEdges, ...this.restOfVisibleGroupEdges]) {
             if (edge.source === this && edge.target.selected) return true;
@@ -241,6 +260,10 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         }
 
         return false;
+    }
+
+    get neighbourSelected(): boolean {
+        return this.vuexComponent?.neighbourSelected ?? this.nocache_neighbourSelected;
     }
 
     restoreFromObject(object: any): void {};

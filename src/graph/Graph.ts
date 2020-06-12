@@ -7,12 +7,14 @@ import NodeGroup from "./NodeGroup";
 import NodeCommon from "./NodeCommon";
 import GroupEdge from "./GroupEdge";
 import EdgeCommon from "./EdgeCommon";
+import GraphVuex from "./component/GraphVuex.vue";
 
 /**
  * This class represents a graph. It is a container for nodes and edges and contains methods to remove or add them.
  * Usually there is only one graph instance at a time.
  */
 export class Graph implements ObjectSave {
+    vuexComponent: GraphVuex;
     /**
      * List of nodes.
      * Readonly for public, mutable for internal.
@@ -45,7 +47,7 @@ export class Graph implements ObjectSave {
      * Gets mounted Node[] which are not part of the group together with mounted NodeGroup[].
      * Useful for visual graph operations, because that are the nodes which are important.
      */
-    public get nodesVisual(): NodeCommon[] {
+    public get nocache_nodesVisual(): NodeCommon[] {
         let nodes: NodeCommon[] = [];
         for (let iri in this.nodes) {
             let node = this.nodes[iri];
@@ -57,7 +59,11 @@ export class Graph implements ObjectSave {
         return [...nodes, ...this.groups.filter(group => group.mounted)];
     }
 
-    public get groupEdges(): GroupEdge[] {
+    public get nodesVisual(): NodeCommon[] {
+        return this.vuexComponent?.nodesVisual ?? this.nocache_nodesVisual;
+    }
+
+    public get nocache_groupEdges(): GroupEdge[] {
         let edges: GroupEdge[] = [];
         for (let group of this.groups) {
             edges = [...edges, ...group.visibleGroupEdges];
@@ -65,11 +71,19 @@ export class Graph implements ObjectSave {
         return edges;
     }
 
+    public get groupEdges(): GroupEdge[] {
+        return this.vuexComponent?.groupEdges ?? this.nocache_groupEdges;
+    }
+
     /**
      * Gets mounted Edge[] which does not point to a group and group edges.
      */
-    public get edgesVisual(): EdgeCommon[] {
+    public get nocache_edgesVisual(): EdgeCommon[] {
         return [...this.groupEdges, ...Object.values(this.edges)].filter(edge => edge.isVisual);
+    }
+
+    public get edgesVisual(): EdgeCommon[] {
+        return this.vuexComponent?.edgesVisual ?? this.nocache_edgesVisual;
     }
 
     /**
