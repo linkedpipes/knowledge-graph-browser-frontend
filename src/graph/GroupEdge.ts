@@ -3,14 +3,15 @@
  * and is only for for drawing purposes. GroupEdge is defined as all edges between two specified Nodes or NodeGroups.
  */
 import {Node} from "./Node";
-import NodeGroup from "./NodeGroup";
 import {EdgeType} from "./Edge";
 import GraphElementEdge from "../component/graph/GraphElementEdge";
 import EdgeCommon from "./EdgeCommon";
+import NodeCommon from "./NodeCommon";
+import NodeGroup from "./NodeGroup";
 
 export default class GroupEdge extends EdgeCommon {
-    public readonly source: Node | NodeGroup = null;
-    public readonly target: Node | NodeGroup = null;
+    public readonly source: NodeCommon = null;
+    public readonly target: NodeCommon = null;
     public readonly type: EdgeType = null;
 
     public classes: string[] = [];
@@ -28,9 +29,9 @@ export default class GroupEdge extends EdgeCommon {
      * @internal
      */
     public get identifier(): string {
-        let source = (this.source instanceof Node) ? this.source.IRI : this.source.id;
+        let source = (this.source instanceof Node) ? this.source.IRI : (<NodeGroup>this.source).id;
         let edge = this.type.iri;
-        let target = (this.target instanceof Node) ? this.target.IRI : this.target.id;
+        let target = (this.target instanceof Node) ? this.target.IRI : (<NodeGroup>this.target).id;
 
         return `group_edge ${source} ${edge} ${target}`;
     }

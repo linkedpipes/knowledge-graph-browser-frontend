@@ -107,15 +107,15 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      *     - the edge type ------------>  -- |       |
      *         - final groupEdge --------->   -------
      */
-    private getGroupEdgesInDirection(outNotIn: boolean, exclusivelyTargetIsGroup: boolean = false): GroupEdge[] {
-        // Initialize cache
-        if (!this.groupEdgesCache) {
-            this.groupEdgesCache = {
-                in_group: {},
-                in: {},
-                out: {},
+        private getGroupEdgesInDirection(outNotIn: boolean, exclusivelyTargetIsGroup: boolean = false): GroupEdge[] {
+            // Initialize cache
+            if (!this.groupEdgesCache) {
+                this.groupEdgesCache = {
+                    in_group: {},
+                    in: {},
+                    out: {},
+                }
             }
-        }
 
         let targetTypeGroupEdge: Map<string, Map<string, {
             groupEdge: GroupEdge,
@@ -129,9 +129,9 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
             // *For every edge (and therefore neighbour) of the node*
             for (let edge of sourceNode.edges) {
 
-                let targetNode: Node | NodeGroup;
+                let targetNode: NodeCommon;
                 if (outNotIn) {
-                    targetNode = edge.target.belongsToGroup ?? edge.target;
+                    targetNode = edge.target.selfOrGroup;
 
                     if (
                         targetNode instanceof NodeGroup && (
@@ -140,10 +140,10 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
                         )
                     ) continue;
                 } else {
-                    targetNode = edge.source;
+                    targetNode = edge.source.selfOrGroup;
 
                     // XOR
-                    if ((targetNode.belongsToGroup && !exclusivelyTargetIsGroup) || (!targetNode.belongsToGroup && exclusivelyTargetIsGroup)) continue;
+                    if (((targetNode instanceof NodeGroup) && !exclusivelyTargetIsGroup) || ((targetNode instanceof Node) && exclusivelyTargetIsGroup)) continue;
                 }
 
                 if (
@@ -231,6 +231,7 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      * @see visibleGroupEdges
      */
     get nocache_restOfVisibleGroupEdges(): GroupEdge[] {
+        // Nodes pointing from other groups to this
         return this.getGroupEdgesInDirection(false, true);
     }
 
