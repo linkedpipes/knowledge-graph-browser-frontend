@@ -62,7 +62,7 @@ export class NodeView implements ObjectSave {
      * Toggle this view as active view
      */
     async use() {
-        this.node.currentView = this;
+        this.node.setView(this);
         await this.fetchPreview();
     }
 

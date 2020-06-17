@@ -1,5 +1,5 @@
 import {Graph} from "./Graph";
-import {NodeView} from "./NodeView";
+import {DetailValue, NodePreview, NodeView} from "./NodeView";
 import {NodeViewSet} from "./NodeViewSet";
 import {ResponseElementType} from "../graph-fetcher/response-interfaces";
 import {Edge} from "./Edge";
@@ -121,6 +121,46 @@ export class Node extends NodeCommon implements ObjectSave {
 
     currentView: NodeView = null;
 
+    /**
+     * When we change the view, it takes some time to load detail and preview. During this loading node has no detail
+     * or preview and therefore is shown gray. To avoid this, when no currentView.preview is empty, lastFullView.preview
+     * is used.
+     */
+    lastFullView: NodeView | null = null;
+
+    /**
+     * @internal Use NodeView.prototype.use() method
+     * @param view
+     */
+    setView(view: NodeView) {
+        if (this.currentView?.preview || this.currentView?.detail) {
+            this.lastFullView = this.currentView;
+        }
+        this.currentView = view;
+    }
+
+    /**
+     * Preview from current view or the last used if not loaded yet.
+     */
+    get lastPreview(): NodePreview {
+        return this.currentView?.preview ?? this.lastFullView?.preview;
+    }
+
+    get isPreviewActual(): boolean {
+        return !!this.currentView?.preview;
+    }
+
+    /**
+     * Detail from current view or the last used if not loaded yet.
+     */
+    get lastDetail(): DetailValue[] {
+        return this.currentView?.detail ?? this.lastFullView?.detail;
+    }
+
+    get isDetailActual(): boolean {
+        return !!this.currentView?.detail;
+    }
+
     viewSets: {
         [IRI: string]: NodeViewSet;
     } = null;
@@ -203,13 +243,8 @@ export class Node extends NodeCommon implements ObjectSave {
 
     async useDefaultView(): Promise<NodeView> {
         let view = await this.getDefaultView();
-
         if (!view) return null;
-
-        // Fetching preview before the view is actually changed prevents time period when labels and class are unavailable
-        await view.fetchPreview();
-
-        this.currentView = view;
+        await view.use();
         return this.currentView;
     }
 

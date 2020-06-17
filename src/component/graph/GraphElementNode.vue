@@ -11,7 +11,7 @@ import {Mixins, Prop, Ref, Watch} from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
 import Cytoscape, {ElementDefinition, NodeDataDefinition} from "cytoscape";
 import Vue from 'vue';
-import {NodePreview, NodeView} from '../../graph/NodeView';
+import {NodeView} from '../../graph/NodeView';
 import clone from "clone";
 import GraphElementNodeMixin from "./GraphElementNodeMixin";
 
@@ -42,7 +42,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
             // label: Fixes Cytoscape bug when there is no clickable bounding box when node has [width: label] and previous label was empty
-            data: { label: "-", ...clone(this.node.currentView?.preview), id: this.node.IRI } as NodeDataDefinition,
+            data: { label: "-", ...clone(this.node.lastPreview), id: this.node.IRI } as NodeDataDefinition,
             classes: this.getClassList() as unknown as string,
             position,
         } as ElementDefinition);
@@ -80,23 +80,19 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
         await this.areaManipulator.expandNode(view);
     }
 
-    get previewData(): NodePreview {
-        return this.node.currentView?.preview;
-    }
-
     /**
      * When node changes the current view and preview is not fetched yet,
      * this function is called with empty preview and therefore the old
      * values saved in Cy instance are not overwritten.
      */
-    @Watch('previewData', { deep: true })
+    @Watch('node.lastPreview', { deep: true })
     private updatePreview() {
         // By doing this we achieve that the current preview remains if there is no other
-        if (this.previewData !== null) {
+        if (this.node.lastPreview !== null) {
             // Reset all data
 
             // The reason why this.element.removeData() is not used is because of a bug in Cytoscape library.
-            // The data field label must not be empty otherwise the node become un clickable when [width: label] style
+            // The data field label Preview must not be empty otherwise the node become un clickable when [width: label] style
             // is used
             let emptyData: any = {};
             if (this.element) {
@@ -107,7 +103,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
             this.element?.data({
                 ...emptyData,
                 label: "-",
-                ...clone(this.previewData),
+                ...clone(this.node.lastPreview),
                 id: this.node.IRI
             });
         }
@@ -120,7 +116,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
      * Functions return ready class list which can be used to pass to cytoscape
      */
     protected getClassList(): string[] {
-        return ["__node", ...this._getClassList(), ...clone(this.previewData?.classes ?? [])];
+        return ["__node", ...this._getClassList(), ...clone(this.node.lastPreview?.classes ?? [])];
     }
 
 }

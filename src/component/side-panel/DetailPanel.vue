@@ -17,8 +17,8 @@
 
                 <!-- NODE NAME AND CLASSES -->
                 <div class="mb-5">
-                    <div v-if="lastFullPreview">
-                        <h1 class="mb-2 d-inline">{{lastFullPreview.label}}</h1>
+                    <div v-if="node.lastPreview">
+                        <h1 class="mb-2 d-inline">{{node.lastPreview.label}}</h1>
                         <v-chip label v-for="cls in previewClasses" :key="cls.label" :color="cls.color" style="vertical-align: super;" class="mx-2">{{cls.label}}</v-chip>
                     </div>
                     <h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
@@ -27,13 +27,13 @@
                 <v-alert v-if="!node.isVisible" type="warning" dense text>{{ $t("side_panel.detail_panel.hidden.f" + (node.shownByFilters ? "t" : "f") + "u" + (node.visible ? "t" : "f")) }}</v-alert>
 
                 <!-- DETAIL -->
-                <v-card outlined :disabled="!node.currentView" :loading="node.currentView && !node.currentView.detail" class="mb-5 detail">
+                <v-card outlined :disabled="!node.isDetailActual" :loading="!node.isDetailActual" class="mb-5 detail">
                     <v-card-title>{{ $t("side_panel.detail_panel.detail") }}</v-card-title>
                     <v-card-text v-if="!node.currentView">{{ $t("side_panel.detail_panel.please_select_view") }}</v-card-text>
-                    <v-card-text v-else-if="!node.currentView.detail">{{ $t("side_panel.detail_panel.fetching_detail") }}</v-card-text>
+                    <v-card-text v-else-if="!node.lastDetail">{{ $t("side_panel.detail_panel.fetching_detail") }}</v-card-text>
                     <v-simple-table v-else>
                         <tbody>
-                        <tr v-for="detail in node.currentView.detail" :key="detail.IRI">
+                        <tr v-for="detail in node.lastDetail" :key="detail.IRI">
                             <td>
                                 <link-component :href="detail.IRI" /> &nbsp; <b v-if="detail.type">{{detail.type.label}}</b> &nbsp; {{detail.value}}
                             </td>
@@ -78,10 +78,10 @@
 
                     <v-divider></v-divider>
 
-                    <v-card-text v-if="lastFullPreview && lastFullPreview.type" class="text--primary">
-                        <link-component :href="lastFullPreview.type.iri" /> &nbsp;
-                        <b>{{lastFullPreview.type.label}}</b> &nbsp;
-                        <span v-if="lastFullPreview.type.description">{{lastFullPreview.type.description}}</span>
+                    <v-card-text v-if="node.lastPreview && node.lastPreview.type" class="text--primary">
+                        <link-component :href="node.lastPreview.type.iri" /> &nbsp;
+                        <b>{{node.lastPreview.type.label}}</b> &nbsp;
+                        <span v-if="node.lastPreview.type.description">{{node.lastPreview.type.description}}</span>
                     </v-card-text>
                     <v-card-text v-else class="text--primary">
                         {{ $t("side_panel.detail_panel.no_type_info") }}
@@ -129,7 +129,7 @@
 import {Component, Mixins, Prop, Watch} from 'vue-property-decorator';
 import { Node } from '../../graph/Node';
 import { NodeViewSet } from '../../graph/NodeViewSet';
-import {DetailValue, NodePreview} from '../../graph/NodeView';
+import {DetailValue} from '../../graph/NodeView';
 import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
 import {mdiTrashCanOutline, mdiRefresh, mdiCrosshairsGps, mdiEye, mdiEyeOff, mdiWeb, mdiPinOutline, mdiPinOffOutline} from '@mdi/js';
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
@@ -157,35 +157,13 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
 
     currentViewIRI: string = null;
 
-    // Contains preview which was used latest
-    private _lastFullPreviewData: NodePreview | null = null;
-
-    // Node to which the preview belongs
-    private _lastFullPreviewBelongsTo: Node | null = null;
-
-    /**
-     * When user changes view, it takes some time to load preview, therefore lastFullPreview contains last preview
-     * if actual hasn't been downloaded yet. Prevents unnecessary blinking.
-     **/
-    private get lastFullPreview(): NodePreview | null {
-        if (this.node.currentView?.preview) {
-            this._lastFullPreviewData = this.node.currentView.preview;
-            this._lastFullPreviewBelongsTo = this.node;
-            return this.node.currentView.preview;
-        } else if (this._lastFullPreviewBelongsTo === this.node) {
-            return this._lastFullPreviewData;
-        } else {
-            return null;
-        }
-    }
-
     /**
      * Returns classes list with deterministic color based on name.
      *
      * Uses lastFullPreview to prevent unnecessary blinking when switching the views
      */
     get previewClasses(): {label: string; color: string}[] {
-        return this.getClassesColors(this.lastFullPreview?.classes);
+        return this.getClassesColors(this.node.lastPreview?.classes);
     }
 
     /**
@@ -204,11 +182,11 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
      * Extracts possible image URLs to show them as real images
      */
     get detailImages(): DetailValue[] {
-        if (!this.node.currentView?.detail) {
+        if (!this.node.lastDetail) {
             return null;
         }
 
-        let result = this.node.currentView.detail.filter(detail => ['.jpg', '.png', '.bmp'].includes(detail.value.substr(detail.value.length - 4)));
+        let result = this.node.lastDetail.filter(detail => ['.jpg', '.png', '.bmp'].includes(detail.value.substr(detail.value.length - 4)));
 
         return result.length ? result : null;
     }
