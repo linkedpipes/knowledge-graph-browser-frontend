@@ -7,8 +7,9 @@ import {Node} from "../../../graph/Node";
 import NodeGroup from "../../../graph/NodeGroup";
 import NodeCommon from "../../../graph/NodeCommon";
 import EdgeCommon from "../../../graph/EdgeCommon";
+import {LayoutsCommonGroupSettings} from "../LayoutsCommon";
 
-export interface ColaLayoutOptions {
+export interface ColaLayoutOptions extends LayoutsCommonGroupSettings {
     /**
      * If the layout should run after a user changes node position
      */
@@ -50,6 +51,9 @@ export default class ColaLayout extends Layout {
         animate: true,
         edgeLength: 200,
         nodeSpacing: 10,
+
+        groupExpansion: true,
+        expansionGroupLimit: 10,
     }
 
     activate() {
@@ -108,13 +112,15 @@ export default class ColaLayout extends Layout {
         let currentPosition = expansion.parentNode.selfOrGroup.element.element.position();
         let group: NodeGroup = null;
 
-        if (notMountedNodes.length > 5) {
+        // Decides whether the nodes should be grouped
+        if (notMountedNodes.length >= this.options.expansionGroupLimit && this.options.groupExpansion) {
             group = this.graph.createGroup();
             for (let node of notMountedNodes) {
                 node.mounted = true;
                 group.addNode(node);
             }
-            group.onMountPosition = [currentPosition.x + 100, currentPosition.y];
+            // By subtracting -1 we broke the possible line of nodes, allowing cola layout to work.
+            group.onMountPosition = [currentPosition.x + 100, currentPosition.y - 1];
             group.mounted = true;
         } else {
             this.circleLayout(notMountedNodes, currentPosition);
@@ -139,6 +145,17 @@ export default class ColaLayout extends Layout {
         }
 
         this.executeLayout(this.areaManipulator.cy.elements(), explicitlyFixed);
+    }
+
+    async onGroupBroken(nodes: Node[], group: NodeGroup) {
+        super.onGroupBroken(nodes, group);
+        this.circleLayout(nodes, group.element?.element?.position() ?? this.areaManipulator.getCenterPosition());
+
+        // Wait for nodes to mount
+        await Vue.nextTick();
+        if (!this.isActive) return;
+
+        this.executeLayout(this.areaManipulator.cy.elements());
     }
 
     /**
@@ -227,6 +244,6 @@ export default class ColaLayout extends Layout {
     }
 
     restoreFromObject(object: any): void {
-        this.options = object;
+        this.options = {...this.options, ...object};
     }
 }

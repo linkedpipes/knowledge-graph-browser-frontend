@@ -1,13 +1,14 @@
-import {Collection, Layouts, NodeSingular, Position} from "cytoscape";
 import Layout from "../../Layout";
 import clone from "clone";
 import {Expansion} from "../../../graph/Expansion";
 import Vue from "vue";
-import {Node} from "../../../graph/Node";
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
+import {LayoutsCommonGroupSettings} from "../LayoutsCommon";
+import {Node} from "../../../graph/Node";
+import NodeGroup from "../../../graph/NodeGroup";
 
-export interface DagreLayoutOptions {
+export interface DagreLayoutOptions extends LayoutsCommonGroupSettings {
     directionTopToBottom: boolean;
     nodeSpacing: number,
     rankSpacing: number,
@@ -30,10 +31,18 @@ export default class DagreLayout extends Layout {
         directionTopToBottom: false,
         rankSpacing: 200,
         nodeSpacing: 10,
+        groupExpansion: true,
+        expansionGroupLimit: 10,
     }
 
     public async onExpansion(expansion: Expansion) {
         expansion.nodes.forEach(node => node.mounted = true);
+        await Vue.nextTick();
+        this.run();
+    }
+
+    async onGroupBroken(nodes: Node[], group: NodeGroup) {
+        super.onGroupBroken(nodes, group);
         await Vue.nextTick();
         this.run();
     }
@@ -55,6 +64,6 @@ export default class DagreLayout extends Layout {
     }
 
     restoreFromObject(object: any): void {
-        this.options = object;
+        this.options = {...this.options, ...object};
     }
 }

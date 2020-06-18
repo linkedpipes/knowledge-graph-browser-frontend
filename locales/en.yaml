@@ -207,6 +207,10 @@ layouts:
     rank_spacing: Rank spacing
     rank_spacing_desc: Defines how far from each other are ranks.
     run: Run this layout
+  # Common fields for layouts
+  group_expansion: Make groups of expanded nodes
+  group_expansion_limit: How many nodes
+  group_expansion_limit_desc: Specifies from how many nodes in expansion the nodes should be grouped. If the number of nodes is lower, they won't be grouped.
 
 layout_dialog:
   title: Layout options

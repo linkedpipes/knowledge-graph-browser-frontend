@@ -138,24 +138,11 @@ export default class GraphManipulator {
      * @param group
      */
     deGroup(group: NodeGroup) {
-        let gpos = group.element.element?.position();
-        let pos: [number, number];
-
-        if (gpos) {
-            pos = [gpos.x, gpos.y];
-        } else {
-            pos = [this.area.getCenterPosition().x, this.area.getCenterPosition().y];
-        }
-
         for (let node of group.nodes) {
             node.belongsToGroup = null;
-            node.mounted = true; // todo resolve what mounted means
-            node.onMountPosition = clone(pos);
+            node.mounted = true;
         }
-
         this.graph.removeGroupIgnoreNodes(group);
-
-        // In the next tick run the layout
-        Vue.nextTick(() => this.area.layoutManager.currentLayout.run());
+        this.area.layoutManager.currentLayout.onGroupBroken(group.nodes, group);
     }
 }

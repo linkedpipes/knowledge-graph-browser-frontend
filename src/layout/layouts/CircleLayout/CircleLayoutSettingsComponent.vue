@@ -17,6 +17,9 @@
                     </v-col>
                 </v-row>
             </v-list-item>
+            <v-list-item>
+                <layout-settings-component-group :layout="layout.options" />
+            </v-list-item>
         </v-list>
     </div>
 </template>
@@ -25,8 +28,11 @@
     import Vue from "vue";
     import {Prop} from "vue-property-decorator";
     import CircleLayout from "./CircleLayout";
+    import LayoutSettingsComponentGroup from "../LayoutSettingsComponentGroup.vue";
 
-    @Component
+    @Component({
+        components: {LayoutSettingsComponentGroup}
+    })
     export default class CircleLayoutSettingsComponent extends Vue {
         /**
          * ColaLayout whose options will be modified by user.

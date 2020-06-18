@@ -57,6 +57,9 @@
                     </v-col>
                 </v-row>
             </v-list-item>
+            <v-list-item>
+                <layout-settings-component-group :layout="layout.options" />
+            </v-list-item>
         </v-list>
     </div>
 </template>
@@ -65,8 +68,10 @@
     import Vue from "vue";
     import {Prop} from "vue-property-decorator";
     import ColaLayout from "./ColaLayout";
-
-    @Component
+    import LayoutSettingsComponentGroup from "../LayoutSettingsComponentGroup.vue";
+    @Component({
+        components: {LayoutSettingsComponentGroup}
+    })
     export default class ColaLayoutSettingsComponent extends Vue {
         /**
          * ColaLayout whose options will be modified by user.

@@ -38,6 +38,9 @@
                 </v-col>
             </v-row>
         </v-list-item>
+        <v-list-item>
+            <layout-settings-component-group :layout="layout.options" />
+        </v-list-item>
 
         <v-btn text outlined color="red" @click="layout.run(true)">{{ $t("layouts.dagre.run") }}</v-btn>
     </div>
@@ -47,8 +50,11 @@
     import Vue from "vue";
     import {Prop} from "vue-property-decorator";
     import DagreLayout from "./DagreLayout";
+    import LayoutSettingsComponentGroup from "../LayoutSettingsComponentGroup.vue";
 
-    @Component
+    @Component({
+        components: {LayoutSettingsComponentGroup}
+    })
     export default class DagreLayoutSettingsComponent extends Vue {
         /**
          * ColaLayout whose options will be modified by user.

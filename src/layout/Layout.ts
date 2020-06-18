@@ -7,6 +7,8 @@ import {Expansion} from "../graph/Expansion";
 import {Graph} from "../graph/Graph";
 import NodeCommon from "../graph/NodeCommon";
 import EdgeCommon from "../graph/EdgeCommon";
+import {Node} from "../graph/Node";
+import NodeGroup from "../graph/NodeGroup";
 
 export default abstract class Layout implements ObjectSave {
     /**
@@ -65,6 +67,15 @@ export default abstract class Layout implements ObjectSave {
      * When some node changed its lockedForLayout property
      */
     onLockedChanged(): void {};
+
+    /**
+     * When group is broken completely, or partially (that means, there still can be some nodes in the group).
+     * @param nodes Nodes to be mounted
+     * @param group Old group where nodes were. May be unmouted the next tick.
+     */
+    onGroupBroken(nodes: Node[], group: NodeGroup) {
+        nodes.forEach(node => node.mounted = true);
+    }
 
     abstract restoreFromObject(object: any): void;
 
