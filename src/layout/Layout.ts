@@ -27,6 +27,11 @@ export default abstract class Layout implements ObjectSave {
     public readonly supportsNodeLocking: boolean = false;
 
     /**
+     * Whether the layout supports compact mode view.
+     */
+    public readonly supportsCompactMode: boolean = false;
+
+    /**
      * When layout became active, that means it starts receiving events.
      */
     activate(): void {};

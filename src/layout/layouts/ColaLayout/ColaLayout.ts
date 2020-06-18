@@ -38,6 +38,7 @@ export interface ColaLayoutOptions extends LayoutsCommonGroupSettings {
 
 export default class ColaLayout extends Layout {
     public readonly supportsNodeLocking = true;
+    public readonly supportsCompactMode = true;
 
     private layoutAnimation: Layouts;
     private isActive: boolean = false;
@@ -63,6 +64,7 @@ export default class ColaLayout extends Layout {
 
     deactivate() {
         this.isActive = false;
+        this.onCompactMode(null, null);
         this.stopLayout();
     }
 
@@ -173,10 +175,16 @@ export default class ColaLayout extends Layout {
      */
     onCompactMode(nodes: NodeCommon[] | null, edges: EdgeCommon[] | null) {
         if (nodes === null && edges === null) {
-            if (this.compactMode) this.stopLayout();
+            if (this.compactMode) {
+                this.stopLayout();
+                this.setAreaForCompact(false);
+            }
             this.compactMode = null;
         } else {
-            if (this.compactMode === null) this.stopLayout();
+            if (this.compactMode === null) {
+                this.stopLayout();
+                this.setAreaForCompact(true);
+            }
             this.compactMode = this.areaManipulator.cy.collection();
 
             for (let node of nodes) {
@@ -190,6 +198,12 @@ export default class ColaLayout extends Layout {
             // Run layout
             this.executeLayout(this.getCollectionToAnimate());
         }
+    }
+
+    private setAreaForCompact(isCompact: boolean) {
+        this.areaManipulator.cy.userPanningEnabled(!isCompact);
+        this.areaManipulator.cy.userZoomingEnabled(!isCompact);
+        this.areaManipulator.cy.boxSelectionEnabled(!isCompact);
     }
 
     /**

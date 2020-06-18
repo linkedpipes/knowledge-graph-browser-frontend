@@ -2,11 +2,13 @@ import Layout from "../../Layout";
 import clone from "clone";
 import {Expansion} from "../../../graph/Expansion";
 import Vue from "vue";
-import cytoscape from 'cytoscape';
+import cytoscape, {Collection} from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import {LayoutsCommonGroupSettings} from "../LayoutsCommon";
 import {Node} from "../../../graph/Node";
 import NodeGroup from "../../../graph/NodeGroup";
+import NodeCommon from "../../../graph/NodeCommon";
+import EdgeCommon from "../../../graph/EdgeCommon";
 
 export interface DagreLayoutOptions extends LayoutsCommonGroupSettings {
     directionTopToBottom: boolean;
@@ -15,6 +17,8 @@ export interface DagreLayoutOptions extends LayoutsCommonGroupSettings {
 }
 
 export default class DagreLayout extends Layout {
+    public readonly supportsCompactMode = true;
+
     public constructor() {
         super();
         cytoscape.use(dagre);
@@ -48,7 +52,7 @@ export default class DagreLayout extends Layout {
     }
 
     public run(fit: boolean = undefined) {
-        this.areaManipulator.cy.layout({
+        this.getCollectionToLayout().layout({
             name: "dagre",
             // @ts-ignore
             fit: fit ?? false,
@@ -57,6 +61,64 @@ export default class DagreLayout extends Layout {
             nodeSep: this.options.nodeSpacing,
             rankSep: this.options.rankSpacing,
         }).run();
+    }
+
+    /**
+     * Contains elements in the compact mode or null if the compact mode is turned off.
+     * @non-reactive
+     */
+    private compactMode: cytoscape.Collection | null;
+
+    private isCompactModeActive(): boolean {
+        return !!this.compactMode;
+    }
+
+    /**
+     * Decides which elements should animate.
+     *
+     * If a compact mode is active, use its elements. Otherwise, use all elements.
+     */
+    private getCollectionToLayout() {
+        return this.compactMode ?? this.areaManipulator.cy.elements();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    async onCompactMode(nodes: NodeCommon[] | null, edges: EdgeCommon[] | null) {
+        this.setAreaForCompact(false);
+        if (nodes === null && edges === null) {
+            this.compactMode = null;
+        } else {
+            this.compactMode = this.areaManipulator.cy.collection();
+
+            for (let node of nodes) {
+                this.compactMode = this.compactMode.union(node.element.element);
+            }
+
+            for (let edge of edges) {
+                this.compactMode = this.compactMode.union(edge.element.element);
+            }
+
+            // We have to wait one tick to save nodes position
+            await Vue.nextTick();
+            //if (!this.isActive) return;
+
+            // Run layout
+            this.run();
+            this.setAreaForCompact(true);
+        }
+    }
+
+    private setAreaForCompact(isCompact: boolean) {
+        this.areaManipulator.cy.userPanningEnabled(!isCompact);
+        this.areaManipulator.cy.userZoomingEnabled(!isCompact);
+        this.areaManipulator.cy.boxSelectionEnabled(!isCompact);
+        if (isCompact) {
+            this.areaManipulator.cy.elements().ungrabify();
+        } else {
+            this.areaManipulator.cy.elements().grabify();
+        }
     }
 
     saveToObject(): object {

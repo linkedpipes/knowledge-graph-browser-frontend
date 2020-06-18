@@ -22,7 +22,7 @@
 					<v-icon>{{ icons.fit }}</v-icon>
 				</v-btn>
 			</div>
-			<div class="my-2">
+			<div class="my-2" v-if="layoutManager.currentLayout.supportsCompactMode">
 				<v-btn color="primary" fab small :dark="isNodeSelected" :disabled="!isNodeSelected" @click="compactModeChange(!modeCompact)">
 					<v-icon>{{ icons.compactMode[modeCompact ? 1 : 0] }}</v-icon>
 				</v-btn>
@@ -229,6 +229,11 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
         	this.areaManipulator.fitFollowStop();
 		}
     }
+
+    @Watch('layoutManager.currentLayout')
+    private currentLayoutChanged() {
+		this.compactModeChange(false);
+	}
 
     /**
      * This getter returns which nodes and edges are in compact mode. If compact mode is turned off, the return values
