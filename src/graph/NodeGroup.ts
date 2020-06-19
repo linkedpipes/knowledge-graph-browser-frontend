@@ -70,6 +70,21 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
     }
 
     /**
+     * If we manipulate with list of nodes, this group may be empty or contain only one node.
+     * @internal
+     */
+    public checkForNodes() {
+        if (this.nodes.length === 1) {
+            this.nodes[0].belongsToGroup = null;
+            this.nodes[0].onMountPosition = this.element?.element?.position() ? [this.element?.element?.position().x, this.element?.element?.position().y] : this.onMountPosition;
+            this.nodes[0].mounted = true;
+        }
+        if (this.nodes.length <= 1) {
+            this.graph.removeGroupIgnoreNodes(this);
+        }
+    }
+
+    /**
      * Computes which classes should the grouped node have based on intersection of its child nodes.
      */
     public get nocache_classes(): string[] {

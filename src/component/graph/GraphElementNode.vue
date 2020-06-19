@@ -43,7 +43,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
             group: 'nodes',
             // label: Fixes Cytoscape bug when there is no clickable bounding box when node has [width: label] and previous label was empty
             data: { label: "-", ...clone(this.node.lastPreview), id: this.node.IRI } as NodeDataDefinition,
-            classes: this.getClassList() as unknown as string,
+            classes: this.classList as unknown as string,
             position,
         } as ElementDefinition);
 
@@ -86,6 +86,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
      * values saved in Cy instance are not overwritten.
      */
     @Watch('node.lastPreview', { deep: true })
+    @Watch('classList')
     private updatePreview() {
         // By doing this we achieve that the current preview remains if there is no other
         if (this.node.lastPreview !== null) {
@@ -109,13 +110,13 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
         }
 
         // @ts-ignore bad types
-        this.element?.classes(this.getClassList());
+        this.element?.classes(this.classList);
     }
 
     /**
      * Functions return ready class list which can be used to pass to cytoscape
      */
-    protected getClassList(): string[] {
+    protected get classList(): string[] {
         return ["__node", ...this._getClassList(), ...clone(this.node.lastPreview?.classes ?? [])];
     }
 

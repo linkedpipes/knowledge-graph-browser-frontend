@@ -177,6 +177,10 @@ export class Node extends NodeCommon implements ObjectSave {
     }
 
     remove() {
+        if (this.belongsToGroup) {
+            this.belongsToGroup.nodes = this.belongsToGroup.nodes.filter(node => node !== this);
+            this.belongsToGroup.checkForNodes();
+        }
         this.graph._removeNode(this);
     }
 
@@ -307,18 +311,5 @@ export class Node extends NodeCommon implements ObjectSave {
         }
 
         this.mounted = object.mounted ?? true;
-    }
-
-    /**
-     * Selects this and only this node.
-     *
-     * Side panels behave according to how many nodes are selected, therefore by selecting specific node exclusively
-     * detail panel will be opened.
-     */
-    selectExclusively() {
-        for (let IRI in this.graph.nodes) {
-            this.graph.nodes[IRI].selected = false;
-        }
-        this.selected = true;
     }
 }

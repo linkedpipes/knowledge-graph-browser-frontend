@@ -145,4 +145,31 @@ export default class GraphManipulator {
         this.graph.removeGroupIgnoreNodes(group);
         this.area.layoutManager.currentLayout.onGroupBroken(group.nodes, group);
     }
+
+    splitGroup(nodes: Node[], group: NodeGroup) {
+        let newGroup = this.graph.createGroup();
+        for (let node of nodes) {
+            node.belongsToGroup = newGroup;
+            newGroup.addNode(node, true);
+        }
+        group.nodes = group.nodes.filter(node => !nodes.includes(node));
+
+        newGroup.onMountPosition = [group.element?.element?.position().x, group.element?.element?.position().y];
+        newGroup.mounted = true;
+
+        group.checkForNodes();
+        newGroup.checkForNodes();
+
+        Vue.nextTick(() => this.area.layoutManager.currentLayout.run());
+    }
+
+    leaveGroup(nodes: Node[], group: NodeGroup) {
+        for (let node of nodes) {
+            node.belongsToGroup = null;
+        }
+        group.nodes = group.nodes.filter(node => !nodes.includes(node));
+        group.checkForNodes();
+        this.area.layoutManager.currentLayout.onGroupBroken(nodes, group);
+    }
+
 }

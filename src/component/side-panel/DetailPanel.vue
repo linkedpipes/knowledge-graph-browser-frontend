@@ -24,7 +24,8 @@
                     <h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
                 </div>
 
-                <v-alert v-if="!node.isVisible" type="warning" dense text>{{ $t("side_panel.detail_panel.hidden.f" + (node.shownByFilters ? "t" : "f") + "u" + (node.visible ? "t" : "f")) }}</v-alert>
+                <v-alert v-if="!node.isVisible" type="info" color="secondary" dense text>{{ $t("side_panel.detail_panel.hidden.f" + (node.shownByFilters ? "t" : "f") + "u" + (node.visible ? "t" : "f")) }}</v-alert>
+                <v-alert v-if="node.belongsToGroup" type="info" color="secondary" dense text>{{ $tc("side_panel.detail_panel.part_of_group", node.belongsToGroup.nodes.length) }} <v-btn small text color="primary" @click="node.belongsToGroup.selectExclusively()">{{ $tc("side_panel.detail_panel.go_to_group") }}</v-btn></v-alert>
 
                 <!-- DETAIL -->
                 <v-card outlined :disabled="!node.isDetailActual" :loading="!node.isDetailActual" class="mb-5 detail">
@@ -90,7 +91,7 @@
 
         <template v-slot:actions>
             <panel-action-button
-                    @click="node.remove"
+                    @click="node.remove()"
                     danger
                     :icon="icons.remove"
                     :text="$tc('side_panel.remove', 1)"
@@ -122,6 +123,14 @@
                     :text="$tc('side_panel.' + (node.lockedForLayouts ? 'unlock' : 'lock') + '_for_layouts', 1)"
                     :help="$tc('side_panel.' + (node.lockedForLayouts ? 'unlock' : 'lock') + '_for_layouts_desc', 1)"
             />
+            <panel-action-button
+                    :width="1"
+                    v-if="node.belongsToGroup"
+                    @click="manipulator.leaveGroup([node], node.belongsToGroup)"
+                    :icon="icons.leave"
+                    :text="$tc('side_panel.leave', 1)"
+                    :help="$tc('side_panel.leave_desc', 1)"
+            />
         </template>
     </panel-template>
 </template>
@@ -131,12 +140,23 @@ import { Node } from '../../graph/Node';
 import { NodeViewSet } from '../../graph/NodeViewSet';
 import {DetailValue} from '../../graph/NodeView';
 import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
-import {mdiTrashCanOutline, mdiRefresh, mdiCrosshairsGps, mdiEye, mdiEyeOff, mdiWeb, mdiPinOutline, mdiPinOffOutline} from '@mdi/js';
+import {
+    mdiTrashCanOutline,
+    mdiRefresh,
+    mdiCrosshairsGps,
+    mdiEye,
+    mdiEyeOff,
+    mdiWeb,
+    mdiPinOutline,
+    mdiPinOffOutline,
+    mdiApplicationExport
+} from '@mdi/js';
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import LinkComponent from "../helper/LinkComponent.vue";
 import NodeCommonPanelMixin from "./NodeCommonPanelMixin";
 import PanelTemplate from "./components/PanelTemplate.vue";
 import PanelActionButton from "./components/PanelActionButton.vue";
+import GraphManipulator from "../../graph/GraphManipulator";
 
 @Component({
     components: {PanelActionButton, PanelTemplate, LinkComponent}
@@ -144,6 +164,7 @@ import PanelActionButton from "./components/PanelActionButton.vue";
 export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
     @Prop(Object) node !: Node;
     @Prop(Object) areaManipulator !: GraphAreaManipulator;
+    @Prop(Object) manipulator !: GraphManipulator;
     @Prop(Boolean) nodeLockingSupported !: boolean;
 
     private readonly icons = {
@@ -153,6 +174,7 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
         visibility: [mdiEyeOff, mdiEye],
         link: mdiWeb,
         lockedForLayouts: [mdiPinOffOutline, mdiPinOutline],
+        leave: mdiApplicationExport,
     }
 
     currentViewIRI: string = null;

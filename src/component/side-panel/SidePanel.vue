@@ -5,6 +5,7 @@
                 :node="detailNode"
 
                 :area-manipulator="areaManipulator"
+                :manipulator="manipulator"
                 :node-locking-supported="nodeLockingSupported"
         />
         <detail-group-panel
@@ -74,7 +75,7 @@ export default class SidePanel extends Vue {
     get selectedNodes(): Node[] {
         let selected: Node[] = [];
         for (const IRI in this.graph?.nodes) {
-            if (this.graph.nodes[IRI].selected && !this.graph.nodes[IRI].belongsToGroup) {
+            if (this.graph.nodes[IRI].selected) {
                 selected.push(this.graph.nodes[IRI]);
             }
         }

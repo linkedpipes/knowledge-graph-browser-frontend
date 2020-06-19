@@ -2,7 +2,9 @@
     <panel-template>
         <h1 class="mb-5">{{ $t("side_panel.list_panel.title") }}</h1>
 
-        <node-grouped-list delete-button unselect-button hide-button show-button group-button :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
+        <node-grouped-list v-if="nodes.length" class="mb-5" delete-button unselect-button hide-button show-button group-button :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
+
+        <v-alert text color="blue" v-if="groups.length" class="mb-5">{{ $tc("side_panel.list_panel.group_nodes" + (nodes.length ? "_also" : ""), groups.length) }}</v-alert>
 
         <template v-slot:actions>
             <panel-action-button

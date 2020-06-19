@@ -260,7 +260,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		for (let iri in this.graph.nodes) {
 			let node = this.graph.nodes[iri];
 
-			if (node.mounted && node.isVisible && node.selected) {
+			if (node.mounted && node.isVisible && node.selected && !node.belongsToGroup) {
 				return true;
 			}
 		}

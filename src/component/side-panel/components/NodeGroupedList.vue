@@ -21,6 +21,8 @@
                         <v-btn v-if="selectButton" @click="groupSelection(group, true)">{{ $t('side_panel.node_grouped_list.select') }}</v-btn>
                         <v-btn v-if="unselectButton" @click="groupSelection(group, false)">{{ $t('side_panel.node_grouped_list.unselect') }}</v-btn>
                         <v-btn v-if="groupButton" @click="groupMakeGroup(group)">{{ $t('side_panel.node_grouped_list.make_group') }}</v-btn>
+                        <v-btn v-if="breakGroupButton" @click="groupBreakGroup(group)">{{ $t('side_panel.node_grouped_list.break_group') }}</v-btn>
+                        <v-btn v-if="splitGroupButton" @click="groupSplitGroup(group)">{{ $t('side_panel.node_grouped_list.split_group') }}</v-btn>
                     </div>
 
                     <v-simple-table dense>
@@ -77,6 +79,8 @@
         @Prop(Boolean) selectButton!: boolean;
         @Prop(Boolean) unselectButton!: boolean;
         @Prop(Boolean) groupButton!: boolean;
+        @Prop(Boolean) breakGroupButton!: boolean;
+        @Prop(Boolean) splitGroupButton!: boolean;
 
         private readonly icons = {
             visibility: [mdiEyeOff, mdiEye],
@@ -124,6 +128,14 @@
 
         private groupMakeGroup(group: NodeTypeGroup) {
             this.manipulator.groupExistingNodes(group.nodes);
+        }
+
+        private groupBreakGroup(group: NodeTypeGroup) {
+            this.manipulator.leaveGroup(group.nodes, group.nodes[0].belongsToGroup);
+        }
+
+        private groupSplitGroup(group: NodeTypeGroup) {
+            this.manipulator.splitGroup(group.nodes, group.nodes[0].belongsToGroup);
         }
     }
 </script>

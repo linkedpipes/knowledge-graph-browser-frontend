@@ -5,11 +5,11 @@
             <v-chip label v-for="cls in previewClasses" :key="cls.label" :color="cls.color" style="vertical-align: super;" class="mx-2">{{cls.label}}</v-chip>
         </div>
 
-        <node-grouped-list delete-button unselect-button hide-button show-button :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
+        <node-grouped-list delete-button break-group-button split-group-button :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
 
         <template v-slot:actions>
             <panel-action-button
-                    @click="remove"
+                    @click="node.remove()"
                     danger
                     :icon="icons.remove"
                     :text="$tc('side_panel.remove_group', 1)"
@@ -110,10 +110,6 @@ export default class DetailGroupPanel extends Mixins(NodeCommonPanelMixin) {
         }
 
         return Array.from(map.values());
-    }
-
-    remove() {
-        alert("not supported");
     }
 }
 </script>

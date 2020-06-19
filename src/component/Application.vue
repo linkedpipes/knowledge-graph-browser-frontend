@@ -190,6 +190,7 @@
     import DegreeFilter from "../filter/filters/DegreeFilter/DegreeFilter";
     import PropertyFilter from "../filter/filters/PropertyFilter/PropertyFilter";
     import GraphVuex from "../graph/component/GraphVuex.vue";
+    import NodeCommon from "../graph/NodeCommon";
     let Configuration: {api: string} = require("../../conf.yaml");
 
     @Component({
@@ -481,6 +482,29 @@
                 this.graphSearcher = new GraphSearcher(searchers);
             }
         }
+
+        //#region Check if nodes from graph are selected or a single node from group
+
+        private get allSelectedNodes(): NodeCommon[] {
+            let selected = [];
+            for (let iri in this.graph.nodes) {
+                if (this.graph.nodes[iri].selected) selected.push(this.graph.nodes[iri]);
+            }
+            return [...selected, ...this.graph.groups.filter(group => group.selected)];
+        }
+
+        @Watch('allSelectedNodes')
+        private checkSelectedNodes() {
+            if (this.allSelectedNodes.length > 1) {
+                for (let node of this.allSelectedNodes) {
+                    if (node !== node.selfOrGroup) {
+                        node.selected = false;
+                    }
+                }
+            }
+        }
+
+        //#endregion Check if nodes from graph are selected or a single node from group
     }
 </script>
 <style>

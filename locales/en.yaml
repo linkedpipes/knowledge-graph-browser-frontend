@@ -39,8 +39,12 @@ side_panel:
       ffut: The node is hidden by a filter. To show it, change filter options.
       ftuf: The node is hidden. To show it, change its visibility.
       ffuf: The node is hidden both by filter and user. To show it, change filter options and visibility of the node.
+    part_of_group: This node is part of a group with total {n} nodes.
+    go_to_group: go to group
   list_panel:
     title: List of selected nodes
+    group_nodes: You have selected {n} node groups.
+    group_nodes_also: You have also selected {n} node group. | You have also selected {n} node groups.
   hidden_nodes_panel:
     title: Hidden nodes
     description: This panel shows nodes currently not visible in the graph. If the node is hidden by a user, red eye icon is shown. By clicking on the eye you can change its user visibility. If the node is hidden by a filter, the filter icon is shown.
@@ -60,6 +64,8 @@ side_panel:
     no_type: No type provided
     no_type_desc: You can try to fetch types of these nodes.
     no_type_button: Fetch
+    break_group: Break
+    split_group: Split to group
 
   # Buttons in the side panel
   # Some nodes are used both for single and multiple nodes and therefore you should use | for singular and plural
@@ -83,6 +89,8 @@ side_panel:
   refresh_desc: Reload all data from server
   locate: Locate | Zoom
   locate_desc: Locate the node in the graph | Zoom to the nodes
+  leave: Leave group
+  leave_desc: This separates the node from its group and shows it in the graph.
 
 
 # Dialog to add new nodes

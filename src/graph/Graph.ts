@@ -101,6 +101,7 @@ export class Graph implements ObjectSave {
 
     createGroup(): NodeGroup {
         let group = new NodeGroup();
+        group.graph = this;
         this.groups.push(group);
         return group;
     }

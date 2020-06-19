@@ -44,7 +44,7 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
             data: { label: this.label, id: this.node.id } as NodeDataDefinition,
-            classes: this.getClassList() as unknown as string,
+            classes: this.classList as unknown as string,
             position,
         } as ElementDefinition);
     }
@@ -52,8 +52,14 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
     /**
      * Functions return ready class list which can be used to pass to cytoscape
      */
-    protected getClassList(): string[] {
+    protected get classList(): string[] {
         return ["__node_group", ...this._getClassList(), ...this.node.classes];
+    }
+
+    @Watch('classList')
+    private classListChanged() {
+        // @ts-ignore bad types
+        this.element?.classes(this.classList);
     }
 
     private get label(): string {
