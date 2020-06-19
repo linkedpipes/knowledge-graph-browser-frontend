@@ -41,3 +41,16 @@
   iri_by_id:
     template: ["http://www.wikidata.org/entity/", ""]
     id_structure: ^Q[1-9][0-9]*$
+- name:
+    en: Wikidata people
+    cs: Lidé na Wikipedii
+  description:
+    en: ''
+    cs: ''
+  configuration: https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/wikidata/people
+  stylesheet: https://linked.opendata.cz/resource/knowledge-graph-browser/wikidata/people/style-sheet
+  resource: http://www.wikidata.org/entity/Q937
+  iri_structure: ^http://www\.wikidata\.org/entity/Q[1-9][0-9]*$
+  iri_by_id:
+    template: ["http://www.wikidata.org/entity/", ""]
+    id_structure: ^Q[1-9][0-9]*$

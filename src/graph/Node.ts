@@ -264,22 +264,15 @@ export class Node extends NodeCommon implements ObjectSave {
         }
 
         return {
+            ...super.saveToObject(),
             IRI: this.IRI,
-            mounted: this.mounted,
-            selected: this.selected,
-            visible: this.visible,
-            lockedForLayouts: this.lockedForLayouts,
             currentView,
             viewSets,
-            onMountPosition: this?.element?.element ? [this.element.element.position().x, this.element.element.position().y] : null,
         };
     }
 
     restoreFromObject(object: any): void {
-        this.selected = object.selected ?? false;
-        this.visible = object.visible ?? true;
-        this.lockedForLayouts = object.lockedForLayouts ?? false;
-        this.onMountPosition = object.onMountPosition ?? [0, 0];
+        super.restoreFromObject(object);
 
         if (object.viewSets === null) {
             this.viewSets = null;
@@ -309,7 +302,5 @@ export class Node extends NodeCommon implements ObjectSave {
             view.restoreFromObject(object.currentView);
             this.currentView = view;
         }
-
-        this.mounted = object.mounted ?? true;
     }
 }

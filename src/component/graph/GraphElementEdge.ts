@@ -58,7 +58,6 @@ export default class GraphElementEdge extends Vue {
     private edgeChanged(to: object) {
         if (to === null) {
             this.edge.element = this;
-            console.log("Updated edge");
         }
     }
 

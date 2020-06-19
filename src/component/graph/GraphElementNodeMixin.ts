@@ -1,4 +1,4 @@
-import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
+import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import Cytoscape, {Position} from "cytoscape";
 import clone from "clone";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
@@ -46,6 +46,19 @@ export default class GraphElementNodeMixin extends Vue {
      * @abstract method which should be implemented in children
      */
     protected registerElement(): void {};
+
+    /**
+     * Function used for saving to file purposes. It generates the nodes position where it should be mounted.
+     */
+    public getSavePosition(): [number, number] | null {
+        if (this.compactModeUnlocked) {
+            return [this.originalPositionBeforeCompact.x, this.originalPositionBeforeCompact.y];
+        } else if (this.element) {
+            return [this.element.position().x, this.element.position().y];
+        } else {
+            return null;
+        }
+    }
 
     mounted() {
         // This can't be passed as property because Vuex would set watchers onto it

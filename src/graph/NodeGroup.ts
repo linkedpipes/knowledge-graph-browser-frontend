@@ -282,6 +282,22 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         return this.vuexComponent?.neighbourSelected ?? this.nocache_neighbourSelected;
     }
 
-    restoreFromObject(object: any): void {};
-    saveToObject(): object { return {};};
+    restoreFromObject(object: any): void {
+        super.restoreFromObject(object);
+        let nodes = [];
+        for (let iri of object.nodes) {
+            let node = this.graph.getNodeByIRI(iri);
+            node.belongsToGroup = this;
+            nodes.push(node);
+        }
+        this.nodes = nodes;
+    }
+
+
+    saveToObject(): object {
+        return {
+            ...super.saveToObject(),
+            nodes: this.nodes.map(node => node.identifier),
+        };
+    }
 }

@@ -200,7 +200,7 @@ layouts:
   circle:
     name: Circle
     title: Simple circle layout
-    info: This layout does not support relayouting during noes moving. To run layout explicitly, please press on the layout icon in the right bottom corner.
+    info: This layout is very simple and works only on newly expanded nodes.
     node_spacing: Node spacing
     node_spacing_desc: Sets how far from each other the nodes should be when their parent is expanded.
   dagre:

@@ -43,20 +43,14 @@ side_panel:
       ffuf: >-
         Uzel je skrytý filtrem a také má vypnutou viditelnost. Pro zobrazení
         upravte parametry filtru a změňte viditelnost uzlu.
-    remove_desc: Smaže vrchol z grafu
-    refresh_desc: Znova načte data ze serveru o tomto uzlu
-    locate_desc: Lokalizuje uzel v grafu
-    visible_desc: Mění viditelnost uzlu
-    locked_for_layouts_desc: Zda je pozice uzlu zamčena vůči layoutování
+    part_of_group: 'Tento uzel je součástí skupiny obsahující {n} uzlů.'
+    go_to_group: přejít ke skupině
   list_panel:
     title: Seznam označených vrcholů
-    remove: Smazat
-    remove_desc: Smaže všechny označené uzly
-    hide: Skrýt
-    hide_desc: Skryje všechny označené uzly
-    show: Zobrazit
-    show_desc: Zobrazí všechny označené uzly
-    number_items: '1 vrchol | {n} vrcholy | {n} vrcholů'
+    group_nodes: 'Je označeno {n} skupin.'
+    group_nodes_also: >-
+      Také je označena jedna skupina. | Také jsou označeny {n} skupiny. |
+      Také je označeno {n} skupin.
   hidden_nodes_panel:
     title: Skryté uzly
     description: >-
@@ -64,8 +58,8 @@ side_panel:
       uzel skrytý filtrem, ikonka filtru je u něj zobrazena. Pokud má
       vypnutou viditelnost, je u něj zobrazená ikonka oka. Na tuto ikonku je
       možné kliknout pro změnu viditelnosti.
-    remove: Smazat
-    remove_description: Smaže všechny uzly které jsou skryté
+  node_group:
+    title: 'Skupina obsahující jeden uzel | Skupina {n} uzlů'
   node_grouped_list:
     number_items: '1 vrchol | {n} vrcholy | {n} vrcholů'
     no_nodes: Žádné uzly k zobrazní
@@ -74,9 +68,38 @@ side_panel:
     show: Zobrazit
     select: Vybrat
     unselect: Zrušit výběr
+    make_group: Seskupit
     no_type: Bez typu
     no_type_desc: Můžete se pokusit stáhnout typy o těchto uzlech.
     no_type_button: Stáhnout
+    break_group: Rozbít
+    split_group: Rozdělit do skupiny
+  remove_group: Smazat
+  remove_group_desc: Smaže skupinu se všemi uzly ve skupině z grafu
+  hide: Skrýt
+  hide_desc: >-
+    Skryje uzel, takže nebude v grafu viditelný | Skryje uzly, takže v grafu
+    nebudou viditelné
+  unhide: Odkrýt
+  unhide_desc: Opět zobrazí skrytý uzel | Opět zobrazí skryté uzly
+  lock_for_layouts: Uzamknout
+  lock_for_layouts_desc: Uzamkne pozici uzlu vůči layoutu | Uzamkne pozici uzlů vůči layoutu
+  unlock_for_layouts: Odemknout
+  unlock_for_layouts_desc: Odemkne pozici uzlu vůči layotu | Odemkne pozici uzlů vůči layotu
+  break_group: Rozbít
+  break_group_desc: 'Rozbije skupinu, takže všechny uzly skupiny budou samostatné'
+  group: Seskupit
+  group_desc: 'Nahradí všechny uzly jedním uzlem, který je seskupuje'
+  remove: Smazat
+  remove_desc: Smaže uzel z grafu | Smaže uzly z grafu
+  refresh: Obnovit
+  refresh_desc: Znovu načte data ze serveru
+  locate: Najít | Přiblížit
+  locate_desc: >-
+    Najde uzel v grafu a přesune na něj pohled | Nastaví pohled tak, aby
+    všechny uzly byly viditelné na obrazovce
+  leave: Opustit skupinu
+  leave_desc: Oddělí uzel ze skupiny a zobrazí ho v grafu
 add_node_dialog:
   title: Přidání nových vrcholů
   cancel: Zrušit
@@ -124,8 +147,9 @@ filter_dialog:
     automaticky povolena.
   mode_listed: Zobrazit explicitně zvolené vrcholy.
   mode_listed_description: >-
-    Pokud je zatrhnuto, každý vrchol, co má alespoň jednu vlastnost ze seznamu níže bude zobrazen. Pokud není zatrhnuto,
-    kadžý vrchol co má nezatrhnutou položku bude skrytý.
+    Pokud je zatrhnuto, každý vrchol, co má alespoň jednu vlastnost ze
+    seznamu níže bude zobrazen. Pokud není zatrhnuto, kadžý vrchol co má
+    nezatrhnutou položku bude skrytý.
   close: Zavřít
 filters:
   degreeFilter:
@@ -176,41 +200,69 @@ layouts:
   cola:
     name: Cola
     title: Cola layout
-    performance: Cola layout může značně ovlivnit výkon aplikace na větších grafech kvůli složitým výpočtům. Pro větší grafy zvažte použití jiného, méně náročného, layoutu.
+    performance: >-
+      Cola layout může značně ovlivnit výkon aplikace na větších grafech
+      kvůli složitým výpočtům. Pro větší grafy zvažte použití jiného, méně
+      náročného, layoutu.
     animate: Animovat
-    animate_desc: Nastaví, zda výpočet layoutu bude animován, nebo se počká až na koncový stav. Vypnutím animace zvýšíte výkon.
+    animate_desc: >-
+      Nastaví, zda výpočet layoutu bude animován, nebo se počká až na
+      koncový stav. Vypnutím animace zvýšíte výkon.
     do_layout_after_reposition: Spustit layoutování pokud uživatel přetahuje uzly.
-    do_layout_after_reposition_desc: Kdykoli uživatel přesune uzel spustí se layoutování celého grafu. Pokud je vypnuné, musí se layoutování spouštět ručně.
+    do_layout_after_reposition_desc: >-
+      Kdykoli uživatel přesune uzel spustí se layoutování celého grafu.
+      Pokud je vypnuné, musí se layoutování spouštět ručně.
     expansion_only_those: Při expanzi layoutovat pouze uzly expanze.
-    expansion_only_those_desc: Pokud uživatel provede expanzi, musí proběhnout layoutování. Tímto přepínačem zvolíte, zda se má layoutovat celý graf, nebo jen část, kde proběhla expanze.
+    expansion_only_those_desc: >-
+      Pokud uživatel provede expanzi, musí proběhnout layoutování. Tímto
+      přepínačem zvolíte, zda se má layoutovat celý graf, nebo jen část, kde
+      proběhla expanze.
     node_spacing: Extra prostor pro uzel
-    node_spacing_desc: Nastaví kolem uzlu extra prostor ve kterém se nesmí nacházet žáden jiný uzel.
+    node_spacing_desc: >-
+      Nastaví kolem uzlu extra prostor ve kterém se nesmí nacházet žáden
+      jiný uzel.
     edge_length: Délka hran
-    edge_length_desc: Nastaví optimální délku hran. Hodí se zvýšit v přápadě že popisky uzlů a hran splývají.
+    edge_length_desc: >-
+      Nastaví optimální délku hran. Hodí se zvýšit v přápadě že popisky uzlů
+      a hran splývají.
   circle:
     name: Kruhový
     title: Jednoduchý kruhový layout
-    info: Tento layout nepodporuje automatické layoutování při přesouvání uzlů a neumožňuje uzly fixovat. Pro manuální spuštění layoutu klikněte na tlačítko s obrázkem layoutu vpravo dole v grafu.
+    info: >-
+      Tento layout dokáže pouze zarovnávat nové uzly z expanze do kruhu. Nic
+      víc.
     node_spacing: Vzdálenost uzlů
-    node_spacing_desc: Nastavuje, jak daleko mají být od sebe uzly po expandování jejich společného předka.
+    node_spacing_desc: >-
+      Nastavuje, jak daleko mají být od sebe uzly po expandování jejich
+      společného předka.
   dagre:
     name: Dagre
     title: Dagre layout
-    description: Dagre layout uspořádá uzly podle hran do jednotlivých skupin tak, že od počátečního uzlu mají všechny uzly v dané skupině stejnou hloubku.
-    info: Tento layout nepodporuje žádnou formu automatického layoutování. Pro spuštění layoutu klikněte na tlačítko spustit, nebo lauout vyberte a poté kdykoliv klikněte na tlačítko s obrázkem layoutu vpravo dole v grafu.
+    description: >-
+      Dagre layout uspořádá uzly podle hran do jednotlivých skupin tak, že
+      od počátečního uzlu mají všechny uzly v dané skupině stejnou hloubku.
+    info: >-
+      Tento layout nepodporuje žádnou formu automatického layoutování. Pro
+      spuštění layoutu klikněte na tlačítko spustit, nebo lauout vyberte a
+      poté kdykoliv klikněte na tlačítko s obrázkem layoutu vpravo dole v
+      grafu.
     top_to_bottom: Uspořádat shora dolů
     top_to_bottom_desc: Normálně se uzly uspořádavají zleva doprava.
     node_spacing: Vzdálenost mezi uzly
-    node_spacing_desc: Nastaví, jak daleko od sebe budou uzly v jené skupině.
+    node_spacing_desc: 'Nastaví, jak daleko od sebe budou uzly v jené skupině.'
     rank_spacing: Vzdálenost mezi skupinami
-    rank_spacing_desc: Nastaví, jak daleko budou od sebe jednotlivé skupiny.
+    rank_spacing_desc: 'Nastaví, jak daleko budou od sebe jednotlivé skupiny.'
     run: Spustit layout
+  group_expansion: Expandované uzly seskupovat do skupiny
+  group_expansion_limit: Od kolika uzlů
+  group_expansion_limit_desc: >-
+    Nastaví jaký je minimální počet nových uzlů z expanze, aby byly
+    seskupeny do skupiny. Pokud počet bude menší, uzly se zobrazí normálně.
 layout_dialog:
   title: Nastavení layoutu
   active: aktivní
   keep_old_layout: Ponechat původní layout
   change_layout: Nastavit tento layout
   close: Zavřít
-
 graph:
-  groupNode: jeden uzel | {n} uzly | {n} uzlů
+  groupNode: 'jeden uzel | {n} uzly | {n} uzlů'

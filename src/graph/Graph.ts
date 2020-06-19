@@ -241,10 +241,12 @@ export class Graph implements ObjectSave {
 
         for (let iri in this.nodes) nodes.push(this.nodes[iri].saveToObject());
         for (let eid in this.edges) edges.push(this.edges[eid].saveToObject());
+        let groups = this.groups.map(g => g.saveToObject());
 
         return {
             nodes,
             edges,
+            groups,
         }
     }
 
@@ -254,6 +256,13 @@ export class Graph implements ObjectSave {
         }
         for (let edgeData of object.edges) {
             this.createEdge(this.getNodeByIRI(edgeData.source), this.getNodeByIRI(edgeData.target), edgeData.type).restoreFromObject(edgeData);
+        }
+        if (object.groups) {
+            for (let group of object.groups) {
+                this.createGroup().restoreFromObject(group);
+            }
+        } else {
+            this.groups = [];
         }
     }
 

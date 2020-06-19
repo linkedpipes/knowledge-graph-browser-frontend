@@ -80,8 +80,23 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     lockedForLayouts: boolean = false;
 
-    abstract restoreFromObject(object: any): void;
-    abstract saveToObject(): object;
+    saveToObject(): object {
+        return {
+            mounted: this.mounted,
+            selected: this.selected,
+            visible: this.visible,
+            lockedForLayouts: this.lockedForLayouts,
+            onMountPosition: this?.element?.getSavePosition() ?? null,
+        }
+    }
+
+    restoreFromObject(object: any): void {
+        this.mounted = object.mounted ?? true;
+        this.selected = object.selected ?? false;
+        this.visible = object.visible ?? true;
+        this.lockedForLayouts = object.lockedForLayouts ?? false;
+        this.onMountPosition = object.onMountPosition ?? [0, 0];
+    }
 
     /**
      * Selects this and only this node.
