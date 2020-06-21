@@ -40,13 +40,13 @@ export default class GraphAreaManipulator implements ObjectSave {
         let isBeingDragged = false;
         cy.on('drag', (e) => {
             if (!isBeingDragged) {
-                this.layoutManager?.currentLayout?.onDrag(true);
+                this.layoutManager?.onDrag(true);
             }
             isBeingDragged = true;
         });
         cy.on('free', () => {
             if (isBeingDragged) {
-                this.layoutManager?.currentLayout?.onDrag(false);
+                this.layoutManager?.onDrag(false);
             }
             isBeingDragged = false;
         });
@@ -68,7 +68,7 @@ export default class GraphAreaManipulator implements ObjectSave {
      */
     async expandNode(view: NodeView) {
         let expansion = await view.expand();
-        this.layoutManager.currentLayout.onExpansion(expansion);
+        this.layoutManager.onExpansion(expansion);
     }
 
     changeZoomByQuotient(quotient: number) {
@@ -165,8 +165,8 @@ export default class GraphAreaManipulator implements ObjectSave {
      */
     public setLockedForLayouts(nodes: NodeCommon[], value: boolean) {
         nodes.forEach(node => node.lockedForLayouts = value);
-        if (this.layoutManager.currentLayout.supportsNodeLocking) {
-            this.layoutManager.currentLayout.onLockedChanged();
+        if (this.layoutManager.supportsNodeLocking) {
+            this.layoutManager.onLockedChanged();
         }
     }
 

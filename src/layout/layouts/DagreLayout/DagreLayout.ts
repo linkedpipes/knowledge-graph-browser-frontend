@@ -1,4 +1,4 @@
-import Layout from "../../Layout";
+import LayoutStrategyBase from "../../LayoutStrategy";
 import clone from "clone";
 import {Expansion} from "../../../graph/Expansion";
 import Vue from "vue";
@@ -16,7 +16,7 @@ export interface DagreLayoutOptions extends LayoutsCommonGroupSettings {
     rankSpacing: number,
 }
 
-export default class DagreLayout extends Layout {
+export default class DagreLayout extends LayoutStrategyBase {
     public readonly supportsCompactMode = true;
 
     public constructor() {

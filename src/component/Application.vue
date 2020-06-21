@@ -21,7 +21,7 @@
                     :area-manipulator="areaManipulator"
                     :manipulator="manipulator"
                     :hidden-panel.sync="hiddenPanel"
-                    :node-locking-supported="layouts.currentLayout.supportsNodeLocking"
+                    :node-locking-supported="layouts.supportsNodeLocking"
                     ref="sidePanel"
                     @width-changed="rightOffset = $event"
             />

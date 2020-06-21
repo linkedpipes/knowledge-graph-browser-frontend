@@ -10,7 +10,60 @@ import EdgeCommon from "../graph/EdgeCommon";
 import {Node} from "../graph/Node";
 import NodeGroup from "../graph/NodeGroup";
 
-export default abstract class Layout implements ObjectSave {
+/**
+ * Common interface for all strategies which will be used in LayoutManager
+ */
+export interface LayoutStrategy {
+    /**
+     * This is a way how layout can tell that it supports or don't node locking. Node locking means, that if user moves
+     * node, it's position became locked, small icon is shown next to it and layout should not move with it. If is
+     * switched to layout which does not support locking, all icons and buttons will be hidden.
+     */
+    readonly supportsNodeLocking: boolean;
+
+    /**
+     * Whether the layout supports compact mode view.
+     */
+    readonly supportsCompactMode: boolean;
+
+    onAddedNodes(): void;
+
+    /**
+     * This method is called when expansion succeeds.
+     * Newly created nodes are not mounted yet, therefore this function can treat them differently.
+     * To mount the nodes, set node.mount to true and wait until next animation frame.
+     * @param expansion
+     */
+    onExpansion(expansion: Expansion): void;
+
+    onDrag(isStartNotEnd: boolean): void;
+
+    run(): void;
+
+    /**
+     * When user turns on a compact mode this function is called with nodes and edges which figures in the mode. Turning
+     * the mode off is represented by null arrays.
+     * Layout should terminate all animations started before the mode has changed.
+     * Layout should not manipulate with viewport, because is is not its job.
+     * @param nodes List of nodes presented in the compact mode
+     * @param edges List of edges presented in the compact mode
+     */
+    onCompactMode(nodes: NodeCommon[] | null, edges: EdgeCommon[] | null): void;
+
+    /**
+     * When some node changed its lockedForLayout property
+     */
+    onLockedChanged(): void;
+
+    /**
+     * When group is broken completely, or partially (that means, there still can be some nodes in the group).
+     * @param nodes Nodes to be mounted
+     * @param group Old group where nodes were. May be unmouted the next tick.
+     */
+    onGroupBroken(nodes: Node[], group: NodeGroup): void;
+}
+
+export default abstract class LayoutStrategyBase implements ObjectSave, LayoutStrategy {
     /**
      * @internal
      * @non-reactive Must not be set until Vue inits its reactivity (even null is forbidden)
@@ -18,17 +71,8 @@ export default abstract class Layout implements ObjectSave {
     public areaManipulator: GraphAreaManipulator;
     public graph: Graph;
 
-
-    /**
-     * This is a way how layout can tell that it supports or don't node locking. Node locking means, that if user moves
-     * node, it's position became locked, small icon is shown next to it and layout should not move with it. If is
-     * switched to layout which does not support locking, all icons and buttons will be hidden.
-     */
     public readonly supportsNodeLocking: boolean = false;
 
-    /**
-     * Whether the layout supports compact mode view.
-     */
     public readonly supportsCompactMode: boolean = false;
 
     /**
@@ -46,38 +90,16 @@ export default abstract class Layout implements ObjectSave {
 
     onAddedNodes(): void {};
 
-    /**
-     * This method is called when expansion succeeds.
-     * Newly created nodes are not mounted yet, therefore this function can treat them differently.
-     * To mount the nodes, set node.mount to true and wait until next animation frame.
-     * @param expansion
-     */
     onExpansion(expansion: Expansion): void {};
 
     onDrag(isStartNotEnd: boolean) {};
 
     run(): void {};
 
-    /**
-     * When user turns on a compact mode this function is called with nodes and edges which figures in the mode. Turning
-     * the mode off is represented by null arrays.
-     * Layout should terminate all animations started before the mode has changed.
-     * Layout should not manipulate with viewport, because is is not its job.
-     * @param nodes List of nodes presented in the compact mode
-     * @param edges List of edges presented in the compact mode
-     */
     onCompactMode(nodes: NodeCommon[] | null, edges: EdgeCommon[] | null) {}
 
-    /**
-     * When some node changed its lockedForLayout property
-     */
     onLockedChanged(): void {};
 
-    /**
-     * When group is broken completely, or partially (that means, there still can be some nodes in the group).
-     * @param nodes Nodes to be mounted
-     * @param group Old group where nodes were. May be unmouted the next tick.
-     */
     onGroupBroken(nodes: Node[], group: NodeGroup) {
         nodes.forEach(node => node.mounted = true);
     }

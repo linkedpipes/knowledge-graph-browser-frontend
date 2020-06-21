@@ -22,7 +22,7 @@
 					<v-icon>{{ icons.fit }}</v-icon>
 				</v-btn>
 			</div>
-			<div class="my-2" v-if="layoutManager.currentLayout.supportsCompactMode">
+			<div class="my-2" v-if="layoutManager.supportsCompactMode">
 				<v-btn color="primary" fab small :dark="isNodeSelected" :disabled="!isNodeSelected" @click="compactModeChange(!modeCompact)">
 					<v-icon>{{ icons.compactMode[modeCompact ? 1 : 0] }}</v-icon>
 				</v-btn>
@@ -36,7 +36,7 @@
 			:key="node.IRI.replace(/\./, '_')"
 			:node="node"
 			:areaManipulator="areaManipulator"
-			:node-locking-supported="layoutManager.currentLayout.supportsNodeLocking"
+			:node-locking-supported="layoutManager.supportsNodeLocking"
 			:explicitly-active="!isNodeSelected"
 			:mode-compact="modeCompact"
 		/>
@@ -47,7 +47,7 @@
 			:node="group"
 			:manipulator="manipulator"
 			:areaManipulator="areaManipulator"
-			:node-locking-supported="layoutManager.currentLayout.supportsNodeLocking"
+			:node-locking-supported="layoutManager.supportsNodeLocking"
 			:explicitly-active="!isNodeSelected"
 			:mode-compact="modeCompact"
 		/>
@@ -221,7 +221,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	    	return;
 		}
 
-        this.layoutManager.currentLayout.onCompactMode(nodes, edges);
+        this.layoutManager.onCompactMode(nodes, edges);
 
         if (nodes) {
 			this.areaManipulator.fitFollowSet(nodes);

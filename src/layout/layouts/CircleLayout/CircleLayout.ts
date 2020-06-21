@@ -1,5 +1,5 @@
 import {Position} from "cytoscape";
-import Layout from "../../Layout";
+import LayoutStrategyBase from "../../LayoutStrategy";
 import clone from "clone";
 import {Expansion} from "../../../graph/Expansion";
 import {LayoutsCommonGroupSettings} from "../LayoutsCommon";
@@ -14,7 +14,7 @@ export interface CircleLayoutOptions extends LayoutsCommonGroupSettings {
     nodeSpacingOnCircumference: number;
 }
 
-export default class CircleLayout extends Layout {
+export default class CircleLayout extends LayoutStrategyBase {
     /**
      * Options for this layout which can be modified by a user
      */

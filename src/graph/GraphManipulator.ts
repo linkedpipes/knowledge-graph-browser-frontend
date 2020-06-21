@@ -130,7 +130,7 @@ export default class GraphManipulator {
         nodeGroup.selected = true;
 
         // In the next tick run the layout
-        Vue.nextTick(() => this.area.layoutManager.currentLayout.run());
+        Vue.nextTick(() => this.area.layoutManager.run());
     }
 
     /**
@@ -143,7 +143,7 @@ export default class GraphManipulator {
             node.mounted = true;
         }
         this.graph.removeGroupIgnoreNodes(group);
-        this.area.layoutManager.currentLayout.onGroupBroken(group.nodes, group);
+        this.area.layoutManager.onGroupBroken(group.nodes, group);
     }
 
     splitGroup(nodes: Node[], group: NodeGroup) {
@@ -160,7 +160,7 @@ export default class GraphManipulator {
         group.checkForNodes();
         newGroup.checkForNodes();
 
-        Vue.nextTick(() => this.area.layoutManager.currentLayout.run());
+        Vue.nextTick(() => this.area.layoutManager.run());
     }
 
     leaveGroup(nodes: Node[], group: NodeGroup) {
@@ -169,7 +169,7 @@ export default class GraphManipulator {
         }
         group.nodes = group.nodes.filter(node => !nodes.includes(node));
         group.checkForNodes();
-        this.area.layoutManager.currentLayout.onGroupBroken(nodes, group);
+        this.area.layoutManager.onGroupBroken(nodes, group);
     }
 
 }

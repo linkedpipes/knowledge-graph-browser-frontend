@@ -1,5 +1,5 @@
 import cytoscape, {Collection, Layouts, NodeSingular, Position} from "cytoscape";
-import Layout from "../../Layout";
+import LayoutStrategyBase from "../../LayoutStrategy";
 import clone from "clone";
 import {Expansion} from "../../../graph/Expansion";
 import Vue from "vue";
@@ -36,7 +36,7 @@ export interface ColaLayoutOptions extends LayoutsCommonGroupSettings {
     edgeLength: number;
 }
 
-export default class ColaLayout extends Layout {
+export default class ColaLayout extends LayoutStrategyBase {
     public readonly supportsNodeLocking = true;
     public readonly supportsCompactMode = true;
 
