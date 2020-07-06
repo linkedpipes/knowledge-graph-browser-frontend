@@ -19,6 +19,7 @@ settings:
     content: All the settings are stored in local storage container in your browser.
   language: Language
   remote_url: Application API server
+  metaconfiguration: Default metaconfiguration URI
 search:
   label: Insert IRI, name, code...
 change_configuration_and_stylesheet: Change configuration and stylesheet

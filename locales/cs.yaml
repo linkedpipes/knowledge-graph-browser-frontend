@@ -19,6 +19,7 @@ settings:
     content: Veškeré změny budou uloženy do paměti local storage vašeho prohlížeče.
   language: Jazyk aplikace
   remote_url: Vzdálený API server
+  metaconfiguration: Výchozí URI metakonfigurace
 search:
   label: 'Zadejte IRI, název uzlu, kód...'
 change_configuration_and_stylesheet: Změnit konfiguraci a stylesheet

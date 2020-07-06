@@ -44,6 +44,17 @@
                     </v-row>
                 </v-list-item>
 
+                <v-list-item>
+                    <v-row>
+                        <v-col cols="3">
+                            <v-subheader>{{ $t("settings.metaconfiguration") }}</v-subheader>
+                        </v-col>
+                        <v-col cols="9">
+                            <v-text-field hide-details single-line v-model="propMetaconfiguration"></v-text-field>
+                        </v-col>
+                    </v-row>
+                </v-list-item>
+
             </v-list>
         </v-card>
     </v-dialog>
@@ -57,6 +68,7 @@ import {mdiClose, mdiTranslate} from "@mdi/js";
 @Component export default class SettingsDialog extends Vue {
 
     @PropSync('remoteUrl', { type: String }) propRemoteURL!: string;
+    @PropSync('metaconfiguration', { type: String }) propMetaconfiguration!: string;
 
     // If the whole window is opened
     dialog: boolean = false;

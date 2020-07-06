@@ -114,10 +114,12 @@
         />
         <settings-dialog
                 :remote-url.sync="remoteURL"
+                :metaconfiguration.sync="metaconfiguration"
                 ref="settingsDialog"
         />
         <settings
                 :remote-url.sync="remoteURL"
+                :metaconfiguration.sync="metaconfiguration"
         ></settings>
         <load-dialog
                 ref="loadDialog"
@@ -129,6 +131,10 @@
         />
         <graph-vuex
             :graph="graph"
+        />
+        <configuration-chooser-component
+            ref="configurationChooser"
+            :default-metaconfiguration="defaultMetaconfiguration"
         />
     </v-app>
 </template>
@@ -191,10 +197,14 @@
     import PropertyFilter from "../filter/filters/PropertyFilter/PropertyFilter";
     import GraphVuex from "../graph/component/GraphVuex.vue";
     import NodeCommon from "../graph/NodeCommon";
-    let Configuration: {api: string} = require("../../conf.yaml");
+    import ConfigurationChooserComponent from "./ConfigurationChooserComponent.vue";
+    import ConfigurationManager from "../configurations/ConfigurationManager";
+    import Metaconfiguration from "../configurations/Metaconfiguration";
+    let Configuration: {api: string, metaconfiguration: string} = require("../../conf.yaml");
 
     @Component({
         components: {
+            ConfigurationChooserComponent,
             GraphVuex,
             LayoutDialog,
             LoadDialog,
@@ -291,6 +301,23 @@
         remoteURL: string = Configuration.api;
 
         /**
+         * URI of metaconfiguration which provides a list of configurations
+         * */
+        metaconfiguration: string = Configuration.metaconfiguration;
+
+        get defaultMetaconfiguration(): Metaconfiguration {
+            return this.configurationManager.getOrCreateMetaconfiguration(this.metaconfiguration);
+        }
+
+        configurationManager: ConfigurationManager = new ConfigurationManager();
+
+        // Dependency injection
+        @Watch('graph.fetcher', {immediate: true})
+        private fetcherChanged() {
+            this.configurationManager.fetcher = this.graph.fetcher;
+        }
+
+        /**
          * Current stylesheet for Cytoscape object.
          *
          * The stylesheet can be fetched from dataSource.stylesheet IRI or form saved graph from file.
@@ -314,6 +341,7 @@
         @Ref() readonly settingsDialog !: SettingsDialog;
         @Ref() readonly loadDialog !: LoadDialog;
         @Ref() readonly layoutDialog !: LayoutDialog;
+        @Ref() readonly configurationChooser !: ConfigurationChooserComponent;
 
         //#endregion References to components used in Application
 

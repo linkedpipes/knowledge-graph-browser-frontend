@@ -1,4 +1,5 @@
 import { ResponseViewSets, ResponsePreview, ResponseStylesheet, ResponseExpand, ResponseDetail } from "./response-interfaces";
+import {ResponseConfiguration, ResponseMetaconfiguration} from "./ConfigurationResponseInterfaces";
 
 /**
  * Fetches graphs and other information from remote server
@@ -25,4 +26,7 @@ export class DataGraphFetcher {
     getPreview = (viewIRI: string, resourceIRI: string): Promise<ResponsePreview> => this.sentRequest("/preview", {view: viewIRI, resource: resourceIRI});
     getExpansion = (viewIRI: string, resourceIRI: string): Promise<ResponseExpand> => this.sentRequest("/expand", {view: viewIRI, resource: resourceIRI});
     getDetail = (viewIRI: string, resourceIRI: string): Promise<ResponseDetail> => this.sentRequest("/detail", {view: viewIRI, resource: resourceIRI});
+
+    getMetaconfiguration = (IRI: string, languages: string[]): Promise<ResponseMetaconfiguration> => this.sentRequest("/metaconfiguration", {iri: IRI, languages: languages.join(',')});
+    getConfiguration = (IRI: string, languages: string[]): Promise<ResponseConfiguration> => this.sentRequest("/configuration", {iri: IRI, languages: languages.join(',')});
 }
