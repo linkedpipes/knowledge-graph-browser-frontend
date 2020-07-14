@@ -139,6 +139,9 @@
             :default-metaconfiguration="defaultMetaconfiguration"
             :configuration-manager="configurationManager"
             :remote-server="server"
+            :graph-searcher="graphSearcher"
+            :graph="graph"
+            :graph-manipulator="manipulator"
             @configuration-update="temp1($event)"
         />
     </v-app>
@@ -228,7 +231,8 @@
     })
     export default class Application extends Mixins(ApplicationLoadStoreMixin) {
         private temp1(data: any) {
-            console.log("Application: Configuration update request", data);
+            this.configuration = data.configuration;
+            this.createNewGraph();
         }
 
 
@@ -416,19 +420,22 @@
         /**
          * Creates new graph according to configuration and discards the old one.
          * */
-        @Watch('configuration.iri')
-        @Watch('areaManipulator')
         private createNewGraph() {
-            if (this.configuration.iri && this.areaManipulator) {
-                this.graph = new Graph();
-                this.graph.server = this.server;
-
-                this.areaManipulator.graph = this.graph;
-                this.layouts.graphChanged(this.graph);
-                this.layouts.graphAreaManipulatorChanged(this.areaManipulator);
-
-                this.manipulator = new GraphManipulator(this.graph, this.areaManipulator, this.layouts);
+            if (!this.areaManipulator) {
+                console.error("Creating a new graph, but areaManipulator still not exists.");
             }
+
+            this.graph = new Graph();
+            this.graph.server = this.server;
+            this.graph.configuration = this.configuration;
+
+            this.areaManipulator.graph = this.graph;
+            this.layouts.graphChanged(this.graph);
+            this.layouts.graphAreaManipulatorChanged(this.areaManipulator);
+
+            this.manipulator = new GraphManipulator(this.graph, this.areaManipulator, this.layouts);
+
+            this.updateGraphSearcher();
         }
 
         // noinspection JSUnusedGlobalSymbols
@@ -486,16 +493,18 @@
         /**
          * Method for updating graphSearcher. It depends on graph instance and data source.
          */
-        @Watch('graph')
-        @Watch('dataSource')
         private updateGraphSearcher() {
             if (this.graph) {
                 let searchers: Searcher[] = [];
 
                 searchers.push(new LocalGraphSearcher(this.graph));
-                if (this.dataSource.autocomplete) searchers.push(new SimpleJsonSearcher(this.dataSource.autocomplete));
-                if (this.dataSource.iri_by_id) searchers.push(new IRIConstructorSearcher(this.dataSource.iri_by_id.template, new RegExp(this.dataSource.iri_by_id.id_structure)));
-                searchers.push(new IRIIdentitySearcher(this.dataSource.iri_structure ? new RegExp(this.dataSource.iri_structure) : null));
+                if (this.configuration.autocomplete) {
+                    for (let url of this.configuration.autocomplete) {
+                        searchers.push(new SimpleJsonSearcher(url));
+                    }
+                }
+                // if (this.dataSource.iri_by_id) searchers.push(new IRIConstructorSearcher(this.dataSource.iri_by_id.template, new RegExp(this.dataSource.iri_by_id.id_structure)));
+                searchers.push(new IRIIdentitySearcher(this.configuration.resourcePattern ? new RegExp(this.configuration.resourcePattern) : null));
 
                 this.graphSearcher = new GraphSearcher(searchers);
             }

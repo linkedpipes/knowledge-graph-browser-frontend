@@ -53,7 +53,6 @@ export default class GraphManipulator {
 
         if (!node.viewSets) {
             node.useDefaultView().then((view) => view.fetchPreview());
-
         }
 
         // Show if hidden

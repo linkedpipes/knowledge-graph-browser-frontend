@@ -239,6 +239,24 @@ export class Graph implements ObjectSave {
         return node;
     }
 
+    async getOrCreateNode(IRI: string): Promise<Node|false> {
+        let node = this.nodes[IRI];
+        if (!node) {
+            try {
+                node = await this.fetchNode(IRI);
+            } catch (error) {
+                console.warn("Error occurred while fetching a node. Probably the wrong IRI specified or there is a problem on server side.", error);
+                return false;
+            }
+        } else {
+            if (!node.viewSets) {
+                node.useDefaultView().then((view) => view.fetchPreview());
+            }
+        }
+
+        return node;
+    }
+
     //#region Object save methods
 
     saveToObject(): object {
