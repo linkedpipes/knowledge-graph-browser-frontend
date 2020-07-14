@@ -3,9 +3,9 @@
  * Each metaconfiguration is identified by IRI and has its title, description (in multiple languages) and image.
  */
 import {
-    ResponseMetaconfiguration,
-    ResponseMetaconfigurationBase
-} from "../graph-fetcher/ConfigurationResponseInterfaces";
+    ResponseMetaConfiguration,
+    ResponseMetaConfigurationBase
+} from "../remote-server/ResponseInterfaces";
 import assert from "assert";
 import ConfigurationManager from "./ConfigurationManager";
 import Configuration from "./Configuration";
@@ -78,7 +78,7 @@ export default class Metaconfiguration {
      * Meant to be called only from sync() method
      */
     private async fetch(languages: string[]) {
-        let data = await this.manager.fetcher.getMetaconfiguration(this.iri, languages);
+        let data = await this.manager.remoteServer.getMetaConfiguration(this.iri, languages);
         this.merge(data);
         for (let lang of languages) {
             this.promises[lang] = true;
@@ -88,7 +88,7 @@ export default class Metaconfiguration {
     /**
      * Helper method for merging only base information
      */
-    public mergeBase(serverData: ResponseMetaconfigurationBase) {
+    public mergeBase(serverData: ResponseMetaConfigurationBase) {
         assert(serverData.iri === this.iri);
         this.title = {...serverData.title, ...this.title};
         this.description = {...serverData.description, ...this.description};
@@ -99,7 +99,7 @@ export default class Metaconfiguration {
      * Fills up this class and creates configuration from server data
      * @param serverData
      */
-    public merge(serverData: ResponseMetaconfiguration) {
+    public merge(serverData: ResponseMetaConfiguration) {
         this.mergeBase(serverData);
 
         for (let confData of serverData.has_configurations) {
@@ -108,7 +108,7 @@ export default class Metaconfiguration {
             if (!this.configurations.includes(conf)) this.configurations.push(conf);
         }
 
-        for (let mconfData of serverData.has_metaconfigurations) {
+        for (let mconfData of serverData.has_meta_configurations) {
             let conf = this.manager.getOrCreateMetaconfiguration(mconfData.iri);
             conf.mergeBase(mconfData);
             if (!this.metaconfigurations.includes(conf)) this.metaconfigurations.push(conf);

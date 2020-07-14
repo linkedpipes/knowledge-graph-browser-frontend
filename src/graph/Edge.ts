@@ -1,5 +1,5 @@
 import { Node } from "./Node";
-import { ResponseElementType } from "../graph-fetcher/response-interfaces"
+import { ResponseElementType } from "../remote-server/ResponseInterfaces"
 import { Graph } from "./Graph";
 import ObjectSave from "../file-save/ObjectSave";
 import clone from 'clone';

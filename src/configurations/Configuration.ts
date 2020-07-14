@@ -1,7 +1,7 @@
 /**
  * Represents one specific configuration identified by its IRI.
  */
-import {ResponseConfiguration} from "../graph-fetcher/ConfigurationResponseInterfaces";
+import {ResponseConfiguration} from "../remote-server/ResponseInterfaces";
 import assert from "assert";
 import ConfigurationManager from "./ConfigurationManager";
 
@@ -71,7 +71,7 @@ export default class Configuration {
      * Meant to be called only from sync() method
      */
     private async fetch(languages: string[]) {
-        let data = await this.manager.fetcher.getConfiguration(this.iri, languages);
+        let data = await this.manager.remoteServer.getConfiguration(this.iri, languages);
         this.merge(data);
         for (let lang of languages) {
             this.promises[lang] = true;

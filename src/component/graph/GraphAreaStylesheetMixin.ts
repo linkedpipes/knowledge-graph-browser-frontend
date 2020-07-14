@@ -1,5 +1,5 @@
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
-import {ResponseStylesheet} from "../../graph-fetcher/response-interfaces";
+import {ResponseStylesheet} from "../../remote-server/ResponseInterfaces";
 import ViewOptions from "../../graph/ViewOptions";
 import clone from "clone";
 import cytoscape from "cytoscape";

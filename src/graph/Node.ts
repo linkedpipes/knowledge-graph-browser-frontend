@@ -1,7 +1,7 @@
 import {Graph} from "./Graph";
 import {DetailValue, NodePreview, NodeView} from "./NodeView";
 import {NodeViewSet} from "./NodeViewSet";
-import {ResponseElementType} from "../graph-fetcher/response-interfaces";
+import {ResponseElementType} from "../remote-server/ResponseInterfaces";
 import {Edge} from "./Edge";
 import GraphElementNode from "../component/graph/GraphElementNode.vue";
 import ObjectSave from "../file-save/ObjectSave";
@@ -202,7 +202,7 @@ export class Node extends NodeCommon implements ObjectSave {
 
     async fetchViewSets(): Promise<void> {
         let asynchronouslyFetchViewSets = async () => {
-            let result = await this.graph.fetcher.getViewSets(this.IRI);
+            let result = await this.graph.server.getViewSets(this.IRI, this.graph.configuration.iri);
 
             // First create list of views
             let nodeViews: {[viewIRI:string]: NodeView} = {};

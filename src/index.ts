@@ -4,6 +4,9 @@ import Vuetify from 'vuetify/lib';
 import i18n from './i18n';
 import cytoscape from "cytoscape";
 
+// Custom translation for data from the server
+require("./LiteralTranslator");
+
 cytoscape.warnings(false);
 
 Vue.use(Vuetify);

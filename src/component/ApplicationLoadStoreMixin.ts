@@ -4,7 +4,7 @@ import ObjectSave from "../file-save/ObjectSave";
 import {FiltersList} from "../filter/Filter";
 import ViewOptions from "../graph/ViewOptions";
 import {Graph} from "../graph/Graph";
-import {ResponseStylesheet} from "../graph-fetcher/response-interfaces";
+import {ResponseStylesheet} from "../remote-server/ResponseInterfaces";
 import clone from "clone";
 import {DataSource} from "../DataSource";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
@@ -17,7 +17,7 @@ import {LayoutManager} from "../layout/LayoutManager";
     filter: FiltersList;
     layouts: LayoutManager;
     viewOptions: ViewOptions;
-    stylesheet: ResponseStylesheet;
+    visualStyleSheet: ResponseStylesheet;
     dataSource: DataSource;
     areaManipulator !: GraphAreaManipulator;
 
@@ -71,7 +71,7 @@ import {LayoutManager} from "../layout/LayoutManager";
             filter: this.filter.saveToObject(),
             layouts: this.layouts.saveToObject(),
             viewOptions: this.viewOptions.saveToObject(),
-            stylesheet: clone(this.stylesheet),
+            stylesheet: clone(this.visualStyleSheet),
             dataSource: this.dataSource,
             area: this.areaManipulator.saveToObject(),
         };
@@ -89,7 +89,7 @@ import {LayoutManager} from "../layout/LayoutManager";
         if (object.filter) this.filter.restoreFromObject(object.filter); else this.filter.reset();
         if (object.layouts) this.layouts.restoreFromObject(object.layouts);
         if (object.viewOptions) this.viewOptions.restoreFromObject(object.viewOptions);
-        this.stylesheet = object.stylesheet ?? {styles: []};
+        this.visualStyleSheet = object.stylesheet ?? {styles: []};
         if (object.area) this.areaManipulator.restoreFromObject(object.area);
 
         // Recreate the graph again

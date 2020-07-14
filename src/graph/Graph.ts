@@ -1,6 +1,6 @@
 import { Node, NodeType } from "./Node";
 import { Edge, EdgeType } from "./Edge";
-import { DataGraphFetcher } from "../graph-fetcher/DataGraphFetcher";
+import { RemoteServer } from "../remote-server/RemoteServer";
 import Vue from 'vue';
 import ObjectSave from "../file-save/ObjectSave";
 import NodeGroup from "./NodeGroup";
@@ -8,6 +8,7 @@ import NodeCommon from "./NodeCommon";
 import GroupEdge from "./GroupEdge";
 import EdgeCommon from "./EdgeCommon";
 import GraphVuex from "./component/GraphVuex.vue";
+import Configuration from "../configurations/Configuration";
 
 /**
  * This class represents a graph. It is a container for nodes and edges and contains methods to remove or add them.
@@ -89,7 +90,12 @@ export class Graph implements ObjectSave {
     /**
      * From where the new nodes are fetched. It is not expected to be modified after the creation.
      */
-    fetcher: DataGraphFetcher = null;
+    server: RemoteServer = null;
+
+    /**
+     * Current graph configuration. Can be changed.
+     */
+    configuration: Configuration = null
 
     /**
      * Returns existing node by its IRI

@@ -1,6 +1,6 @@
 import { Node } from "./Node";
 import { Expansion } from "./Expansion";
-import { ResponseElementType } from "../graph-fetcher/response-interfaces";
+import { ResponseElementType } from "../remote-server/ResponseInterfaces";
 import { NodeType } from "./Node";
 import { NodeViewSet } from "./NodeViewSet";
 import ObjectSave from "../file-save/ObjectSave";
@@ -84,7 +84,7 @@ export class NodeView implements ObjectSave {
         }
 
         if (!this.detail) {
-            let result = await this.node.graph.fetcher.getDetail(this.IRI, this.node.IRI);
+            let result = await this.node.graph.server.getDetail(this.IRI, this.node.IRI);
             let data = result.nodes.find(node => node.iri == this.node.IRI).data;
 
             let types = NodeView.ExtractTypes(result.types);
@@ -111,7 +111,7 @@ export class NodeView implements ObjectSave {
         }
 
         if (!this.preview) {
-            let result = await this.node.graph.fetcher.getPreview(this.IRI, this.node.IRI);
+            let result = await this.node.graph.server.getPreview(this.IRI, this.node.IRI);
 
             let types = NodeView.ExtractTypes(result.types);
 
@@ -133,7 +133,7 @@ export class NodeView implements ObjectSave {
         this.expansionInProgress = true;
 
         // Get the expansion
-        let result = await this.node.graph.fetcher.getExpansion(this.IRI, this.node.IRI);
+        let result = await this.node.graph.server.getExpansion(this.IRI, this.node.IRI);
 
         this.expansion = new Expansion(this.node);
 

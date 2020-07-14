@@ -4,7 +4,7 @@
             <graph-area
                     :graph="graph"
                     :data-source="dataSource"
-                    :stylesheet="stylesheet"
+                    :stylesheet="visualStyleSheet"
                     :left-offset="leftOffset"
                     :right-offset="rightOffset"
                     :view-options="viewOptions"
@@ -14,7 +14,7 @@
                     :layout-manager="layouts"
                     :mode-compact="modeCompact"
                     @compact-mode-change="modeCompact = $event"
-                    @new-manipulator="areaManipulatorUpdated($event)"
+                    @new-manipulator="areaManipulator = $event"
             />
             <side-panel
                     :graph="graph"
@@ -104,7 +104,6 @@
                 :hasUnsavedChanges="hasUnsavedChanges"
                 :saveDialog="saveDialog"
                 :saveFunction="saveToFile"
-                @changed="configurationStylesheetUpdated"
                 @requestLoadFromFile="doLoadFromFileProcess"
         />
         <vue-filter-component-creator
@@ -116,13 +115,13 @@
                 ref="viewOptionsDialog"
         />
         <settings-dialog
-                :remote-url.sync="remoteURL"
-                :metaconfiguration.sync="metaconfiguration"
+                :remote-url.sync="server.remoteUrl"
+                :metaconfiguration.sync="defaultMetaconfigurationIRI"
                 ref="settingsDialog"
         />
         <settings
-                :remote-url.sync="remoteURL"
-                :metaconfiguration.sync="metaconfiguration"
+                :remote-url.sync="server.remoteUrl"
+                :metaconfiguration.sync="defaultMetaconfigurationIRI"
         ></settings>
         <load-dialog
                 ref="loadDialog"
@@ -139,6 +138,8 @@
             ref="configurationChooser"
             :default-metaconfiguration="defaultMetaconfiguration"
             :configuration-manager="configurationManager"
+            :remote-server="server"
+            @configuration-update="temp1($event)"
         />
     </v-app>
 </template>
@@ -147,7 +148,7 @@
     import GraphArea from './graph/GraphArea.vue';
     import AddNode from './AddNode.vue';
     import ConfigurationStylesheetDialog from './ConfigurationStylesheetDialog.vue';
-    import { DataGraphFetcher } from '../graph-fetcher/DataGraphFetcher';
+    import { RemoteServer } from '../remote-server/RemoteServer';
     import { Graph } from '../graph/Graph';
     import SidePanel from './side-panel/SidePanel.vue';
     import SaveDialog from './SaveDialog.vue';
@@ -156,7 +157,7 @@
     import Component from "vue-class-component";
     import {LocaleMessage} from "vue-i18n";
     import {Mixins, Ref, Watch} from "vue-property-decorator";
-    import {ResponseStylesheet} from "../graph-fetcher/response-interfaces";
+    import {ResponseStylesheet} from "../remote-server/ResponseInterfaces";
     import {DataSource} from "../DataSource";
 
     import {
@@ -204,7 +205,8 @@
     import ConfigurationChooserComponent from "./ConfigurationChooserComponent.vue";
     import ConfigurationManager from "../configurations/ConfigurationManager";
     import Metaconfiguration from "../configurations/Metaconfiguration";
-    let Configuration: {api: string, metaconfiguration: string} = require("../../conf.yaml");
+    import Configuration from "../configurations/Configuration";
+    let ApplicationConfiguration: {api: string, metaconfiguration: string} = require("../../conf.yaml");
 
     @Component({
         components: {
@@ -225,7 +227,25 @@
         }
     })
     export default class Application extends Mixins(ApplicationLoadStoreMixin) {
+        private temp1(data: any) {
+            console.log("Application: Configuration update request", data);
+        }
+
+
         modeCompact: boolean = false;
+
+        /**
+         * Class responsible for communication with server.
+         * The instance is readonly, but the remote url can be changed
+         * */
+        readonly server: RemoteServer = new RemoteServer();
+
+        /**
+         * Holds current configuration which is applied to graph. Value can be changed as well as its
+         * inner values such as stylesheets etc.
+         * */
+        configuration: Configuration = null;
+
         /**
          * Container for all nodes and edges which were downloaded by a user.
          * */
@@ -298,41 +318,46 @@
         ]);
 
         /**
-         * URL where remote API is located.
-         * It is not a constant and can be changed anytime.
-         * It is a part of settings and can be overridden by local storage.
-         * */
-        remoteURL: string = Configuration.api;
-
-        /**
          * URI of metaconfiguration which provides a list of configurations
          * */
-        metaconfiguration: string = Configuration.metaconfiguration;
+        defaultMetaconfigurationIRI: string = ApplicationConfiguration.metaconfiguration;
 
         get defaultMetaconfiguration(): Metaconfiguration {
-            return this.configurationManager.getOrCreateMetaconfiguration(this.metaconfiguration);
-        }
-
-        configurationManager: ConfigurationManager = new ConfigurationManager();
-
-        // Dependency injection
-        @Watch('graph.fetcher', {immediate: true})
-        private fetcherChanged() {
-            this.configurationManager.fetcher = this.graph.fetcher;
+            return this.configurationManager.getOrCreateMetaconfiguration(this.defaultMetaconfigurationIRI);
         }
 
         /**
-         * Current stylesheet for Cytoscape object.
-         *
-         * The stylesheet can be fetched from dataSource.stylesheet IRI or form saved graph from file.
+         * Configuration manager manages all so far downloaded configurations and meta configurations from the server.
+         * It is not expected to change the instance.
          * */
-        stylesheet: ResponseStylesheet = { styles: [] };
+        readonly configurationManager: ConfigurationManager = new ConfigurationManager();
+
+        //#region Visual Style sheet variable and update logic
 
         /**
-         * Data source contains information about configuration IRI, stylesheet IRI, starting node and others.
-         * Both the whole object and single fields can be changed.
+         * Current stylesheet for Cytoscape object which is obtained from current configuration.
          * */
-        dataSource: DataSource = null;
+        visualStyleSheet: ResponseStylesheet = { styles: [] };
+
+        /**
+         * When the stylesheet IRI is changed, this function downloads new visual stylesheet.
+         * */
+        @Watch('configuration.stylesheet')
+        private async stylesheetUpdated() {
+            // For now, only the first stylesheet is supported
+            if (this.configuration?.stylesheet?.length > 0) {
+                try {
+                    this.visualStyleSheet = await this.graph.server.getStylesheet(this.configuration.stylesheet[0]);
+                } catch (e) {
+                    console.warn("Error occurred while fetching the stylesheet.\nCheck the correctness of the IRI, configuration IRI, URL of remote server or the internet connection.\nStyles will be emptied.");
+                    this.visualStyleSheet.styles = [];
+                }
+            } else {
+                this.visualStyleSheet.styles = [];
+            }
+        }
+
+        //#endregion Visual Style sheet variable and update logic
 
         //#region References to components used in Application
 
@@ -353,7 +378,8 @@
         private leftOffset: number = 56; // Collapsed width of Vuetify v-navigation-drawer
 
         // Whether the item "Language" is opened with all the available languages
-        private languageMenuActive: boolean = false; // This variable is used
+        // noinspection JSUnusedLocalSymbols
+        private languageMenuActive: boolean = false;
 
         /**
          * If is opened the panel with hidden nodes
@@ -388,63 +414,24 @@
         };
 
         /**
-         * Function to create a new graph (and discard old one).
-         */
-        createGraph() {
-            this.areaManipulator.optimizeRemoveWholeGraph();
-            this.graph = new Graph();
-            this.updateFetcher();
-        }
-
-        /**
-         * Function to update graph fetcher.
-         *
-         * Is automatically called when remote URL is changed
-         */
-        @Watch('remoteURL')
-        updateFetcher() {
-            this.graph.fetcher = new DataGraphFetcher(this.remoteURL, this.dataSource?.configuration);
-        }
-
-        async fetchStylesheet() {
-            try {
-                this.stylesheet = await this.graph.fetcher.getStylesheet(this.dataSource.stylesheet);
-            } catch (e) {
-                console.warn("Error occurred while fetching the stylesheet.\nCheck the correctness of the IRI, configuration IRI, URL of remote server or the internet connection.\nStyles will be emptied.");
-                this.stylesheet.styles = [];
-            }
-        }
-
-        /**
-         * When graph is changed, change it also in all dependent classes.
-         * Todo still in work. #DependencyInjection
+         * Creates new graph according to configuration and discards the old one.
          * */
-        @Watch('graph', {immediate: true})
-        private graphChanged(graph: Graph) {
-            if (this.areaManipulator) this.areaManipulator.graph = graph;
-            this.layouts.graphChanged(graph);
-        }
+        @Watch('configuration.iri')
+        @Watch('areaManipulator')
+        private createNewGraph() {
+            if (this.configuration.iri && this.areaManipulator) {
+                this.graph = new Graph();
+                this.graph.server = this.server;
 
-        /**
-         * Called by GraphArea component when cytoscape instance is mounted.
-         * */
-        private areaManipulatorUpdated(manipulator: GraphAreaManipulator) {
-            this.areaManipulator = manipulator;
-            this.areaManipulator.graph = this.graph;
+                this.areaManipulator.graph = this.graph;
+                this.layouts.graphChanged(this.graph);
+                this.layouts.graphAreaManipulatorChanged(this.areaManipulator);
 
-            this.layouts.graphAreaManipulatorChanged(this.areaManipulator);
-            this.areaManipulator.layoutManager = this.layouts;
-
-            this.createNewManipulator()
-        }
-
-        @Watch('graph')
-        private createNewManipulator() {
-            if (this.graph && this.areaManipulator) {
                 this.manipulator = new GraphManipulator(this.graph, this.areaManipulator, this.layouts);
             }
         }
 
+        // noinspection JSUnusedGlobalSymbols
         /**
          * Vue method called when component is created
          */
@@ -469,8 +456,6 @@
          * Vue method called when everything is mounted
          */
         mounted() {
-            this.configurationStylesheetDialog.show();
-
             // Add watcher after the components are mounted
             this.$watch(
                 () => {return (this.bar as any).computedWidth},
@@ -478,19 +463,20 @@
             );
         }
 
-        configurationStylesheetUpdated(update: { configuration: string, stylesheet: string, resource: string } | DataSource) {
-            let fullUpdate = update.configuration !== this.dataSource?.configuration;
-            let stylesheetUpdated = update.stylesheet !== this.dataSource?.stylesheet;
-            this.dataSource = update;
-
-            if (fullUpdate) {
-                this.createGraph();
-                this.filter.reset();
-            }
-            if (stylesheetUpdated) this.fetchStylesheet();
-
-            if (fullUpdate) this.addNode.show(update.resource ?? null);
-        }
+        dataSource: DataSource = null;
+        // configurationStylesheetUpdated(update: { configuration: string, stylesheet: string, resource: string } | DataSource) {
+        //     let fullUpdate = update.configuration !== this.dataSource?.configuration;
+        //     let stylesheetUpdated = update.stylesheet !== this.dataSource?.stylesheet;
+        //     this.dataSource = update;
+        //
+        //     if (fullUpdate) {
+        //         this.createGraph();
+        //         this.filter.reset();
+        //     }
+        //     if (stylesheetUpdated) this.fetchStylesheet();
+        //
+        //     if (fullUpdate) this.addNode.show(update.resource ?? null);
+        // }
 
         /**
          * GraphSearcher can search nodes in current graph, in remote server or construct IRI from ID.
@@ -537,6 +523,12 @@
         }
 
         //#endregion Check if nodes from graph are selected or a single node from group
+
+        public constructor() {
+            super();
+            this.server.remoteUrl = ApplicationConfiguration.api;
+            this.configurationManager.remoteServer = this.server;
+        }
     }
 </script>
 <style>

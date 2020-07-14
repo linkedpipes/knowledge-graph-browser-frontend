@@ -3,7 +3,7 @@
         <v-card>
                 <v-card flat class="container rounded-0">
                     <!-- In this div user can chose a configuration -->
-                    <div class="metaconfigurations" v-if="!configuration && !customPanel">
+                    <div class="metaconfigurations" v-if="!configuration && !customPanel && metaconfiguration">
                         <h1>Configuration selection</h1>
 
                         <v-breadcrumbs :items="breadcrumbsData" v-if="breadcrumbsData" class="pb-0">
@@ -15,8 +15,14 @@
                             </template>
                         </v-breadcrumbs>
 
-                        <v-card-title class="pb-0 px-0">{{metaconfiguration.title["cs"]}}</v-card-title>
-                        <v-card-text class="px-0">{{metaconfiguration.description["cs"]}}</v-card-text>
+                        <div v-if="$te_literal(metaconfiguration.title)">
+                            <v-card-title class="pb-0 px-0">{{$t_literal(metaconfiguration.title)}}</v-card-title>
+                            <v-card-text class="px-0">{{$t_literal(metaconfiguration.description)}}</v-card-text>
+                        </div>
+                        <div v-else>
+                            <v-card-title class="pb-0 px-0">Unnamed metaconfiguration</v-card-title>
+                            <v-card-text class="px-0 text--disabled">{{metaconfiguration.iri}}</v-card-text>
+                        </div>
 
                         <div class="text-center">
                             <v-progress-circular v-if="!metaconfiguration.isLoaded" indeterminate color="primary" />
@@ -46,26 +52,8 @@
                         </v-card-actions>
                     </div>
 
-                    <!-- This div is visible when user selects a configuration -->
-                    <div class="nodeSelection" v-if="configuration && !customPanel">
-                        <h1>{{configuration.title["cs"]}}</h1>
-                        <p class="text--disabled">{{configuration.description["cs"]}}</p>
-
-                        <div class="card-list">
-                            <v-card outlined v-for="iri in configuration.startingNode" :key="iri" @click="alert()">
-                                <v-card-title>{{iri}}</v-card-title>
-                            </v-card>
-                        </div>
-
-                        <search-component v-if="configuration.autocomplete.length" />
-
-                        <v-card-actions>
-                            <div class="flex-grow-1"></div>
-                            <v-btn color="primary" text @click="configuration = null">Zpět na konfigurace</v-btn>
-                            <v-btn color="primary" text @click="dialog = false">Zrušit</v-btn>
-                        </v-card-actions>
-                    </div>
-
+                    <!-- This panel is for custom loading of meta configuration, configuration and for completely
+                    custom configuration -->
                     <div class="byHand" v-if="customPanel">
                         <h1>Configuration selection</h1>
                         <v-alert dismissible v-model="customShowAlert" :type="customPanelErrorSuccessType === 4 ? 'success' : 'error'" v-if="customPanelErrorSuccessType > 0">
@@ -75,20 +63,20 @@
                         <h2>Metaconfiguration</h2>
                         <v-row align="center">
                             <v-col cols="10">
-                                <v-text-field v-model="customMetaconfiguration" label="Metaconfiguration IRI" />
+                                <v-text-field v-model="customMetaConfiguration" label="Metaconfiguration IRI" />
                             </v-col>
                             <v-col cols="2">
-                                <v-btn outlined block :loading="customMetaconfigurationLoading" @click="customLoadMetaconfiguration()">Load</v-btn>
+                                <v-btn outlined block :loading="customMetaConfigurationLoading" @click="customLoadMetaConfiguration()">Load</v-btn>
                             </v-col>
                         </v-row>
 
                         <h2>Configuration</h2>
                         <v-row align="center">
                             <v-col cols="10">
-                                <v-text-field label="Configuration IRI" />
+                                <v-text-field v-model="customConfigurationIRI" label="Configuration IRI" />
                             </v-col>
                             <v-col cols="2">
-                                <v-btn outlined block>Load</v-btn>
+                                <v-btn outlined block :loading="customConfigurationLoading" @click="customLoadConfiguration">Load</v-btn>
                             </v-col>
                         </v-row>
 
@@ -103,11 +91,38 @@
                         </v-row>
                         <v-text-field v-model="customCustomConfigurationStylesheet" label="Stylesheet IRI" />
                         <v-textarea v-model="customCustomConfigurationAutocomplete" auto-grow rows="1" label="Autocomplete .json file(s)" />
-                        <v-btn outlined block>Confirm</v-btn>
+                        <v-btn outlined block @click="customCustomConfigurationConfirm">Confirm</v-btn>
 
                         <v-card-actions>
                             <div class="flex-grow-1"></div>
                             <v-btn color="primary" text @click="customPanel = false">Zpět</v-btn>
+                            <v-btn color="primary" text @click="dialog = false">Zrušit</v-btn>
+                        </v-card-actions>
+                    </div>
+
+                    <!-- This div is visible when user selects a configuration -->
+                    <div class="nodeSelection" v-if="configuration && !customPanel">
+                        <h1>{{configuration.title["cs"]}}</h1>
+                        <p class="text--disabled">{{configuration.description["cs"]}}</p>
+
+                        <h2>Choose a node from which to start</h2>
+
+                        <div v-if="configuration.startingNode && configuration.startingNode.length">
+                            <h3>Predefined nodes</h3>
+                            <div class="card-list">
+                                <v-card outlined v-for="iri in configuration.startingNode" :key="iri" @click="nodeSelectionSelectNode(iri)">
+                                    <v-card-title>{{iri}}</v-card-title>
+                                </v-card>
+                            </div>
+                        </div>
+
+                        <search-component
+                            :graph-searcher="graphSearcher"
+                            @searched="nodeSelectionSelectNode($event)"
+                        />
+                        <v-card-actions>
+                            <div class="flex-grow-1"></div>
+                            <v-btn color="primary" text @click="configuration = null">Zpět na konfigurace</v-btn>
                             <v-btn color="primary" text @click="dialog = false">Zrušit</v-btn>
                         </v-card-actions>
                     </div>
@@ -117,13 +132,21 @@
 </template>
 
 <script lang="ts">
-import {Component, Prop} from "vue-property-decorator";
+    import {Component, Emit, Prop, Watch} from "vue-property-decorator";
 import Vue from "vue";
 import Metaconfiguration from "../configurations/Metaconfiguration";
 import { mdiChevronRight, mdiHome } from '@mdi/js';
 import Configuration from "../configurations/Configuration";
 import SearchComponent from "./SearchComponent.vue";
 import ConfigurationManager from "../configurations/ConfigurationManager";
+    import {Graph} from "../graph/Graph";
+    import {RemoteServer} from "../remote-server/RemoteServer";
+    import GraphSearcher from "../searcher/GraphSearcher";
+    import Searcher from "../searcher/Searcher";
+    import LocalGraphSearcher from "../searcher/searchers/LocalGraphSearcher";
+    import SimpleJsonSearcher from "../searcher/searchers/SimpleJsonSearcher";
+    import IRIConstructorSearcher from "../searcher/searchers/IRIConstructorSearcher";
+    import IRIIdentitySearcher from "../searcher/searchers/IRIIdentitySearcher";
 @Component({
     components: {SearchComponent}
 })
@@ -135,6 +158,19 @@ export default class ConfigurationChooserComponent extends Vue {
     private configuration: Configuration = null;
     private customPanel: boolean = false;
     private breadcrumbs: Metaconfiguration[] = [];
+
+    /**
+     * Emits event of changing the configuration.
+     * @param configuration new configuration which should replace the old one
+     * @param newGraph whether the old graph should be discarded.
+     * */
+    @Emit()
+    private ConfigurationUpdate(configuration: Configuration, newGraph: boolean) {
+        return {
+            configuration,
+            newGraph,
+        }
+    }
 
     /**
      * 0 - no error
@@ -156,6 +192,7 @@ export default class ConfigurationChooserComponent extends Vue {
 
     @Prop() defaultMetaconfiguration: Metaconfiguration;
     @Prop() configurationManager: ConfigurationManager;
+    @Prop() remoteServer !: RemoteServer;
 
     private icons = {
         breadcrumbSeparator: mdiChevronRight,
@@ -200,36 +237,82 @@ export default class ConfigurationChooserComponent extends Vue {
         }
     }
 
-    private customMetaconfigurationLoading: boolean = false;
-    private customMetaconfiguration: string = "";
-    private async customLoadMetaconfiguration() {
+    //#region Custom panel / meta configurations
+
+    // Whether loading is in process
+    private customMetaConfigurationLoading: boolean = false;
+
+    // IRI of the loaded metaconfiguration
+    private customMetaConfiguration: string = "";
+
+    // On button click
+    private async customLoadMetaConfiguration() {
         this.customPanelErrorSuccessType = 0;
-        this.customMetaconfigurationLoading = true;
-        let mconf = this.configurationManager.getOrCreateMetaconfiguration(this.customMetaconfiguration);
-        await mconf.sync(["cs"]);
-        this.customMetaconfigurationLoading = false;
+        this.customMetaConfigurationLoading = true;
+        let metaConfiguration = this.configurationManager.getOrCreateMetaconfiguration(this.customMetaConfiguration);
+        await metaConfiguration.sync(["cs"]);
+        this.customMetaConfigurationLoading = false;
         this.customPanel = false;
-        this.metaconfiguration = mconf;
-        this.customMetaconfiguration = "";
+        this.metaconfiguration = metaConfiguration;
+        this.customMetaConfiguration = "";
     }
 
+    //#endregion Custom panel / meta configurations
+
+    //#region Custom panel / configuration
+
+    // Whether loading is in process
+    private customConfigurationLoading: boolean = false;
+
+    // IRI of the loaded metaconfiguration
+    private customConfigurationIRI: string = "";
+
+    // On button click
+    private async customLoadConfiguration() {
+        this.customPanelErrorSuccessType = 0;
+        this.customConfigurationLoading = true;
+        let configuration = this.configurationManager.getOrCreateConfiguration(this.customConfigurationIRI);
+        await configuration.sync(["cs"]);
+        this.customConfigurationLoading = false;
+        this.customPanel = false;
+        this.customConfigurationIRI = "";
+        this.configuration = configuration;
+    }
+
+    //#endregion Custom panel / configuration
+
+    //#region Custom panel / custom configuration
+
+    private customCustomConfigurationLoading: boolean = false;
 
     private customCustomConfigurationIRI: string = "";
+
     private customCustomConfigurationStylesheet: string = "";
     private customCustomConfigurationAutocomplete: string = "";
-    private customCustomConfigurationLoading: boolean = false;
+
     private async customCustomConfigurationLoad() {
         this.customPanelErrorSuccessType = 0;
-        this.customMetaconfigurationLoading = true;
+        this.customCustomConfigurationLoading = true;
         let conf = this.configurationManager.getOrCreateConfiguration(this.customCustomConfigurationIRI);
         await conf.sync(["cs"]);
-        this.customMetaconfigurationLoading = false;
+        this.customCustomConfigurationLoading = false;
         this.customShowAlert = true;
         this.customPanelErrorSuccessType = 4;
 
         this.customCustomConfigurationStylesheet = conf.stylesheet.length ? conf.stylesheet[0] : null;
         this.customCustomConfigurationAutocomplete = conf.autocomplete.join('\n');
     }
+
+    private customCustomConfigurationConfirm() {
+        let configuration = new Configuration(this.customCustomConfigurationIRI, null);
+        configuration.autocomplete = this.customCustomConfigurationAutocomplete.split('\n');
+        configuration.stylesheet = [this.customCustomConfigurationStylesheet];
+
+        this.configuration = configuration;
+        this.customPanel = false;
+    }
+
+    //#endregion Custom panel / custom configuration
 
     public show() {
         if (!this.metaconfiguration) {
@@ -241,6 +324,42 @@ export default class ConfigurationChooserComponent extends Vue {
 
     close() {
         this.dialog = false;
+    }
+
+    @Watch('configuration')
+    private configurationChanged() {
+        if (this.configuration) {
+            this.initializeGraph();
+        }
+    }
+
+    private graph: Graph = null;
+    private graphSearcher: GraphSearcher = null;
+
+    private initializeGraph() {
+        this.graph = new Graph();
+        this.graph.server = this.remoteServer;
+        this.graph.configuration = this.configuration;
+
+        // Initialize graph searcher
+
+        let searchers: Searcher[] = [];
+        if (this.configuration.autocomplete) {
+            for (let url of this.configuration.autocomplete) {
+                searchers.push(new SimpleJsonSearcher(url));
+            }
+        }
+        // if (this.dataSource.iri_by_id) searchers.push(new IRIConstructorSearcher(this.dataSource.iri_by_id.template, new RegExp(this.dataSource.iri_by_id.id_structure)));
+        searchers.push(new IRIIdentitySearcher(this.configuration.resourcePattern ? new RegExp(this.configuration.resourcePattern) : null));
+        this.graphSearcher = new GraphSearcher(searchers);
+    }
+
+    /**
+     * Final method which selects
+     * @param iri
+     */
+    private nodeSelectionSelectNode(iri: string) {
+        console.log("Clicked on node", iri);
     }
 }
 </script>

@@ -76,7 +76,7 @@ import GraphElementNode from "./GraphElementNode.vue";
 import GraphElementEdge from "./GraphElementEdge";
 import Cytoscape from "cytoscape";
 import {Emit, Mixins, Prop, Watch} from "vue-property-decorator";
-import {ResponseStylesheet} from "../../graph-fetcher/response-interfaces";
+import {ResponseStylesheet} from "../../remote-server/ResponseInterfaces";
 import {Graph} from "../../graph/Graph";
 import {mdiPlus, mdiMinus, mdiArrowExpandAll, mdiChartBubble, mdiArrowDecisionOutline} from '@mdi/js';
 import SearchComponent from "../SearchComponent.vue";

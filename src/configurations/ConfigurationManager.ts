@@ -1,10 +1,10 @@
 import Configuration from "./Configuration";
 import Metaconfiguration from "./Metaconfiguration";
-import {DataGraphFetcher} from "../graph-fetcher/DataGraphFetcher";
+import {RemoteServer} from "../remote-server/RemoteServer";
 import Vue from "vue";
 
 export default class ConfigurationManager {
-    public fetcher: DataGraphFetcher = null;
+    public remoteServer: RemoteServer = null;
 
     private configurations: {[iri: string]: Configuration} = {};
     private metaconfigurations: {[iri: string]: Metaconfiguration} = {};
