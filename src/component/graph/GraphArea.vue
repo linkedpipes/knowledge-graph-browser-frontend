@@ -82,7 +82,6 @@ import {mdiPlus, mdiMinus, mdiArrowExpandAll, mdiChartBubble, mdiArrowDecisionOu
 import SearchComponent from "../SearchComponent.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import ViewOptions from "../../graph/ViewOptions";
-import {DataSource} from "../../DataSource";
 import GraphSearcher from "../../searcher/GraphSearcher";
 import GraphManipulator from "../../graph/GraphManipulator";
 import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
@@ -109,7 +108,6 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	@Prop() leftOffset: number;
 	@Prop() rightOffset: number;
 	@Prop() viewOptions: ViewOptions;
-	@Prop() dataSource: DataSource;
 	@Prop() private graphSearcher: GraphSearcher;
 	@Prop() private manipulator: GraphManipulator;
 	@Prop(Object) private areaManipulator: GraphAreaManipulator;

@@ -22,9 +22,9 @@ export default class Configuration {
     public resourcePattern: string = null;
 
     /**
-     * Map of languages and its promises. If the promise is fulfilled, it contains true.
+     * Map of languages and its promises. If the promise is fulfilled, it contains true or false.
      */
-    private promises: {[lang: string]: Promise<void>|true} = {};
+    private promises: {[lang: string]: Promise<boolean>|boolean} = {};
 
     public get isLoaded(): boolean {
         for (let lang in this.promises) {
@@ -39,7 +39,7 @@ export default class Configuration {
      * @param languages Languages you require
      * @param clear Removes everything and makes new fetch
      */
-    public async sync(languages: string[], clear: boolean = false) {
+    public async sync(languages: string[], clear: boolean = false): Promise<boolean> {
         if (clear) {
             this.title = {};
             this.description = {};
@@ -52,7 +52,7 @@ export default class Configuration {
 
         let notPresentedLanguages = [];
         for (let language of languages) { // We are doing it just for the title, ignoring description
-            if (!this.promises.hasOwnProperty(language)) notPresentedLanguages.push(language);
+            if (!this.promises.hasOwnProperty(language) || this.promises[language] === false) notPresentedLanguages.push(language);
         }
 
         if (notPresentedLanguages.length) {
@@ -62,20 +62,23 @@ export default class Configuration {
             }
 
             // Simplification: we will wait only for current languages, not all
-            await this.promises[notPresentedLanguages[0]];
+            return await promise;
         }
+
+        return true;
     }
 
     /**
      * Sends request to server to get data
      * Meant to be called only from sync() method
      */
-    private async fetch(languages: string[]) {
+    private async fetch(languages: string[]): Promise<boolean> {
         let data = await this.manager.remoteServer.getConfiguration(this.iri, languages);
-        this.merge(data);
         for (let lang of languages) {
-            this.promises[lang] = true;
+            this.promises[lang] = data !== false;
         }
+        if (data !== false) this.merge(data);
+        return data !== false;
     }
 
     public merge(serverData: ResponseConfiguration) {

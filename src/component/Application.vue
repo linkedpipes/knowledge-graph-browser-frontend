@@ -3,7 +3,6 @@
         <v-content class="d-flex flex-grow-1" style="overflow: hidden;">
             <graph-area
                     :graph="graph"
-                    :data-source="dataSource"
                     :stylesheet="visualStyleSheet"
                     :left-offset="leftOffset"
                     :right-offset="rightOffset"
@@ -40,9 +39,6 @@
 
                     <v-divider></v-divider>
 
-                    <v-list-item link @click="configurationChooser.show()"><v-list-item-icon><v-icon>{{ icons.add }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>confchoose</v-list-item-title></v-list-item-content></v-list-item>
-
-
                     <v-list-item link @click="$refs.addNode.show()"><v-list-item-icon><v-icon>{{ icons.add }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.add_nodes") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="$refs.filterDialog.show()"><v-list-item-icon><v-badge overlap :value="filter.active" :content="filter.active"><v-icon>{{ icons.filter }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="$refs.viewOptionsDialog.show()"><v-list-item-icon><v-badge dot :value="viewOptions.active"><v-icon>{{ icons.viewOptions }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.view_options") }}</v-list-item-title></v-list-item-content></v-list-item>
@@ -53,7 +49,7 @@
 
                     <v-list-item link @click="doLoadFromFileProcess()" ><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="saveToFile()"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.save") }}</v-list-item-title></v-list-item-content></v-list-item>
-                    <v-list-item link @click="$refs.configurationStylesheetDialog.show()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="openConfigurationChooser()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
 
@@ -96,16 +92,6 @@
         <save-dialog
                 ref="saveDialog"
         />
-        <configuration-stylesheet-dialog
-                ref="configurationStylesheetDialog"
-                :oldConfiguration="dataSource ? dataSource.configuration : null"
-                :oldStylesheet="dataSource ? dataSource.stylesheet : null"
-
-                :hasUnsavedChanges="hasUnsavedChanges"
-                :saveDialog="saveDialog"
-                :saveFunction="saveToFile"
-                @requestLoadFromFile="doLoadFromFileProcess"
-        />
         <vue-filter-component-creator
                 :graph="graph"
                 :filter="filter"
@@ -142,7 +128,7 @@
             :graph-searcher="graphSearcher"
             :graph="graph"
             :graph-manipulator="manipulator"
-            @configuration-update="temp1($event)"
+            @configuration-update="changeConfiguration($event)"
         />
     </v-app>
 </template>
@@ -150,7 +136,6 @@
 <script lang="ts">
     import GraphArea from './graph/GraphArea.vue';
     import AddNode from './AddNode.vue';
-    import ConfigurationStylesheetDialog from './ConfigurationStylesheetDialog.vue';
     import { RemoteServer } from '../remote-server/RemoteServer';
     import { Graph } from '../graph/Graph';
     import SidePanel from './side-panel/SidePanel.vue';
@@ -161,7 +146,6 @@
     import {LocaleMessage} from "vue-i18n";
     import {Mixins, Ref, Watch} from "vue-property-decorator";
     import {ResponseStylesheet} from "../remote-server/ResponseInterfaces";
-    import {DataSource} from "../DataSource";
 
     import {
         mdiPlusThick,
@@ -224,18 +208,11 @@
             GraphArea,
             AddNode,
             SidePanel,
-            ConfigurationStylesheetDialog,
             SaveDialog,
             FilterDialog,
         }
     })
     export default class Application extends Mixins(ApplicationLoadStoreMixin) {
-        private temp1(data: any) {
-            this.configuration = data.configuration;
-            this.createNewGraph();
-        }
-
-
         modeCompact: boolean = false;
 
         /**
@@ -368,7 +345,6 @@
         @Ref() readonly addNode !: AddNode;
         @Ref() readonly filterDialog !: FilterDialog;
         @Ref() readonly saveDialog !: SaveDialog;
-        @Ref() readonly configurationStylesheetDialog !: ConfigurationStylesheetDialog;
         @Ref() readonly bar !: typeof VNavigationDrawer;
         @Ref() readonly languageMenu !: typeof VListGroup;
         @Ref() readonly settingsDialog !: SettingsDialog;
@@ -418,6 +394,21 @@
         };
 
         /**
+         * When clicked on button to open configuration chooser
+         * */
+        private openConfigurationChooser() {
+            this.configurationChooser.show();
+        }
+
+        private changeConfiguration(data: {
+            configuration: Configuration,
+            newGraph: boolean,
+        }) {
+            this.configuration = data.configuration;
+            this.createNewGraph();
+        }
+
+        /**
          * Creates new graph according to configuration and discards the old one.
          * */
         private createNewGraph() {
@@ -430,6 +421,7 @@
             this.graph.configuration = this.configuration;
 
             this.areaManipulator.graph = this.graph;
+            this.areaManipulator.layoutManager = this.layouts;
             this.layouts.graphChanged(this.graph);
             this.layouts.graphAreaManipulatorChanged(this.areaManipulator);
 
@@ -468,23 +460,10 @@
                 () => {return (this.bar as any).computedWidth},
                 (val) => {this.leftOffset = val;}
             );
+
+            // Open configuration chooser
+            this.openConfigurationChooser();
         }
-
-        dataSource: DataSource = null;
-        // configurationStylesheetUpdated(update: { configuration: string, stylesheet: string, resource: string } | DataSource) {
-        //     let fullUpdate = update.configuration !== this.dataSource?.configuration;
-        //     let stylesheetUpdated = update.stylesheet !== this.dataSource?.stylesheet;
-        //     this.dataSource = update;
-        //
-        //     if (fullUpdate) {
-        //         this.createGraph();
-        //         this.filter.reset();
-        //     }
-        //     if (stylesheetUpdated) this.fetchStylesheet();
-        //
-        //     if (fullUpdate) this.addNode.show(update.resource ?? null);
-        // }
-
         /**
          * GraphSearcher can search nodes in current graph, in remote server or construct IRI from ID.
          */

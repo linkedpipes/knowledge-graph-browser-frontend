@@ -4,7 +4,7 @@
                 <v-card flat class="container rounded-0">
                     <!-- In this div user can chose a configuration -->
                     <div class="metaconfigurations" v-if="!configuration && !customPanel && metaconfiguration">
-                        <h1>Configuration selection</h1>
+                        <h1>{{ $t("configuration_selection.meta_configuration.title") }}</h1>
 
                         <v-breadcrumbs :items="breadcrumbsData" v-if="breadcrumbsData" class="pb-0">
                             <template v-slot:divider>
@@ -20,17 +20,17 @@
                             <v-card-text class="px-0">{{$t_literal(metaconfiguration.description)}}</v-card-text>
                         </div>
                         <div v-else>
-                            <v-card-title class="pb-0 px-0">Unnamed metaconfiguration</v-card-title>
+                            <v-card-title class="pb-0 px-0">{{ $t("configuration_selection.meta_configuration.unnamed") }}</v-card-title>
                             <v-card-text class="px-0 text--disabled">{{metaconfiguration.iri}}</v-card-text>
                         </div>
 
                         <div class="text-center" v-if="!metaconfiguration.isLoaded">
                             <v-progress-circular indeterminate color="primary" />
-                            <v-card-text class="px-0 text--disabled">Loading meta configuration info...</v-card-text>
+                            <v-card-text class="px-0 text--disabled">{{ $t("configuration_selection.meta_configuration.loading") }}</v-card-text>
                         </div>
 
                         <div class="d-flex mx-2">
-                            <v-card outlined v-for="child in metaconfiguration.metaconfigurations" :key="child.iri" class="ma-2 pa-1" max-width="200" @click="selectChildMetaconfiguration(child)">
+                            <v-card outlined v-for="child in metaconfiguration.metaconfigurations" :key="child.iri" class="ma-2 pa-1" max-width="200" @click="selectMetaconfiguration(child)">
                                 <v-img class="white--text align-end" height="100px" contain :src="child.image"></v-img>
                                 <v-card-title class="pb-0">{{$t_literal(child.title)}}</v-card-title>
                                 <v-card-text class="text--primary">
@@ -46,59 +46,59 @@
                             </v-card>
                         </div>
                         <v-card-actions>
-                            <v-btn color="primary" text @click="customPanel = true">Zadat ručně</v-btn>
-                            <v-btn color="primary" text @click="dialog = false">Otevřít ze souboru</v-btn>
+                            <v-btn color="primary" text @click="customPanel = true">{{ $t("configuration_selection.custom_panel.button") }}</v-btn>
+                            <v-btn color="primary" text @click="dialog = false">{{ $t("configuration_selection.open_from_file") }}</v-btn>
                             <div class="flex-grow-1"></div>
-                            <v-btn color="primary" text @click="dialog = false">Zavřít</v-btn>
+                            <v-btn color="primary" text @click="dialog = false">{{ $t("configuration_selection.close") }}</v-btn>
                         </v-card-actions>
                     </div>
 
                     <!-- This panel is for custom loading of meta configuration, configuration and for completely
                     custom configuration -->
                     <div class="byHand" v-if="customPanel">
-                        <h1>Configuration selection</h1>
+                        <h1>{{ $t("configuration_selection.custom_panel.title") }}</h1>
                         <v-alert dismissible v-model="customShowAlert" :type="customPanelErrorSuccessType === 4 ? 'success' : 'error'" v-if="customPanelErrorSuccessType > 0">
-                            {{$t('configuration_chooser.custom_panel_messages.' + customPanelErrorSuccessTypeMessage)}}
+                            {{$t('configuration_selection.custom_panel.messages.' + customPanelErrorSuccessTypeMessage)}}
                         </v-alert>
 
-                        <h2>Meta configuration</h2>
+                        <h2>{{ $t("configuration_selection.custom_panel.meta_configuration.title") }}</h2>
                         <v-row align="center">
                             <v-col cols="10">
-                                <v-text-field v-model="customMetaConfiguration" label="Metaconfiguration IRI" @keypress.enter="customLoadMetaConfiguration" />
+                                <v-text-field v-model="customMetaConfiguration" :label="$t('configuration_selection.custom_panel.meta_configuration.input')" @keypress.enter="customLoadMetaConfiguration()" />
                             </v-col>
                             <v-col cols="2">
-                                <v-btn outlined block :loading="customMetaConfigurationLoading" @click="customLoadMetaConfiguration">Load</v-btn>
+                                <v-btn outlined block :loading="customMetaConfigurationLoading" @click="customLoadMetaConfiguration()">{{ $t("configuration_selection.load") }}Load</v-btn>
                             </v-col>
                         </v-row>
 
-                        <h2>Configuration</h2>
+                        <h2>{{ $t("configuration_selection.custom_panel.configuration.title") }}</h2>
                         <v-row align="center">
                             <v-col cols="10">
-                                <v-text-field v-model="customConfigurationIRI" label="Configuration IRI" @keypress.enter="customLoadConfiguration"/>
+                                <v-text-field v-model="customConfigurationIRI" :label="$t('configuration_selection.custom_panel.meta_configuration.input')" @keypress.enter="customLoadConfiguration"/>
                             </v-col>
                             <v-col cols="2">
-                                <v-btn outlined block :loading="customConfigurationLoading" @click="customLoadConfiguration">Load</v-btn>
+                                <v-btn outlined block :loading="customConfigurationLoading" @click="customLoadConfiguration">{{ $t("configuration_selection.load") }}Load</v-btn>
                             </v-col>
                         </v-row>
 
-                        <h2>Custom configuration</h2>
+                        <h2>{{ $t("configuration_selection.custom_panel.custom_configuration.title") }}</h2>
                         <v-row align="center">
                             <v-col cols="10">
-                                <v-text-field v-model="customCustomConfigurationIRI" label="Configuration IRI" @keypress.enter="customCustomConfigurationLoad"/>
+                                <v-text-field v-model="customCustomConfigurationIRI" :label="$t('configuration_selection.custom_panel.custom_configuration.configuration')" @keypress.enter="customCustomConfigurationLoad"/>
                             </v-col>
                             <v-col cols="2">
-                                <v-btn outlined block :loading="customCustomConfigurationLoading" @click="customCustomConfigurationLoad">Load</v-btn>
+                                <v-btn outlined block :loading="customCustomConfigurationLoading" @click="customCustomConfigurationLoad">{{ $t("configuration_selection.load") }}Load</v-btn>
                             </v-col>
                         </v-row>
-                        <v-text-field v-model="customCustomConfigurationStylesheet" label="Stylesheet IRI" />
-                        <v-text-field v-model="customCustomConfigurationIriPattern" label="IRI pattern" />
-                        <v-textarea v-model="customCustomConfigurationAutocomplete" auto-grow rows="1" label="Autocomplete .json file(s)" />
-                        <v-btn outlined block @click="customCustomConfigurationConfirm">Confirm</v-btn>
+                        <v-text-field v-model="customCustomConfigurationStylesheet" :label="$t('configuration_selection.custom_panel.custom_configuration.stylesheet')" />
+                        <v-text-field v-model="customCustomConfigurationIriPattern" :label="$t('configuration_selection.custom_panel.custom_configuration.pattern')" />
+                        <v-textarea v-model="customCustomConfigurationAutocomplete" auto-grow rows="1" :label="$t('configuration_selection.custom_panel.custom_configuration.autocomplete')" />
+                        <v-btn outlined block @click="customCustomConfigurationConfirm">{{ $t("configuration_selection.custom_panel.custom_configuration.confirm") }}</v-btn>
 
                         <v-card-actions>
                             <div class="flex-grow-1"></div>
-                            <v-btn color="primary" text @click="customPanel = false">Zpět</v-btn>
-                            <v-btn color="primary" text @click="dialog = false">Zrušit</v-btn>
+                            <v-btn color="primary" text @click="customPanel = false">{{ $t("configuration_selection.back") }}</v-btn>
+                            <v-btn color="primary" text @click="dialog = false">{{ $t("configuration_selection.close") }}</v-btn>
                         </v-card-actions>
                     </div>
 
@@ -109,14 +109,14 @@
                             <p class="text--disabled">{{$t_literal(configuration.description)}}</p>
                         </div>
                         <div v-else>
-                            <h1>Unnamed configuration</h1>
+                            <h1>{{ $t("configuration_selection.node_selection.unnamed") }}</h1>
                             <p class="text--disabled">{{configuration.iri}}</p>
                         </div>
 
-                        <h2>Choose a node from which to start</h2>
+                        <h2>{{ $t("configuration_selection.node_selection.choose_message") }}</h2>
 
                         <div v-if="configuration.startingNode && configuration.startingNode.length">
-                            <h3>Predefined nodes</h3>
+                            <h3>{{ $t("configuration_selection.node_selection.predefined") }}</h3>
                             <div class="card-list">
                                 <v-card outlined v-for="iri in configuration.startingNode" :key="iri" @click="nodeSelectionSelectNode(iri)">
                                     <v-card-title>{{iri}}</v-card-title>
@@ -132,7 +132,7 @@
 
                         <div class="text-center" v-if="nodeSelectionLoading">
                             <v-progress-circular indeterminate color="primary" />
-                            <v-card-text class="px-0 text--disabled">Loading node...</v-card-text>
+                            <v-card-text class="px-0 text--disabled">{{ $t("configuration_selection.node_selection.loading") }}</v-card-text>
                         </div>
 
                         <v-alert dismissible v-if="nodeSelectionError" type="error">
@@ -141,8 +141,8 @@
 
                         <v-card-actions>
                             <div class="flex-grow-1"></div>
-                            <v-btn color="primary" text @click="configuration = null">Zpět na konfigurace</v-btn>
-                            <v-btn color="primary" text @click="dialog = false">Přejít ke grafu</v-btn>
+                            <v-btn color="primary" text @click="configuration = null">{{ $t("configuration_selection.back") }}</v-btn>
+                            <v-btn color="primary" text @click="dialog = false">{{ $t("configuration_selection.go_to_graph") }}</v-btn>
                         </v-card-actions>
                     </div>
                 </v-card>
@@ -245,10 +245,10 @@ export default class ConfigurationChooserComponent extends Vue {
         return result;
     }
 
-    private selectChildMetaconfiguration(metaconfiguration: Metaconfiguration) {
+    private selectMetaconfiguration(metaconfiguration: Metaconfiguration) {
         this.breadcrumbs.push(this.metaconfiguration);
         this.metaconfiguration = metaconfiguration;
-        this.metaconfiguration.sync(["cs"]);
+        this.metaconfiguration.sync(this.$i18nGetAllLanguages());
     }
 
     private returnInHistory(toIndex: number) {
@@ -260,6 +260,13 @@ export default class ConfigurationChooserComponent extends Vue {
             this.breadcrumbs = this.breadcrumbs.slice(0, toIndex);
         }
     }
+
+    //#region Custom panel
+    @Watch('customPanel')
+    private customPanelChanged() {
+        this.customShowAlert = false;
+    }
+    //#endregion Custom panel
 
     //#region Custom panel / meta configurations
 
@@ -274,11 +281,18 @@ export default class ConfigurationChooserComponent extends Vue {
         this.customPanelErrorSuccessType = 0;
         this.customMetaConfigurationLoading = true;
         let metaConfiguration = this.configurationManager.getOrCreateMetaconfiguration(this.customMetaConfiguration);
-        await metaConfiguration.sync(["cs"]);
+        let ok = await metaConfiguration.sync(this.$i18nGetAllLanguages());
+
+        this.customShowAlert = !ok;
+        this.customPanelErrorSuccessType = 1;
+
         this.customMetaConfigurationLoading = false;
-        this.customPanel = false;
-        this.metaconfiguration = metaConfiguration;
-        this.customMetaConfiguration = "";
+
+        if (ok) {
+            this.customPanel = false;
+            this.selectMetaconfiguration(metaConfiguration);
+            this.customMetaConfiguration = "";
+        }
     }
 
     //#endregion Custom panel / meta configurations
@@ -296,11 +310,18 @@ export default class ConfigurationChooserComponent extends Vue {
         this.customPanelErrorSuccessType = 0;
         this.customConfigurationLoading = true;
         let configuration = this.configurationManager.getOrCreateConfiguration(this.customConfigurationIRI);
-        await configuration.sync(["cs"]);
+        let ok = await configuration.sync(this.$i18nGetAllLanguages());
+
+        this.customShowAlert = !ok;
+        this.customPanelErrorSuccessType = 2;
+
         this.customConfigurationLoading = false;
-        this.customPanel = false;
-        this.customConfigurationIRI = "";
-        this.configuration = configuration;
+
+        if (ok) {
+            this.customPanel = false;
+            this.customConfigurationIRI = "";
+            this.configuration = configuration;
+        }
     }
 
     //#endregion Custom panel / configuration
@@ -319,14 +340,16 @@ export default class ConfigurationChooserComponent extends Vue {
         this.customPanelErrorSuccessType = 0;
         this.customCustomConfigurationLoading = true;
         let conf = this.configurationManager.getOrCreateConfiguration(this.customCustomConfigurationIRI);
-        await conf.sync(["cs"]);
+        let ok = await conf.sync(this.$i18nGetAllLanguages());
         this.customCustomConfigurationLoading = false;
         this.customShowAlert = true;
-        this.customPanelErrorSuccessType = 4;
+        this.customPanelErrorSuccessType = ok ? 4 : 3;
 
-        this.customCustomConfigurationStylesheet = conf.stylesheet.length ? conf.stylesheet[0] : null;
-        this.customCustomConfigurationIriPattern = conf.resourcePattern;
-        this.customCustomConfigurationAutocomplete = conf.autocomplete.join('\n');
+        if (ok) {
+            this.customCustomConfigurationStylesheet = conf.stylesheet.length ? conf.stylesheet[0] : null;
+            this.customCustomConfigurationIriPattern = conf.resourcePattern;
+            this.customCustomConfigurationAutocomplete = conf.autocomplete.join('\n');
+        }
     }
 
     private customCustomConfigurationConfirm() {
@@ -345,7 +368,9 @@ export default class ConfigurationChooserComponent extends Vue {
         if (!this.metaconfiguration) {
             this.metaconfiguration = this.defaultMetaconfiguration;
         }
-        this.metaconfiguration.sync(['cs']);
+        this.metaconfiguration.sync(this.$i18nGetAllLanguages());
+        this.configuration = null;
+        this.customPanel = false;
         this.dialog = true;
     }
 

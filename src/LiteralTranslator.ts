@@ -3,23 +3,26 @@ import Vue from 'vue';
 declare module 'vue/types/vue' {
     interface Vue {
         /**
-         * @see Vue.prototype.$t_literal
+         * Translates external object according to the current language.
+         * @param translations Map of language code and translation. `null` is valid translation, `undefined` not.
+         * @return Most suitable translation. First it is decided on `locale`, then on `fallbackLocale`, then the first
+         * valid translation is selected. If no translation found, `undefined` returned.
          */
-        $t_literal: typeof Vue.prototype.$t_literal;
+        $t_literal: (translations: {[language: string]: string}) => string|undefined;
 
         /**
-         * @see Vue.prototype.$te_literal
+         * Decides if the translation exists for `$t_literal` function.
+         * @see Vue.prototype.$t_literal
          */
-        $te_literal: typeof Vue.prototype.$te_literal;
+        $te_literal: (translations: {[language: string]: string}) => boolean;
+
+        /**
+         * Array of the current language and all fallbacks
+         */
+        $i18nGetAllLanguages: () => string[];
     }
 }
 
-/**
- * Translates external object according to the current language.
- * @param translations Map of language code and translation. `null` is valid translation, `undefined` not.
- * @return Most suitable translation. First it is decided on `locale`, then on `fallbackLocale`, then the first
- * valid translation is selected. If no translation found, `undefined` returned.
- */
 Vue.prototype.$t_literal = function(translations: {[language: string]: string}): string|undefined {
     if (!translations) return undefined;
     if (translations.hasOwnProperty(this.$i18n.locale) && translations[this.$i18n.locale] !== undefined) return translations[this.$i18n.locale];
@@ -37,14 +40,18 @@ Vue.prototype.$t_literal = function(translations: {[language: string]: string}):
     return undefined;
 };
 
-/**
- * Decides if the translation exists for `$t_literal` function.
- * @see Vue.prototype.$t_literal
- */
 Vue.prototype.$te_literal = function(translations: {[language: string]: string}): boolean {
     if (!translations) return false;
     for (let language in translations) {
         if (translations[language] !== undefined) return true;
     }
     return false;
+};
+
+Vue.prototype.$i18nGetAllLanguages = function(): string[] {
+    if (typeof this.$i18n.fallbackLocale === "string") {
+        return [this.$i18n.locale, this.$i18n.fallbackLocale];
+    }
+
+    return [this.$i18n.locale];
 };

@@ -230,3 +230,40 @@ layout_dialog:
 
 graph:
   groupNode: single node | {n} resources
+
+configuration_selection:
+  meta_configuration:
+    title: Configuration selection
+    unnamed: Unnamed metaconfiguration
+    loading: Loading meta configuration info...
+  custom_panel:
+    title: Configuration selection
+    button: Set by hand
+    meta_configuration:
+      title: Meta configuration
+      input: Metaconfiguration IRI
+    configuration:
+      title: Configuration
+      input: Configuration IRI
+    custom_configuration:
+      title: Custom configuration
+      configuration: Configuration IRI
+      stylesheet: Stylesheet IRI
+      pattern: IRI pattern
+      autocomplete: Autocomplete .json file(s)
+      confirm: Confirm
+    messages:
+      metaconfiguration_failed: Failed to load meta configuration. Please check IRI for mistakes.
+      configuration_failed:  Failed to load configuration. Please check IRI for mistakes.
+      custom_configuration_failed: Failed to load configuration. Please check IRI for mistakes. You can still fill parameters by hand.
+      custom_configuration_succeeded: Configuration loaded successfully. You can change parameters and then use the configuration.
+  node_selection:
+    unnamed: Unnamed configuration
+    choose_message: Choose a starting node
+    predefined: Predefined nodes
+    loading: Loading node...
+  open_from_file: Open from file
+  load: Load
+  close: Close
+  back: Back
+  go_to_graph: Go to graph
