@@ -13,6 +13,27 @@
 
     <body>
         <div id="app"></div>
+        <div id="welcomeScreen" style="
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: #363636;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            opacity: 1;
+            transition: opacity .5s ease;
+        ">
+            <div>
+                <h1 style="padding: 1em;">Knowledge graph visual browser</h1>
+                <h2>The page is loading...</h2>
+            </div>
+        </div>
         <script src="./dist/bundle.js"></script>
     </body>
 </html>

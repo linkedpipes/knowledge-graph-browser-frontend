@@ -6,11 +6,12 @@ import ViewOptions from "../graph/ViewOptions";
 import {Graph} from "../graph/Graph";
 import {ResponseStylesheet} from "../remote-server/ResponseInterfaces";
 import clone from "clone";
-import {DataSource} from "../DataSource";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
 import SaveDialog from "./SaveDialog.vue";
 import LoadDialog from "./LoadDialog.vue";
 import {LayoutManager} from "../layout/LayoutManager";
+import Configuration from "../configurations/Configuration";
+import ConfigurationManager from "../configurations/ConfigurationManager";
 
 @Component export default class ApplicationLoadStoreMixin extends Vue implements ObjectSave {
     graph: Graph;
@@ -18,29 +19,37 @@ import {LayoutManager} from "../layout/LayoutManager";
     layouts: LayoutManager;
     viewOptions: ViewOptions;
     visualStyleSheet: ResponseStylesheet;
-    dataSource: DataSource;
+    configuration: Configuration;
+    configurationManager: ConfigurationManager
     areaManipulator !: GraphAreaManipulator;
 
     readonly saveDialog !: SaveDialog;
     readonly loadDialog !: LoadDialog;
 
     /**
-     * If there are unsaved changes, it asks whether user wants to save them.
-     * Then it opens load dialog.
+     * When called it checks if changes are unsaved and opens the save window. If everything goes right, it calls
+     * callback to finish the operation (changing graph)
+     * @param modal Force to YES / NO (if false, cancel is possible)
+     * @param callback
      */
-    public doLoadFromFileProcess(): void {
+    protected askForSaveAndPerformAction(modal: boolean, callback: Function) {
         if (this.hasUnsavedChanges) {
             this.saveDialog.show(true).then(result => {
                 switch (result) {
                     case "yes":
                         this.saveToFile();
-                        // Fallthrough
+                        callback();
+                        break;
                     case "no":
-                        this.loadDialog.show();
+                        callback();
+                        break;
+                    case "back":
+                        // Do nothing
+                        break;
                 }
             });
         } else {
-            this.loadDialog.show();
+            callback();
         }
     }
 
@@ -48,8 +57,19 @@ import {LayoutManager} from "../layout/LayoutManager";
         let content = await file.text();
         let parsed = JSON.parse(content);
         this.restoreFromObject(parsed);
+    }
 
-        this.resetChangeCounter();
+    protected async loadFromUrl(url: string) {
+        let data: Response = null;
+        let object: Object = null;
+        try {
+            data = await fetch(url);
+            object = await data.json();
+        } catch (e) {
+            console.warn("Unable to load save file from URL", url, "Error", data.status, data.statusText);
+            return;
+        }
+        this.restoreFromObject(object);
     }
 
     protected async saveToFile() {
@@ -72,7 +92,7 @@ import {LayoutManager} from "../layout/LayoutManager";
             layouts: this.layouts.saveToObject(),
             viewOptions: this.viewOptions.saveToObject(),
             stylesheet: clone(this.visualStyleSheet),
-            dataSource: this.dataSource,
+            configuration: this.configuration.saveToObject(),
             area: this.areaManipulator.saveToObject(),
         };
     }
@@ -82,8 +102,17 @@ import {LayoutManager} from "../layout/LayoutManager";
      * @param object
      */
     restoreFromObject(object: any): void {
-        // First update a data source
-        this.dataSource = object.dataSource;
+        // First update a configuration
+        if (object.dataSource) {
+            // Support for 1.3.0 save files (used data sources instead of configurations)
+            // You can remove this branch in the future
+            this.configuration = new Configuration(object.dataSource.configuration,  this.configurationManager);
+            this.configuration.restoreFromObject_1_3_0_DataSource(object.dataSource);
+        } else {
+            // Up-to-date save file
+            this.configuration = new Configuration(object.configuration.iri,  this.configurationManager);
+            this.configuration.restoreFromObject(object.configuration);
+        }
 
         // Now we recreate all non important data because now the graph is empty
         if (object.filter) this.filter.restoreFromObject(object.filter); else this.filter.reset();
@@ -93,10 +122,12 @@ import {LayoutManager} from "../layout/LayoutManager";
         if (object.area) this.areaManipulator.restoreFromObject(object.area);
 
         // Recreate the graph again
-        this.createGraph();
+        this.createNewGraph(false);
 
         // Restore all nodes
         this.graph.restoreFromObject(object.graph);
+
+        this.resetChangeCounter();
     }
 
     protected hasUnsavedChanges: boolean = false;
@@ -139,8 +170,8 @@ import {LayoutManager} from "../layout/LayoutManager";
     }
 
     /**
-     * @see Application.createGraph
+     * @see Application.createNewGraph
      * @abstract
      */
-    createGraph() {};
+    protected createNewGraph(loadStylesheet: boolean = true) {};
 }

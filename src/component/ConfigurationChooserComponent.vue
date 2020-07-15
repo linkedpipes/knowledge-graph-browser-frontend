@@ -47,7 +47,7 @@
                         </div>
                         <v-card-actions>
                             <v-btn color="primary" text @click="customPanel = true">{{ $t("configuration_selection.custom_panel.button") }}</v-btn>
-                            <v-btn color="primary" text @click="dialog = false">{{ $t("configuration_selection.open_from_file") }}</v-btn>
+                            <v-btn color="primary" text @click="LoadFromFile">{{ $t("configuration_selection.open_from_file") }}</v-btn>
                             <div class="flex-grow-1"></div>
                             <v-btn color="primary" text @click="dialog = false">{{ $t("configuration_selection.close") }}</v-btn>
                         </v-card-actions>
@@ -190,6 +190,14 @@ export default class ConfigurationChooserComponent extends Vue {
             configuration,
             newGraph,
         }
+    }
+
+    /**
+     * Emits request to load data from file
+     * */
+    @Emit()
+    private LoadFromFile() {
+        this.close();
     }
 
     /**
@@ -364,14 +372,27 @@ export default class ConfigurationChooserComponent extends Vue {
 
     //#endregion Custom panel / custom configuration
 
-    public show() {
+    /**
+     * Shows the dialog.
+     * It is expected that all changes were saved and therefore the graph can be replaced
+     * */
+    public show(metaConfigurationIri: string = undefined) {
         if (!this.metaconfiguration) {
             this.metaconfiguration = this.defaultMetaconfiguration;
+        }
+        if (metaConfigurationIri) {
+            this.selectMetaconfiguration(this.configurationManager.getOrCreateMetaconfiguration(metaConfigurationIri));
         }
         this.metaconfiguration.sync(this.$i18nGetAllLanguages());
         this.configuration = null;
         this.customPanel = false;
         this.dialog = true;
+    }
+
+    public async showConfiguration(configurationIri: string) {
+        this.show();
+        this.configuration = this.configurationManager.getOrCreateConfiguration(configurationIri);
+        this.configuration.sync(this.$i18nGetAllLanguages());
     }
 
     close() {
@@ -402,8 +423,9 @@ export default class ConfigurationChooserComponent extends Vue {
             this.dialog = false;
         } else {
             this.nodeSelectionError = true;
-            this.nodeSelectionLoading = false;
         }
+
+        this.nodeSelectionLoading = true;
     }
 }
 </script>

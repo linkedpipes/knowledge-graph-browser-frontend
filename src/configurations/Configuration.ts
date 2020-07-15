@@ -4,8 +4,10 @@
 import {ResponseConfiguration} from "../remote-server/ResponseInterfaces";
 import assert from "assert";
 import ConfigurationManager from "./ConfigurationManager";
+import ObjectSave from "../file-save/ObjectSave";
+import clone from "clone";
 
-export default class Configuration {
+export default class Configuration implements ObjectSave {
     public readonly iri: string;
     private readonly manager: ConfigurationManager;
 
@@ -89,5 +91,41 @@ export default class Configuration {
         this.startingNode = [...new Set([...this.startingNode, ...serverData.starting_node])];
         this.autocomplete = [...new Set([...this.autocomplete, ...serverData.autocomplete])];
         this.resourcePattern = serverData.resource_pattern ?? this.resourcePattern;
+    }
+
+    saveToObject(): object {
+        return {
+            iri: this.iri,
+            title: clone(this.title),
+            description: clone(this.description),
+            stylesheet: clone(this.stylesheet),
+            startingNode: clone(this.startingNode),
+            autocomplete: clone(this.autocomplete),
+            resourcePattern: this.resourcePattern,
+        };
+    }
+
+    restoreFromObject(object: any): void {
+        this.title = object.title;
+        this.description = object.description;
+        this.stylesheet = object.stylesheet;
+        this.startingNode = object.startingNode;
+        this.autocomplete = object.autocomplete;
+        this.resourcePattern = object.resourcePattern;
+    }
+
+    /**
+     * Support of older version of save file.
+     * You can remote this function anytime later.
+     * @version 1.3.0
+     * @param object
+     */
+    restoreFromObject_1_3_0_DataSource(object: any): void {
+        this.title = object.name;
+        this.description = object.description;
+        if (object.stylesheet) this.stylesheet = [object.stylesheet];
+        if (object.resource) this.startingNode = [object.resource];
+        if (object.autocomplete) this.autocomplete = [object.autocomplete];
+        this.resourcePattern = object.iri_structure;
     }
 }

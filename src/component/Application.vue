@@ -47,7 +47,7 @@
 
                     <v-divider></v-divider>
 
-                    <v-list-item link @click="doLoadFromFileProcess()" ><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="askForSaveAndPerformAction(false, loadDialog.show)" ><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="saveToFile()"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.save") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="openConfigurationChooser()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title></v-list-item-content></v-list-item>
 
@@ -129,6 +129,7 @@
             :graph="graph"
             :graph-manipulator="manipulator"
             @configuration-update="changeConfiguration($event)"
+            @load-from-file="$refs.loadDialog.show()"
         />
     </v-app>
 </template>
@@ -323,8 +324,7 @@
         /**
          * When the stylesheet IRI is changed, this function downloads new visual stylesheet.
          * */
-        @Watch('configuration.stylesheet')
-        private async stylesheetUpdated() {
+        private async loadStylesheet() {
             // For now, only the first stylesheet is supported
             if (this.configuration?.stylesheet?.length > 0) {
                 try {
@@ -397,7 +397,9 @@
          * When clicked on button to open configuration chooser
          * */
         private openConfigurationChooser() {
-            this.configurationChooser.show();
+            this.askForSaveAndPerformAction(false, () => {
+                this.configurationChooser.show();
+            });
         }
 
         private changeConfiguration(data: {
@@ -411,10 +413,12 @@
         /**
          * Creates new graph according to configuration and discards the old one.
          * */
-        private createNewGraph() {
+        protected createNewGraph(loadStylesheet: boolean = true) {
             if (!this.areaManipulator) {
                 console.error("Creating a new graph, but areaManipulator still not exists.");
             }
+
+            if (loadStylesheet) this.loadStylesheet();
 
             this.graph = new Graph();
             this.graph.server = this.server;
@@ -455,14 +459,39 @@
          * Vue method called when everything is mounted
          */
         mounted() {
+            let hideWelcomeScreen = () => {
+                let screen = document.getElementById("welcomeScreen");
+                screen.style.opacity = '0';
+                window.setTimeout(() => {
+                    screen.remove();
+                }, 500);
+            };
+
             // Add watcher after the components are mounted
             this.$watch(
                 () => {return (this.bar as any).computedWidth},
                 (val) => {this.leftOffset = val;}
             );
 
-            // Open configuration chooser
-            this.openConfigurationChooser();
+            let url = new URL(window.location.href);
+
+            let load = url.searchParams.get('load');
+            let metaConfiguration = url.searchParams.get('meta-configuration');
+            let configuration = url.searchParams.get('configuration');
+
+            if (load) {
+                this.loadFromUrl(load).then(() => {hideWelcomeScreen();});
+            } else if (metaConfiguration) {
+                this.configurationChooser.show(metaConfiguration);
+                hideWelcomeScreen();
+            } else if (configuration) {
+                this.configurationChooser.showConfiguration(configuration);
+                hideWelcomeScreen();
+            } else {
+                // Open configuration chooser
+                this.openConfigurationChooser();
+                hideWelcomeScreen();
+            }
         }
         /**
          * GraphSearcher can search nodes in current graph, in remote server or construct IRI from ID.
