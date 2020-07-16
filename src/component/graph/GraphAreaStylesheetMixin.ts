@@ -101,6 +101,7 @@ export default class GraphAreaStylesheetMixin extends Vue {
     }
 
     private get finalStylesheet(): cytoscape.StylesheetStyle[] {
+        // @ts-ignore
         return [
             ...this.defaultStyles,
             ...this.remappedUserStylesheet,
@@ -109,7 +110,6 @@ export default class GraphAreaStylesheetMixin extends Vue {
                 selector: "*",
                 style: {
                     "opacity": 0.5,
-                    //@ts-ignore
                     "transition-property": "opacity",
                     "transition-duration": "0.25s",
                 }

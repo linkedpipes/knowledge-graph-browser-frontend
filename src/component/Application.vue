@@ -1,6 +1,6 @@
 <template>
     <v-app class="app">
-        <v-content class="d-flex flex-grow-1" style="overflow: hidden;">
+        <v-main class="d-flex flex-grow-1" style="overflow: hidden;">
             <graph-area
                     :graph="graph"
                     :stylesheet="visualStyleSheet"
@@ -68,7 +68,7 @@
                     <v-list-item link @click="$refs.settingsDialog.show()"><v-list-item-icon><v-icon>{{ icons.settings }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.settings") }}</v-list-item-title></v-list-item-content></v-list-item>
                 </v-list>
             </v-navigation-drawer>
-        </v-content>
+        </v-main>
 
         <v-footer v-if="false" dark padless>
             <v-card class="flex" flat tile>
@@ -562,7 +562,7 @@
         right: 0;
     }
 
-    .v-content__wrap {
+    .v-main__wrap {
         display: flex;
     }
 
