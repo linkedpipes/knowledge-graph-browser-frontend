@@ -122,20 +122,6 @@ add_node_dialog:
       Při stahování některých vrcholů došlo k chybě. Vrcholy, co se
       nepodařilo stáhnout, jsou v textovém poli. Více informací najdete ve
       vývojářské konzoli prohlížeče. Zkontrolujte správnost IRI.
-configuration_and_stylesheet_dialog:
-  title: Konfigurace a styly
-  predefined: Předdefinované konfigurace a styly
-  config: IRI konfigurace
-  stylesheet: IRI stylesheetu
-  destroy_warning: >-
-    Změnou konfigurace dojde ke smazání celého grafu. Bude vám nabídnuto
-    uložení změn.
-  cancel: Zrušit
-  load: Načíst
-  update: Změnit
-  update_stylesheet: Změnit stylesheet
-  update_general: Změnit
-  load_from_file: Načíst existující graf ze souboru
 filter_dialog:
   title: Filtrování uzlů
   select_all: zaškrtnout vše
@@ -267,3 +253,50 @@ layout_dialog:
   close: Zavřít
 graph:
   groupNode: 'jeden uzel | {n} uzly | {n} uzlů'
+configuration_selection:
+  meta_configuration:
+    title: Výběr konfigurace
+    unnamed: Nepojmenovaná meta konfigurace
+    loading: Načítání informací o meta konfiguraci...
+  custom_panel:
+    title: Ruční výběr konfigurace
+    button: Nastavit ručně
+    meta_configuration:
+      title: Meta konfigurace
+      tab: Meta konfigurace podle IRI
+      input: IRI meta konfigurace
+    configuration:
+      title: Konfigurace
+      tab: Konfigurace podle IRI
+      input: IRI konfigurace
+    custom_configuration:
+      title: Vlastní konfigurace
+      tab: Vlastní konfigurace
+      configuration: IRI konfigurace
+      stylesheet: IRI stylesheetu
+      pattern: Pattern IRI
+      autocomplete: Autocomplete .json soubor(y)
+      confirm: Potvrdit
+    messages:
+      metaconfiguration_failed: Nepodařilo se načíst meta konfiguraci. Prosím zkontrolujte správnost IRI.
+      configuration_failed:  Nepodařilo se načíst konfiguraci. Prosím zkontrolujte správnost IRI.
+      custom_configuration_failed: Nepodařilo se načíst konfiguraci. Prosím zkontrolujte správnost IRI. Stále můžete zadat parametry ručně.
+      custom_configuration_succeeded: Knfigurace úspěšně načtena. Nyní můžete změnit její parametry před použitím.
+  node_selection:
+    unnamed: Nepojmenovaná konfigurace
+    choose_message: Vyberte počíteční uzel
+    choose_info: Můžete zadat IRI identifikátor uzlu nebo se ho pokusit vyhledat, pokud to daná konfigurace umožňuje.
+    predefined: Předdefinované uzly
+    loading: Načítání uzlu...
+  open_from_file: Otevřít ze souboru / URL
+  load: Načíst
+  close: Zavřít
+  back: Zpět
+  go_to_graph: Jít ke grafu
+load_dialog:
+  error: Nepodařilo se načíst graf z URL. Zkontrolujte její správnost.
+  load_from_url: Z URL adresy
+  url: URL
+  load: Načíst
+  load_from_file: Ze souboru
+  cancel: Zrušit

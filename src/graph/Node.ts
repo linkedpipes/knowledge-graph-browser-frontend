@@ -204,29 +204,31 @@ export class Node extends NodeCommon implements ObjectSave {
         let asynchronouslyFetchViewSets = async () => {
             let result = await this.graph.server.getViewSets(this.IRI, this.graph.configuration.iri);
 
-            // First create list of views
-            let nodeViews: {[viewIRI:string]: NodeView} = {};
-            for (let nv of result.views) {
-                let view = this.createView(nv.iri);
-                view.label = nv.label;
+            if (result) {
+                // First create list of views
+                let nodeViews: {[viewIRI:string]: NodeView} = {};
+                for (let nv of result.views) {
+                    let view = this.createView(nv.iri);
+                    view.label = nv.label;
 
-                nodeViews[nv.iri] = view;
-            }
-
-            // Create View sets
-            let viewSets: typeof Node.prototype.viewSets = {};
-            for (let vs of result.viewSets) {
-                let viewSet = this.createViewSet(vs.iri);
-                viewSets[vs.iri] = viewSet;
-
-                viewSet.label = vs.label;
-                viewSet.defaultView = nodeViews[vs.defaultView];
-                for (let nv of vs.views) {
-                    viewSet.views[nv] = nodeViews[nv];
-                    viewSet.views[nv].viewSet = viewSet;
+                    nodeViews[nv.iri] = view;
                 }
+
+                // Create View sets
+                let viewSets: typeof Node.prototype.viewSets = {};
+                for (let vs of result.viewSets) {
+                    let viewSet = this.createViewSet(vs.iri);
+                    viewSets[vs.iri] = viewSet;
+
+                    viewSet.label = vs.label;
+                    viewSet.defaultView = nodeViews[vs.defaultView];
+                    for (let nv of vs.views) {
+                        viewSet.views[nv] = nodeViews[nv];
+                        viewSet.views[nv].viewSet = viewSet;
+                    }
+                }
+                this.viewSets = viewSets;
             }
-            this.viewSets = viewSets;
             this.fetchViewSetsPromise = null;
         }
 

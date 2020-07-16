@@ -19,7 +19,7 @@ settings:
     content: All the settings are stored in local storage container in your browser.
   language: Language
   remote_url: Application API server
-  metaconfiguration: Default metaconfiguration URI
+  metaconfiguration: Default meta configuration URI
 search:
   label: Insert IRI, name, code...
 change_configuration_and_stylesheet: Change configuration and stylesheet
@@ -111,20 +111,6 @@ add_node_dialog:
     hint: Insert each IRI in separate line.
     input: IRIs of the resources
     error: Error occured while fetching the resources. Nodes listed in the textarea werent loaded. See developers console for more detailed information. Try to check the corectness of IRI.
-
-# Dialog to change configuration and stylesheet
-configuration_and_stylesheet_dialog:
-  title: Configuration and stylesheet
-  predefined: Predefined configurations and stylesheets
-  config: Configuration IRI
-  stylesheet: Stylesheet IRI
-  destroy_warning: By changing the configuration IRI the whole graph will be destroyed. You will be asked to save changes.
-  cancel: Cancel
-  load: Load # Fresh start
-  update: Update # Changing configuration
-  update_stylesheet: Update stylesheet # Updating only stylesheet
-  update_general: Update # Text when button is disabled
-  load_from_file: Load existing graph from file
 
 # Dialog to filter nodes
 filter_dialog:
@@ -233,20 +219,23 @@ graph:
 
 configuration_selection:
   meta_configuration:
-    title: Configuration selection
-    unnamed: Unnamed metaconfiguration
+    title: Select a configuration
+    unnamed: Unnamed meta configuration
     loading: Loading meta configuration info...
   custom_panel:
-    title: Configuration selection
+    title: Custom configuration
     button: Set by hand
     meta_configuration:
       title: Meta configuration
-      input: Metaconfiguration IRI
+      tab: Meta configuration by IRI
+      input: Meta configuration IRI
     configuration:
       title: Configuration
+      tab: Configuration by IRI
       input: Configuration IRI
     custom_configuration:
       title: Custom configuration
+      tab: Custom configuration
       configuration: Configuration IRI
       stylesheet: Stylesheet IRI
       pattern: IRI pattern
@@ -260,10 +249,19 @@ configuration_selection:
   node_selection:
     unnamed: Unnamed configuration
     choose_message: Choose a starting node
+    choose_info: You can type in IRI identifier of the node or try to search it if searching is supported by the configuration.
     predefined: Predefined nodes
     loading: Loading node...
-  open_from_file: Open from file
+  open_from_file: Open from file / URL
   load: Load
   close: Close
   back: Back
   go_to_graph: Go to graph
+
+load_dialog:
+  error: Failed to load graph from URL. Please check the correctness.
+  load_from_url: Load from URL
+  url: URL
+  load: Load
+  load_from_file: Load from file
+  cancel: Cancel

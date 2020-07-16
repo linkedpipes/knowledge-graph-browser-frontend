@@ -111,6 +111,7 @@
         ></settings>
         <load-dialog
                 ref="loadDialog"
+                :load-url-function="loadFromUrl"
                 @selected="loadFromFile($event)"
         />
         <layout-dialog
@@ -327,11 +328,12 @@
         private async loadStylesheet() {
             // For now, only the first stylesheet is supported
             if (this.configuration?.stylesheet?.length > 0) {
-                try {
-                    this.visualStyleSheet = await this.graph.server.getStylesheet(this.configuration.stylesheet[0]);
-                } catch (e) {
-                    console.warn("Error occurred while fetching the stylesheet.\nCheck the correctness of the IRI, configuration IRI, URL of remote server or the internet connection.\nStyles will be emptied.");
+                let stylesheet = await this.graph.server.getStylesheet(this.configuration.stylesheet[0]);
+                if (stylesheet === false) {
+                    console.error("Error occurred while fetching the stylesheet.\nCheck the correctness of IRI, URL of remote server or the internet connection.\nStyles will be emptied.");
                     this.visualStyleSheet.styles = [];
+                } else {
+                    this.visualStyleSheet = stylesheet;
                 }
             } else {
                 this.visualStyleSheet.styles = [];
@@ -418,8 +420,6 @@
                 console.error("Creating a new graph, but areaManipulator still not exists.");
             }
 
-            if (loadStylesheet) this.loadStylesheet();
-
             this.graph = new Graph();
             this.graph.server = this.server;
             this.graph.configuration = this.configuration;
@@ -431,6 +431,7 @@
 
             this.manipulator = new GraphManipulator(this.graph, this.areaManipulator, this.layouts);
 
+            if (loadStylesheet) this.loadStylesheet();
             this.updateGraphSearcher();
         }
 

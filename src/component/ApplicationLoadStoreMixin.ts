@@ -59,17 +59,21 @@ import ConfigurationManager from "../configurations/ConfigurationManager";
         this.restoreFromObject(parsed);
     }
 
-    protected async loadFromUrl(url: string) {
+    protected async loadFromUrl(url: string): Promise<boolean> {
         let data: Response = null;
-        let object: Object = null;
         try {
             data = await fetch(url);
-            object = await data.json();
         } catch (e) {
-            console.warn("Unable to load save file from URL", url, "Error", data.status, data.statusText);
-            return;
+            data = null;
         }
-        this.restoreFromObject(object);
+        if (data && data.ok) {
+            let object = await data.json();
+            this.restoreFromObject(object);
+            return true;
+        } else {
+            console.warn("Unable to load save file from URL", url);
+            return false;
+        }
     }
 
     protected async saveToFile() {

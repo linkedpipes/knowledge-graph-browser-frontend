@@ -85,17 +85,19 @@ export class NodeView implements ObjectSave {
 
         if (!this.detail) {
             let result = await this.node.graph.server.getDetail(this.IRI, this.node.IRI);
-            let data = result.nodes.find(node => node.iri == this.node.IRI).data;
+            if (result) {
+                let data = result.nodes.find(node => node.iri == this.node.IRI).data;
 
-            let types = NodeView.ExtractTypes(result.types);
+                let types = NodeView.ExtractTypes(result.types);
 
-            this.detail = [];
-            for (let IRI in data) {
-                this.detail.push({
-                    type: types.get(IRI),
-                    IRI: IRI,
-                    value: data[IRI]
-                });
+                this.detail = [];
+                for (let IRI in data) {
+                    this.detail.push({
+                        type: types.get(IRI),
+                        IRI: IRI,
+                        value: data[IRI]
+                    });
+                }
             }
         }
 
@@ -113,14 +115,16 @@ export class NodeView implements ObjectSave {
         if (!this.preview) {
             let result = await this.node.graph.server.getPreview(this.IRI, this.node.IRI);
 
-            let types = NodeView.ExtractTypes(result.types);
+            if (result) {
+                let types = NodeView.ExtractTypes(result.types);
 
-            let preview = result.nodes.find(node => node.iri == this.node.IRI);
+                let preview = result.nodes.find(node => node.iri == this.node.IRI);
 
-            this.preview = {
-                ...preview,
-                type: types.get(preview.type)
-            };
+                this.preview = {
+                    ...preview,
+                    type: types.get(preview.type)
+                };
+            }
         }
 
         return this.preview;
@@ -135,33 +139,35 @@ export class NodeView implements ObjectSave {
         // Get the expansion
         let result = await this.node.graph.server.getExpansion(this.IRI, this.node.IRI);
 
-        this.expansion = new Expansion(this.node);
+        if (result) {
+            this.expansion = new Expansion(this.node);
 
-        let types = NodeView.ExtractTypes(result.types);
+            let types = NodeView.ExtractTypes(result.types);
 
-        // Create nodes
-        for (let expansionNode of result.nodes) {
-            let node = this.node.graph.getNodeByIRI(expansionNode.iri);
-            if (!node) {
-                // We have to create a new one
-                node = this.node.graph.createNode(expansionNode.iri);
-                let view = node.createView(null);
-                view.preview = {
-                    ...expansionNode,
-                    type: types.get(expansionNode.type)
-                };
-                node.currentView = view;
+            // Create nodes
+            for (let expansionNode of result.nodes) {
+                let node = this.node.graph.getNodeByIRI(expansionNode.iri);
+                if (!node) {
+                    // We have to create a new one
+                    node = this.node.graph.createNode(expansionNode.iri);
+                    let view = node.createView(null);
+                    view.preview = {
+                        ...expansionNode,
+                        type: types.get(expansionNode.type)
+                    };
+                    node.currentView = view;
+                }
+
+                this.expansion.nodes.push(node);
             }
 
-            this.expansion.nodes.push(node);
-        }
-
-        // Create edges
-        for (let expansionEdge of result.edges) {
-            let edge = this.node.graph.createEdge(
-                this.node.graph.getNodeByIRI(expansionEdge.source),
-                this.node.graph.getNodeByIRI(expansionEdge.target), types.get(expansionEdge.type));
-            edge.classes = expansionEdge.classes;
+            // Create edges
+            for (let expansionEdge of result.edges) {
+                let edge = this.node.graph.createEdge(
+                    this.node.graph.getNodeByIRI(expansionEdge.source),
+                    this.node.graph.getNodeByIRI(expansionEdge.target), types.get(expansionEdge.type));
+                edge.classes = expansionEdge.classes;
+            }
         }
 
         this.expansionInProgress = false;

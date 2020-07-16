@@ -32,7 +32,6 @@ export default class GraphManipulator {
      */
     async locateOrTryFetchNode(IRI: string): Promise<boolean> {
         let node = this.graph.getNodeByIRI(IRI);
-        let wasNew = !node;
 
         if (!node) {
             try {
@@ -43,7 +42,7 @@ export default class GraphManipulator {
             }
         }
 
-        if (wasNew) {
+        if (!node.mounted) {
             node.mounted = true;
             await Vue.nextTick();
             node.element.element.position(this.area.getCenterPosition());
