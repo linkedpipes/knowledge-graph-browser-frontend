@@ -1,22 +1,44 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
-    "sourceMap": true,
-    "noImplicitAny": true,
-    "module": "es6",
     "target": "es5",
-    "jsx": "react",
-    "allowJs": true,
-    "lib": ["es2015", "dom"],
-    "types": ["vuetify", "node", "webpack-env"],
-    "typeRoots": [
-      "./node_modules/@types",
-      "./node_modules/vuetify/types",
-      "./src/@types"
-    ],
-    "allowSyntheticDefaultImports": true,
+    "module": "es6",
+    "strict": false,
+    "jsx": "preserve",
+    "importHelpers": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
-    "downlevelIteration": true
-  }
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "downlevelIteration": true,
+    "types": [
+      "vuetify",
+      "node",
+      "webpack-env",
+      "webpack",
+      "webpack-env"
+    ],
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
+    "lib": [
+      "es6",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

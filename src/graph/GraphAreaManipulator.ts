@@ -141,7 +141,7 @@ export default class GraphAreaManipulator implements ObjectSave {
     public fitFollowSet(nodes?: NodeCommon|NodeCommon[]) {
         this.fitFollowStop();
         this.fit(nodes);
-        this.fitFollowTimeout = setTimeout(() => {
+        this.fitFollowTimeout = window.setTimeout(() => {
             this.fitFollowSet(nodes);
         }, this.animateOptions.duration / 2);
     }
