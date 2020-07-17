@@ -195,7 +195,7 @@
     import ConfigurationManager from "../configurations/ConfigurationManager";
     import Metaconfiguration from "../configurations/Metaconfiguration";
     import Configuration from "../configurations/Configuration";
-    let ApplicationConfiguration: {api: string, metaconfiguration: string} = require("../../conf.yaml");
+    import ApplicationConfiguration from '../conf';
 
     @Component({
         components: {
@@ -303,7 +303,7 @@
         /**
          * URI of metaconfiguration which provides a list of configurations
          * */
-        defaultMetaconfigurationIRI: string = ApplicationConfiguration.metaconfiguration;
+        defaultMetaconfigurationIRI: string = ApplicationConfiguration["meta-configuration"];
 
         get defaultMetaconfiguration(): Metaconfiguration {
             return this.configurationManager.getOrCreateMetaconfiguration(this.defaultMetaconfigurationIRI);

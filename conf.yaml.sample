@@ -1,3 +1,0 @@
-api: http://localhost:3000/ # URL from where the nodes are fetched
-language: en # Default application language
-metaconfiguration: https://linked.opendata.cz/resource/knowledge-graph-browser/meta-configuration/all-configurations

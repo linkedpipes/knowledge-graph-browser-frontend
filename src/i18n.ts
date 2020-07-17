@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import VueI18n from 'vue-i18n';
-let Configuration: {language: string} = require("../conf.yaml");
+import Configuration from './conf';
 
 Vue.use(VueI18n);
 
