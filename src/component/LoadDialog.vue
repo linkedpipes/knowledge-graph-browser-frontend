@@ -1,6 +1,6 @@
 <template>
     <v-dialog v-model="dialog" max-width="600">
-        <v-card>
+        <v-card class="rounded-0">
             <v-card-title class="headline">{{$t('load_dialog.title')}}</v-card-title>
             <v-card-text>
                 <v-alert dismissible type="error" v-if="error">

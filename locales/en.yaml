@@ -259,6 +259,7 @@ configuration_selection:
   go_to_graph: Go to graph
 
 load_dialog:
+  title: Load graph
   error: Failed to load graph from URL. Please check the correctness.
   load_from_url: Load from URL
   url: URL

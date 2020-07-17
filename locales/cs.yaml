@@ -294,6 +294,7 @@ configuration_selection:
   back: Zpět
   go_to_graph: Jít ke grafu
 load_dialog:
+  title: Načíst graf
   error: Nepodařilo se načíst graf z URL. Zkontrolujte její správnost.
   load_from_url: Z URL adresy
   url: URL
