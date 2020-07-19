@@ -482,7 +482,7 @@ export default class ConfigurationChooserComponent extends Mixins(NodeCommonPane
     }
 
     @Watch('graph')
-    @Watch('configuration')
+    @Watch('configuration.startingNode')
     private fetchNodes() {
         if (this.configuration && this.graph) {
             for (let iri of this.configuration.startingNode) {
@@ -534,9 +534,10 @@ export default class ConfigurationChooserComponent extends Mixins(NodeCommonPane
     }
 
     public async showConfiguration(configurationIri: string) {
+        let configuration = this.configurationManager.getOrCreateConfiguration(configurationIri);
+        await configuration.sync(this.$i18nGetAllLanguages());
         this.show();
-        this.configuration = this.configurationManager.getOrCreateConfiguration(configurationIri);
-        this.configuration.sync(this.$i18nGetAllLanguages());
+        this.configuration = configuration;
     }
 
     public close() {

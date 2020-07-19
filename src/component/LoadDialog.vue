@@ -11,10 +11,10 @@
                     <v-col cols="4">
                         {{$t('load_dialog.load_from_url')}}
                     </v-col>
-                    <v-col cols="6">
+                    <v-col>
                         <v-text-field :label="$t('load_dialog.url')" v-model="url"  />
                     </v-col>
-                    <v-col cols="2">
+                    <v-col class="flex-grow-0">
                         <v-btn outlined block :loading="loading" @click="urlSelected()">{{$t('load_dialog.load')}}</v-btn>
                     </v-col>
                 </v-row>
@@ -59,6 +59,7 @@ import Vue from "vue";
     private fileSelected(files: FileList) {
         if (files)
             this.emitSelected(files[0]);
+        this.dialog = false;
     }
 
     private url: string = "";

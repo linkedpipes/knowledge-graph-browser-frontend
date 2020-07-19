@@ -13,4 +13,11 @@ module.exports = {
   },
 
   publicPath: '',
+
+  configureWebpack: {
+    // Ignore exceed the recommended size limit warning
+    performance: {
+      hints: false
+    }
+  }
 }

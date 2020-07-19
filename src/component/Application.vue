@@ -486,8 +486,9 @@
                 this.configurationChooser.show(metaConfiguration);
                 hideWelcomeScreen();
             } else if (configuration) {
-                this.configurationChooser.showConfiguration(configuration);
-                hideWelcomeScreen();
+                this.configurationChooser.showConfiguration(configuration).then(() => {
+                    hideWelcomeScreen();
+                });
             } else {
                 // Open configuration chooser
                 this.openConfigurationChooser();
