@@ -171,6 +171,18 @@ export default class GraphAreaManipulator implements ObjectSave {
     }
 
     /**
+     * Resets pan and zoom to default
+     */
+    public resetViewport() {
+        this.cy.zoom(5);
+        let clientVP = [this.cy.container().clientWidth - this.offsetArray[1] - this.offsetArray[3], this.cy.container().clientHeight - this.offsetArray[0] - this.offsetArray[2]];
+        this.cy.pan({
+            x: clientVP[0]/2 + this.offsetArray[3],
+            y: clientVP[1]/2 + this.offsetArray[0],
+        });
+    }
+
+    /**
      * This method should optimize removing the whole graph (for example when configuration is changed). The problem
      * here is that vue is removing elements one by one which can be problematic in large graphs.
      */

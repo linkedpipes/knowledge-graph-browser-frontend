@@ -431,6 +431,9 @@
 
             this.manipulator = new GraphManipulator(this.graph, this.areaManipulator, this.layouts);
 
+            this.filter.reset();
+            this.areaManipulator.resetViewport();
+
             if (loadStylesheet) this.loadStylesheet();
             this.updateGraphSearcher();
         }

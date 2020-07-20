@@ -118,15 +118,13 @@ import ConfigurationManager from "../configurations/ConfigurationManager";
             this.configuration.restoreFromObject(object.configuration);
         }
 
-        // Now we recreate all non important data because now the graph is empty
+        this.createNewGraph(false);
+
         if (object.filter) this.filter.restoreFromObject(object.filter); else this.filter.reset();
         if (object.layouts) this.layouts.restoreFromObject(object.layouts);
         if (object.viewOptions) this.viewOptions.restoreFromObject(object.viewOptions);
         this.visualStyleSheet = object.stylesheet ?? {styles: []};
         if (object.area) this.areaManipulator.restoreFromObject(object.area);
-
-        // Recreate the graph again
-        this.createNewGraph(false);
 
         // Restore all nodes
         this.graph.restoreFromObject(object.graph);
