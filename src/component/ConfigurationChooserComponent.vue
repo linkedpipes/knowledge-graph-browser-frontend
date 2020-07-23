@@ -34,7 +34,7 @@
                                 <div class="d-flex mx-2">
                                     <v-card outlined v-for="child in metaconfiguration.metaconfigurations" :key="child.iri" class="ma-2 pa-1" max-width="200" @keypress.enter="selectMetaconfiguration(child)" @click="selectMetaconfiguration(child)">
                                         <v-img class="white--text align-end" height="100px" contain :src="child.image"></v-img>
-                                        <v-card-title class="pb-0">{{$t_literal(child.title)}}</v-card-title>
+                                        <v-card-title class="pb-0 text-break">{{$t_literal(child.title)}}</v-card-title>
                                         <v-card-text class="text--primary">
                                             <div>{{$t_literal(child.description)}}</div>
                                         </v-card-text>
