@@ -26,7 +26,7 @@ change_configuration_and_stylesheet: Change configuration and stylesheet
 side_panel:
   detail_panel:
     loading: loading
-    views: Avaiable views
+    views: Available views
     expand: Expand
     use: Switch
     no_views: Server responded with no views. You should check your configuration.
@@ -48,9 +48,9 @@ side_panel:
     group_nodes_also: You have also selected {n} node group. | You have also selected {n} node groups.
   hidden_nodes_panel:
     title: Hidden nodes
-    description: This panel shows nodes currently not visible in the graph. If the node is hidden by a user, red eye icon is shown. By clicking on the eye you can change its user visibility. If the node is hidden by a filter, the filter icon is shown.
+    description: This panel shows nodes currently not visible in the graph. If the node is hidden by a user, red eye icon is shown. By clicking on the eye, you can change its user visibility. If the node is hidden by a filter, the filter icon is shown.
   node_group:
-    title: Group of single node | Group of {n} nodes
+    title: Group of single nodes | Group of {n} nodes
 
   # Component for showing a list of nodes in a group
   node_grouped_list:
@@ -105,12 +105,12 @@ add_node_dialog:
   single:
     title: Sigle node
     input: IRI of the resource
-    error: Error occured while fetching the resource. See developers console for more detailed information. Try to check the corectness of IRI.
+    error: Error occurred while fetching the resource. See developers console for more detailed information. Try to check the correctness of IRI.
   multiple:
     title: Multiple nodes
     hint: Insert each IRI in separate line.
     input: IRIs of the resources
-    error: Error occured while fetching the resources. Nodes listed in the textarea werent loaded. See developers console for more detailed information. Try to check the corectness of IRI.
+    error: Error occurred while fetching the resources. Nodes listed in the textarea weren’t loaded. See developers console for more detailed information. Try to check the corectness of IRI.
 
 # Dialog to filter nodes
 filter_dialog:
@@ -129,10 +129,10 @@ filters:
   degreeFilter:
     title: Graph properties
     sumDegree: Degree of the resource
-    sumDegree_description: You can choose to show only those resources having a degree in a specific range. This is usefull for example to filter out most connected nodes to cleanup graph.
-    inDegree: Incomming degree of the resource
+    sumDegree_description: You can choose to show only those resources having a degree in a specific range. This is useful for example to filter out most connected nodes to cleanup graph.
+    inDegree: Incoming degree of the resource
     inDegree_description: Counts only those edges pointing into the resource.
-    outDegree: Outcomming degree of the resource
+    outDegree: Outcoming degree of the resource
     outDegree_description: Counts only those edges pointing out from the resource.
   # Nodes properties
   propertyFilter:

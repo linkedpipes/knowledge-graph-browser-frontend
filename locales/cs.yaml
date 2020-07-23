@@ -19,10 +19,10 @@ settings:
     content: Veškeré změny budou uloženy do paměti local storage vašeho prohlížeče.
   language: Jazyk aplikace
   remote_url: Vzdálený API server
-  metaconfiguration: Výchozí URI metakonfigurace
+  metaconfiguration: Výchozí URI meta konfigurace
 search:
   label: 'Zadejte IRI, název uzlu, kód...'
-change_configuration_and_stylesheet: Změnit konfiguraci a stylesheet
+change_configuration_and_stylesheet: Změnit konfiguraci a style sheet
 side_panel:
   detail_panel:
     loading: načítání
@@ -63,7 +63,7 @@ side_panel:
     title: 'Skupina obsahující jeden uzel | Skupina {n} uzlů'
   node_grouped_list:
     number_items: '1 vrchol | {n} vrcholy | {n} vrcholů'
-    no_nodes: Žádné uzly k zobrazní
+    no_nodes: Žádné uzly k zobrazení
     delete: Smazat
     hide: Skrýt
     show: Zobrazit
@@ -130,12 +130,12 @@ filter_dialog:
     Skrýt vrcholy které budou přidány a nesplňují aktuální podmínky dané
     filtrem.
   mode_listed_disjoint_description: >-
-    Pokud není políčko zatrhnuté, jakákoli možnost co není v seznamu bude
+    Pokud není políčko zatrhnuté, jakákoli možnost, co není v seznamu, bude
     automaticky povolena.
   mode_listed: Zobrazit explicitně zvolené vrcholy.
   mode_listed_description: >-
     Pokud je zatrhnuto, každý vrchol, co má alespoň jednu vlastnost ze
-    seznamu níže bude zobrazen. Pokud není zatrhnuto, kadžý vrchol co má
+    seznamu níže bude zobrazen. Pokud není zatrhnuto, každý vrchol, co má
     nezatrhnutou položku bude skrytý.
   close: Zavřít
 filters:
@@ -145,11 +145,11 @@ filters:
     sumDegree_description: >-
       Můžete si zvolit filtrování pouze těch vrcholů jež mají celkový
       grafový stupeň (tedy počet sousedů) v určitém rozmezí. Toto se hodí na
-      odfiltrování vrcholů které mají spoustu sousedů a znepřehledňují graf.
+      odfiltrování vrcholů které mají spoustu sousedů a dělají graf nepřehledným.
     inDegree: Vstupní stupeň vrcholu
-    inDegree_description: Počítá pouze ty hrany které do vrcholu vstupují.
+    inDegree_description: Počítá pouze ty hrany, které do vrcholu vstupují.
     outDegree: Odchozí stupeň vrcholu
-    outDegree_description: Počítá pouze ty hrany které z vrcholu vystupují.
+    outDegree_description: Počítá pouze ty hrany, které z vrcholu vystupují.
   propertyFilter:
     type:
       tab: Typ
@@ -174,7 +174,7 @@ view_options:
 save_dialog:
   title: Uložit graf?
   text: >-
-    Přejete si uložit aktuální graf do pořítače abyste ho mohli v budoucnu
+    Přejete si uložit aktuální graf do počítače, abyste ho mohli v budoucnu
     otevřít a pokračovat v prohlížení?
   'yes': Ano
   'no': Ne
@@ -198,7 +198,7 @@ layouts:
     do_layout_after_reposition: Spustit layoutování pokud uživatel přetahuje uzly.
     do_layout_after_reposition_desc: >-
       Kdykoli uživatel přesune uzel spustí se layoutování celého grafu.
-      Pokud je vypnuné, musí se layoutování spouštět ručně.
+      Pokud je vypnuté, musí se layoutování spouštět ručně.
     expansion_only_those: Při expanzi layoutovat pouze uzly expanze.
     expansion_only_those_desc: >-
       Pokud uživatel provede expanzi, musí proběhnout layoutování. Tímto
@@ -206,11 +206,11 @@ layouts:
       proběhla expanze.
     node_spacing: Extra prostor pro uzel
     node_spacing_desc: >-
-      Nastaví kolem uzlu extra prostor ve kterém se nesmí nacházet žáden
+      Nastaví kolem uzlu extra prostor, ve kterém se nesmí nacházet žádný
       jiný uzel.
     edge_length: Délka hran
     edge_length_desc: >-
-      Nastaví optimální délku hran. Hodí se zvýšit v přápadě že popisky uzlů
+      Nastaví optimální délku hran. Hodí se zvýšit v případě, že popisky uzlů
       a hran splývají.
   circle:
     name: Kruhový
@@ -234,16 +234,16 @@ layouts:
       poté kdykoliv klikněte na tlačítko s obrázkem layoutu vpravo dole v
       grafu.
     top_to_bottom: Uspořádat shora dolů
-    top_to_bottom_desc: Normálně se uzly uspořádavají zleva doprava.
+    top_to_bottom_desc: Normálně se uzly uspořádávají zleva doprava.
     node_spacing: Vzdálenost mezi uzly
-    node_spacing_desc: 'Nastaví, jak daleko od sebe budou uzly v jené skupině.'
+    node_spacing_desc: 'Nastaví, jak daleko od sebe budou uzly v jedné skupině.'
     rank_spacing: Vzdálenost mezi skupinami
     rank_spacing_desc: 'Nastaví, jak daleko budou od sebe jednotlivé skupiny.'
     run: Spustit layout
   group_expansion: Expandované uzly seskupovat do skupiny
   group_expansion_limit: Od kolika uzlů
   group_expansion_limit_desc: >-
-    Nastaví jaký je minimální počet nových uzlů z expanze, aby byly
+    Nastaví, jaký je minimální počet nových uzlů z expanze, aby byly
     seskupeny do skupiny. Pokud počet bude menší, uzly se zobrazí normálně.
 layout_dialog:
   title: Nastavení layoutu
@@ -281,10 +281,10 @@ configuration_selection:
       metaconfiguration_failed: Nepodařilo se načíst meta konfiguraci. Prosím zkontrolujte správnost IRI.
       configuration_failed:  Nepodařilo se načíst konfiguraci. Prosím zkontrolujte správnost IRI.
       custom_configuration_failed: Nepodařilo se načíst konfiguraci. Prosím zkontrolujte správnost IRI. Stále můžete zadat parametry ručně.
-      custom_configuration_succeeded: Knfigurace úspěšně načtena. Nyní můžete změnit její parametry před použitím.
+      custom_configuration_succeeded: Konfigurace úspěšně načtena. Nyní můžete změnit její parametry před použitím.
   node_selection:
     unnamed: Nepojmenovaná konfigurace
-    choose_message: Vyberte počíteční uzel
+    choose_message: Vyberte počáteční uzel
     choose_info: Můžete zadat IRI identifikátor uzlu nebo se ho pokusit vyhledat, pokud to daná konfigurace umožňuje.
     predefined: Předdefinované uzly
     loading: Načítání uzlu...
