@@ -303,3 +303,5 @@ load_dialog:
   load: Načíst
   load_from_file: Ze souboru
   cancel: Zrušit
+any_data_value:
+  open_node: Zobrazit vrchol

@@ -50,7 +50,12 @@
                         <tbody>
                         <tr v-for="detail in node.lastDetail" :key="detail.IRI">
                             <td>
-                                <link-component :href="detail.IRI" /> &nbsp; <b v-if="detail.type">{{detail.type.label}}</b> &nbsp; {{detail.value}}
+                                <link-component :href="detail.IRI" /> &nbsp; <b v-if="detail.type">{{detail.type.label}}</b> &nbsp;
+                                <any-data-value
+                                    :value="detail.value"
+                                    :graph="node.graph"
+                                    @node-click="$event.selectExclusively()"
+                                />
                             </td>
                         </tr>
                         </tbody>
@@ -150,9 +155,9 @@
 </template>
 <script lang="ts">
 import {Component, Mixins, Prop, Watch} from 'vue-property-decorator';
-import { Node } from '../../graph/Node';
-import { NodeViewSet } from '../../graph/NodeViewSet';
-import {DetailValue} from '../../graph/NodeView';
+import { Node } from '@/graph/Node';
+import { NodeViewSet } from '@/graph/NodeViewSet';
+import {DetailValue} from '@/graph/NodeView';
 import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
 import {
     mdiTrashCanOutline,
@@ -171,9 +176,10 @@ import NodeCommonPanelMixin from "./NodeCommonPanelMixin";
 import PanelTemplate from "./components/PanelTemplate.vue";
 import PanelActionButton from "./components/PanelActionButton.vue";
 import GraphManipulator from "../../graph/GraphManipulator";
+import AnyDataValue from "@/component/helper/AnyDataValue.vue";
 
 @Component({
-    components: {PanelActionButton, PanelTemplate, LinkComponent}
+    components: {AnyDataValue, PanelActionButton, PanelTemplate, LinkComponent}
 })
 export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
     @Prop(Object) node !: Node;

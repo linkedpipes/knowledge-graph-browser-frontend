@@ -268,3 +268,6 @@ load_dialog:
   load: Load
   load_from_file: Load from file
   cancel: Cancel
+
+any_data_value:
+  open_node: Show node
