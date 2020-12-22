@@ -10,7 +10,7 @@
             <v-list-item>
                 <v-row>
                     <v-col cols="3">
-                        <v-text-field v-model="layout.options.nodeSpacingOnCircumference" :label="$t('layouts.circle.node_spacing')" type="number" suffix="px"></v-text-field>
+                        <v-text-field v-model.number="layout.options.nodeSpacingOnCircumference" :label="$t('layouts.circle.node_spacing')" type="number" suffix="px"></v-text-field>
                     </v-col>
                     <v-col cols="9">
                         <v-subheader>{{ $t("layouts.circle.node_spacing_desc") }}</v-subheader>

@@ -5,7 +5,7 @@
         </v-checkbox>
         <v-row>
             <v-col cols="3">
-                <v-text-field :disabled="!layout.groupExpansion" v-model="layout.expansionGroupLimit" :label="$t('layouts.group_expansion_limit')" type="number"></v-text-field>
+                <v-text-field :disabled="!layout.groupExpansion" v-model.number="layout.expansionGroupLimit" :label="$t('layouts.group_expansion_limit')" type="number"></v-text-field>
             </v-col>
             <v-col cols="9">
                 <v-subheader>{{ $t("layouts.group_expansion_limit_desc") }}</v-subheader>

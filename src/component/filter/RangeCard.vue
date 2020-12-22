@@ -8,7 +8,7 @@
                             thumb-label="always">
                 <template v-slot:append>
                     <v-text-field
-                            v-model="max"
+                            v-model.number="max"
                             :disabled="!active"
                             class="mt-0 pt-0"
                             hide-details

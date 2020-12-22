@@ -21,7 +21,7 @@
         <v-list-item class="mt-3">
             <v-row>
                 <v-col cols="3">
-                    <v-text-field v-model="layout.options.nodeSpacing" :label="$t('layouts.dagre.node_spacing')" type="number" suffix="px"></v-text-field>
+                    <v-text-field v-model.number="layout.options.nodeSpacing" :label="$t('layouts.dagre.node_spacing')" type="number" suffix="px"></v-text-field>
                 </v-col>
                 <v-col cols="9">
                     <v-subheader>{{ $t("layouts.dagre.node_spacing_desc") }}</v-subheader>
@@ -31,7 +31,7 @@
         <v-list-item>
             <v-row>
                 <v-col cols="3">
-                    <v-text-field v-model="layout.options.rankSpacing" :label="$t('layouts.dagre.rank_spacing')" type="number" suffix="px"></v-text-field>
+                    <v-text-field v-model.number="layout.options.rankSpacing" :label="$t('layouts.dagre.rank_spacing')" type="number" suffix="px"></v-text-field>
                 </v-col>
                 <v-col cols="9">
                     <v-subheader>{{ $t("layouts.dagre.rank_spacing_desc") }}</v-subheader>
