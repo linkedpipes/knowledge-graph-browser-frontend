@@ -42,7 +42,7 @@
                                 </div>
 
                                 <div class="card-list">
-                                    <v-card outlined v-for="child in metaconfiguration.configurations" :key="child.iri" @keypress.enter="configuration = child" @click="configuration = child">
+                                    <v-card outlined v-for="child in metaconfiguration.configurations" :key="child.iri" @keypress.enter="selectConfiguration(child)" @click="selectConfiguration(child)">
                                         <v-card-title>{{$t_literal(child.title)}}</v-card-title>
                                         <v-card-text>{{$t_literal(child.description)}}</v-card-text>
                                     </v-card>
@@ -200,6 +200,12 @@ import ConfigurationManager from "../configurations/ConfigurationManager";
     import IRIIdentitySearcher from "../searcher/searchers/IRIIdentitySearcher";
     import GraphManipulator from "../graph/GraphManipulator";
     import NodeCommonPanelMixin from "./side-panel/NodeCommonPanelMixin";
+
+    export enum ConfigurationChooserComponentModes {
+        NEW_GRAPH,
+        CHANGE_CONFIGURATION
+    }
+
 @Component({
     components: {SearchComponent}
 })
@@ -210,6 +216,7 @@ export default class ConfigurationChooserComponent extends Mixins(NodeCommonPane
     @Prop() graph !: Graph;
     @Prop() graphManipulator !: GraphManipulator;
     @Prop() graphSearcher !: GraphSearcher;
+    @Prop() mode !: ConfigurationChooserComponentModes;
 
     // If this dialog is opened
     private dialog: boolean = false;
@@ -355,6 +362,26 @@ export default class ConfigurationChooserComponent extends Mixins(NodeCommonPane
     }
 
     /**
+     * Method is called by UI elements when user selects specific configuration.
+     * */
+    private selectConfiguration(configuration: Configuration) {
+        if (this.mode == ConfigurationChooserComponentModes.NEW_GRAPH) {
+            this.configuration = configuration;
+
+            if (this.configuration) {
+                this.ConfigurationUpdate(this.configuration, true);
+                this.nodeSelectionLoading = false;
+                this.nodeSelectionError = false;
+            }
+        }
+
+        if (this.mode == ConfigurationChooserComponentModes.CHANGE_CONFIGURATION) {
+            this.ConfigurationUpdate(configuration, false);
+            this.close();
+        }
+    }
+
+    /**
      * Returns in breadcrumbs.
      * */
     private returnInHistory(toIndex: number) {
@@ -426,7 +453,7 @@ export default class ConfigurationChooserComponent extends Mixins(NodeCommonPane
         if (ok) {
             this.customPanel = false;
             this.customConfigurationIRI = "";
-            this.configuration = configuration;
+            this.selectConfiguration(configuration);
         }
     }
 
@@ -464,23 +491,13 @@ export default class ConfigurationChooserComponent extends Mixins(NodeCommonPane
         configuration.stylesheet = [this.customCustomConfigurationStylesheet];
         configuration.resourcePattern = this.customCustomConfigurationIriPattern;
 
-        this.configuration = configuration;
+        this.selectConfiguration(configuration);
         this.customPanel = false;
     }
 
     //#endregion Custom panel / custom configuration
 
     //#region Node selection panel
-
-    @Watch('configuration')
-    private configurationChanged() {
-        if (this.configuration) {
-            this.ConfigurationUpdate(this.configuration, true);
-            this.nodeSelectionLoading = false;
-            this.nodeSelectionError = false;
-        }
-    }
-
     @Watch('graph')
     @Watch('configuration.startingNode')
     private fetchNodes() {

@@ -9,6 +9,7 @@ menu:
   layout: Nastavení layoutu
   load: Načíst ze souboru
   save: Uložit do souboru
+  new_graph: Nový graf
   configuration: Konfigurace zdroje
   language: Jazyk
   settings: Nastavení
@@ -46,6 +47,7 @@ side_panel:
         upravte parametry filtru a změňte viditelnost uzlu.
     part_of_group: 'Tento uzel je součástí skupiny obsahující {n} uzlů.'
     go_to_group: přejít ke skupině
+    different_configuration: Tento uzel byl načten pod konfigurací {configuration-name}. Obnovte uzel pro použití nové konfigurace.
   list_panel:
     title: Seznam označených vrcholů
     group_nodes: 'Je označeno {n} skupin.'

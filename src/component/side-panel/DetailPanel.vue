@@ -26,6 +26,20 @@
 
                 <v-alert v-if="!node.isVisible" type="info" color="secondary" dense text>{{ $t("side_panel.detail_panel.hidden.f" + (node.shownByFilters ? "t" : "f") + "u" + (node.visible ? "t" : "f")) }}</v-alert>
                 <v-alert v-if="node.belongsToGroup" type="info" color="secondary" dense text>{{ $tc("side_panel.detail_panel.part_of_group", node.belongsToGroup.nodes.length) }} <v-btn small text color="primary" @click="node.belongsToGroup.selectExclusively()">{{ $tc("side_panel.detail_panel.go_to_group") }}</v-btn></v-alert>
+                <v-alert v-if="node.viewSetsConfiguration && node.viewSetsConfiguration.iri !== node.graph.configuration.iri" type="info" color="secondary" dense text>
+                     <v-row no-gutters align="center">
+                        <v-col class="grow">
+                            <i18n path="side_panel.detail_panel.different_configuration" tag="span">
+                                <template v-slot:configuration-name>
+                                    <b>{{ (node.viewSetsConfiguration.title ? $t_literal(node.viewSetsConfiguration.title) : node.viewSetsConfiguration.iri)}}</b>
+                                </template>
+                            </i18n>
+                        </v-col>
+                        <v-col class="shrink">
+                            <v-btn small text color="secondary" @click="nodeRefresh">{{ $tc('side_panel.refresh', 1) }}</v-btn>
+                        </v-col>
+                    </v-row>
+                </v-alert>
 
                 <!-- DETAIL -->
                 <v-card outlined :disabled="!node.isDetailActual" :loading="!node.isDetailActual" class="mb-5 detail">
@@ -222,6 +236,7 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
      */
     nodeRefresh() {
         this.node.viewSets = null;
+        this.node.viewSetsConfiguration = null;
         this.node.currentView = null;
         this.nodeChanged();
     }

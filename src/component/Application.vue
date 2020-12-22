@@ -49,7 +49,8 @@
 
                     <v-list-item link @click="askForSaveAndPerformAction(false, loadDialog.show)" ><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="saveToFile()"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.save") }}</v-list-item-title></v-list-item-content></v-list-item>
-                    <v-list-item link @click="openConfigurationChooser()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="newGraphClicked()"><v-list-item-icon><v-icon>{{ icons.add }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.new_graph") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="changeConfigurationClicked()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
 
@@ -129,6 +130,7 @@
             :graph-searcher="graphSearcher"
             :graph="graph"
             :graph-manipulator="manipulator"
+            :mode="configurationChooserComponentMode"
             @configuration-update="changeConfiguration($event)"
             @load-from-file="$refs.loadDialog.show()"
         />
@@ -136,68 +138,68 @@
 </template>
 
 <script lang="ts">
-    import GraphArea from './graph/GraphArea.vue';
-    import AddNode from './AddNode.vue';
-    import { RemoteServer } from '../remote-server/RemoteServer';
-    import { Graph } from '../graph/Graph';
-    import SidePanel from './side-panel/SidePanel.vue';
-    import SaveDialog from './SaveDialog.vue';
-    import FilterDialog from './filter/FilterDialog.vue';
-    import VueFilterComponentCreator from '../filter/VueFilterComponentCreator';
-    import Component from "vue-class-component";
-    import {LocaleMessage} from "vue-i18n";
-    import {Mixins, Ref, Watch} from "vue-property-decorator";
-    import {ResponseStylesheet} from "../remote-server/ResponseInterfaces";
+import GraphArea from './graph/GraphArea.vue';
+import AddNode from './AddNode.vue';
+import {RemoteServer} from '../remote-server/RemoteServer';
+import {Graph} from '../graph/Graph';
+import SidePanel from './side-panel/SidePanel.vue';
+import SaveDialog from './SaveDialog.vue';
+import FilterDialog from './filter/FilterDialog.vue';
+import VueFilterComponentCreator from '../filter/VueFilterComponentCreator';
+import Component from "vue-class-component";
+import {LocaleMessage} from "vue-i18n";
+import {Mixins, Ref, Watch} from "vue-property-decorator";
+import {ResponseStylesheet} from "../remote-server/ResponseInterfaces";
 
-    import {
-        mdiPlusThick,
-        mdiFileUploadOutline,
-        mdiFileDownloadOutline,
-        mdiTranslate,
-        mdiEthernetCable,
-        mdiFilterOutline,
-        mdiCogs,
-        mdiEye,
-        mdiImageFilterTiltShift,
-        mdiLayersTriple,
-    } from '@mdi/js';
-    import {VListGroup, VNavigationDrawer} from "vuetify/lib";
-    import SettingsDialog from "./SettingsDialog.vue";
-    import Settings from "./Settings";
-    import ViewOptionsDialog from "./ViewOptionsDialog.vue";
-    import ViewOptions from "../graph/ViewOptions";
-    import {FiltersList} from "../filter/Filter";
-    import GraphAreaManipulator from "../graph/GraphAreaManipulator";
-    import GraphManipulator from "../graph/GraphManipulator";
-    import LoadDialog from "./LoadDialog.vue";
-    import ApplicationLoadStoreMixin from "./ApplicationLoadStoreMixin";
-    import GraphSearcher from "../searcher/GraphSearcher";
-    import Searcher from "../searcher/Searcher";
-    import LocalGraphSearcher from "../searcher/searchers/LocalGraphSearcher";
-    import SimpleJsonSearcher from "../searcher/searchers/SimpleJsonSearcher";
-    import IRIConstructorSearcher from "../searcher/searchers/IRIConstructorSearcher";
-    import IRIIdentitySearcher from "../searcher/searchers/IRIIdentitySearcher";
-    import LayoutDialog from "./LayoutDialog.vue";
-    import {LayoutManager} from "../layout/LayoutManager";
-    import ColaLayoutSettingsComponent from "../layout/layouts/ColaLayout/ColaLayoutSettingsComponent.vue";
-    import ColaLayout from "../layout/layouts/ColaLayout/ColaLayout";
-    import CircleLayoutSettingsComponent from "../layout/layouts/CircleLayout/CircleLayoutSettingsComponent.vue";
-    import CircleLayout from "../layout/layouts/CircleLayout/CircleLayout";
-    import ColaLayoutButtons from "../layout/layouts/ColaLayout/ColaLayoutButtons.vue";
-    import DagreLayout from "../layout/layouts/DagreLayout/DagreLayout";
-    import DagreLayoutSettingsComponent from "../layout/layouts/DagreLayout/DagreLayoutSettingsComponent.vue";
-    import DagreLayoutButtons from "../layout/layouts/DagreLayout/DagreLayoutButtons.vue";
-    import DegreeFilter from "../filter/filters/DegreeFilter/DegreeFilter";
-    import PropertyFilter from "../filter/filters/PropertyFilter/PropertyFilter";
-    import GraphVuex from "../graph/component/GraphVuex.vue";
-    import NodeCommon from "../graph/NodeCommon";
-    import ConfigurationChooserComponent from "./ConfigurationChooserComponent.vue";
-    import ConfigurationManager from "../configurations/ConfigurationManager";
-    import Metaconfiguration from "../configurations/Metaconfiguration";
-    import Configuration from "../configurations/Configuration";
-    import ApplicationConfiguration from '../conf';
+import {
+    mdiCogs,
+    mdiEthernetCable,
+    mdiEye,
+    mdiFileDownloadOutline,
+    mdiFileUploadOutline,
+    mdiFilterOutline,
+    mdiImageFilterTiltShift,
+    mdiLayersTriple,
+    mdiPlusThick,
+    mdiTranslate,
+} from '@mdi/js';
+import {VListGroup, VNavigationDrawer} from "vuetify/lib";
+import SettingsDialog from "./SettingsDialog.vue";
+import Settings from "./Settings";
+import ViewOptionsDialog from "./ViewOptionsDialog.vue";
+import ViewOptions from "../graph/ViewOptions";
+import {FiltersList} from "../filter/Filter";
+import GraphAreaManipulator from "../graph/GraphAreaManipulator";
+import GraphManipulator from "../graph/GraphManipulator";
+import LoadDialog from "./LoadDialog.vue";
+import ApplicationLoadStoreMixin from "./ApplicationLoadStoreMixin";
+import GraphSearcher from "../searcher/GraphSearcher";
+import Searcher from "../searcher/Searcher";
+import LocalGraphSearcher from "../searcher/searchers/LocalGraphSearcher";
+import SimpleJsonSearcher from "../searcher/searchers/SimpleJsonSearcher";
+import IRIIdentitySearcher from "../searcher/searchers/IRIIdentitySearcher";
+import LayoutDialog from "./LayoutDialog.vue";
+import {LayoutManager} from "../layout/LayoutManager";
+import ColaLayoutSettingsComponent from "../layout/layouts/ColaLayout/ColaLayoutSettingsComponent.vue";
+import ColaLayout from "../layout/layouts/ColaLayout/ColaLayout";
+import CircleLayoutSettingsComponent from "../layout/layouts/CircleLayout/CircleLayoutSettingsComponent.vue";
+import CircleLayout from "../layout/layouts/CircleLayout/CircleLayout";
+import ColaLayoutButtons from "../layout/layouts/ColaLayout/ColaLayoutButtons.vue";
+import DagreLayout from "../layout/layouts/DagreLayout/DagreLayout";
+import DagreLayoutSettingsComponent from "../layout/layouts/DagreLayout/DagreLayoutSettingsComponent.vue";
+import DagreLayoutButtons from "../layout/layouts/DagreLayout/DagreLayoutButtons.vue";
+import DegreeFilter from "../filter/filters/DegreeFilter/DegreeFilter";
+import PropertyFilter from "../filter/filters/PropertyFilter/PropertyFilter";
+import GraphVuex from "../graph/component/GraphVuex.vue";
+import NodeCommon from "../graph/NodeCommon";
+import ConfigurationChooserComponent from "./ConfigurationChooserComponent.vue";
+import ConfigurationManager from "../configurations/ConfigurationManager";
+import Metaconfiguration from "../configurations/Metaconfiguration";
+import Configuration from "../configurations/Configuration";
+import ApplicationConfiguration from '../conf';
+import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChooserComponent.vue";
 
-    @Component({
+@Component({
         components: {
             ConfigurationChooserComponent,
             GraphVuex,
@@ -395,13 +397,21 @@
             settings: mdiCogs,
         };
 
+        private configurationChooserComponentMode : ConfigurationChooserComponentModes = ConfigurationChooserComponentModes.NEW_GRAPH;
+
         /**
          * When clicked on button to open configuration chooser
          * */
-        private openConfigurationChooser() {
+        private newGraphClicked() {
             this.askForSaveAndPerformAction(false, () => {
+                this.configurationChooserComponentMode = ConfigurationChooserComponentModes.NEW_GRAPH;
                 this.configurationChooser.show();
             });
+        }
+
+        private changeConfigurationClicked() {
+            this.configurationChooserComponentMode = ConfigurationChooserComponentModes.CHANGE_CONFIGURATION;
+            this.configurationChooser.show();
         }
 
         private changeConfiguration(data: {
@@ -409,7 +419,16 @@
             newGraph: boolean,
         }) {
             this.configuration = data.configuration;
-            this.createNewGraph();
+            if (data.newGraph) {
+                this.createNewGraph();
+            } else if (this.graph) {
+                console.log("Updated configuration", data.configuration);
+                this.configuration = data.configuration;
+                this.graph.configuration = data.configuration;
+
+                this.loadStylesheet();
+                this.updateGraphSearcher();
+            }
         }
 
         /**
@@ -494,7 +513,7 @@
                 });
             } else {
                 // Open configuration chooser
-                this.openConfigurationChooser();
+                this.newGraphClicked();
                 hideWelcomeScreen();
             }
         }

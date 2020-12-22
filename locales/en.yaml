@@ -9,6 +9,7 @@ menu:
   layout: Layout options
   load: Load graph
   save: Save graph
+  new_graph: New graph
   configuration: Source configuration
   language: Language
   settings: Settings
@@ -42,6 +43,7 @@ side_panel:
       ffuf: The node is hidden both by filter and user. To show it, change filter options and visibility of the node.
     part_of_group: This node is part of a group with total {n} nodes.
     go_to_group: go to group
+    different_configuration: This node has been loaded under the {configuration-name} configuration. Refresh this node to use the new configuration.
   list_panel:
     title: List of selected nodes
     group_nodes: You have selected {n} node groups.

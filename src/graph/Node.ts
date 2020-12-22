@@ -8,6 +8,7 @@ import ObjectSave from "../file-save/ObjectSave";
 import NodeGroup from "./NodeGroup";
 import NodeCommon from "./NodeCommon";
 import NodeVuex from "./component/NodeVuex";
+import Configuration from "@/configurations/Configuration";
 
 /**
  * Information about the type of Node. Same as ResponseElementType
@@ -161,6 +162,11 @@ export class Node extends NodeCommon implements ObjectSave {
         return !!this.currentView?.detail;
     }
 
+    /**
+     * Configuration under which the view sets were loaded.
+     */
+    viewSetsConfiguration: Configuration = null;
+
     viewSets: {
         [IRI: string]: NodeViewSet;
     } = null;
@@ -202,7 +208,8 @@ export class Node extends NodeCommon implements ObjectSave {
 
     async fetchViewSets(): Promise<void> {
         let asynchronouslyFetchViewSets = async () => {
-            let result = await this.graph.server.getViewSets(this.IRI, this.graph.configuration.iri);
+            let configuration = this.graph.configuration;
+            let result = await this.graph.server.getViewSets(this.IRI, configuration.iri);
 
             if (result) {
                 // First create list of views
@@ -228,6 +235,7 @@ export class Node extends NodeCommon implements ObjectSave {
                     }
                 }
                 this.viewSets = viewSets;
+                this.viewSetsConfiguration = configuration;
             }
             this.fetchViewSetsPromise = null;
         }
