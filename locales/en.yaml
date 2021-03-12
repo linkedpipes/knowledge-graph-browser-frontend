@@ -13,6 +13,7 @@ menu:
   configuration: Source configuration
   language: Language
   settings: Settings
+  project_website: Project website
 settings:
   title: Settings
   permanent:

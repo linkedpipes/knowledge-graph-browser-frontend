@@ -33,7 +33,7 @@
 
                         <v-list-item-content>
                             <v-list-item-title>KGVisualBrowser</v-list-item-title>
-                            <v-list-item-subtitle>By Štěpán Stenchlák</v-list-item-subtitle>
+                            <v-list-item-subtitle><a href="https://kgbrowser.opendata.cz/" target="_blank" class="grey--text text-decoration-none">{{ $t("menu.project_website") }} <v-icon small color="grey">{{ icons.projectWebsite }}</v-icon></a></v-list-item-subtitle>
                         </v-list-item-content>
                     </v-list-item>
 
@@ -159,7 +159,7 @@ import {
     mdiFileUploadOutline,
     mdiFilterOutline,
     mdiImageFilterTiltShift,
-    mdiLayersTriple,
+    mdiLayersTriple, mdiOpenInNew,
     mdiPlusThick,
     mdiTranslate,
 } from '@mdi/js';
@@ -387,6 +387,7 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
             viewOptions: mdiEye,
             hidden: mdiImageFilterTiltShift,
             layout: mdiLayersTriple,
+            projectWebsite: mdiOpenInNew,
 
             load: mdiFileUploadOutline,
             save: mdiFileDownloadOutline,
