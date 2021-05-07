@@ -21,3 +21,9 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+/.vs
+/bin
+/obj/Debug
+/src/**/*.js*
+/npm_run_serve.bat
