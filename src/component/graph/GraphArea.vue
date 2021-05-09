@@ -83,6 +83,7 @@
     import GraphManipulator from "../../graph/GraphManipulator";
     import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
     import { toMap } from "./CyToMap";
+    import cytoscapeMapboxgl from 'cytoscape-mapbox-gl';
     import mapboxgl from "mapbox-gl";
 
     import cola from 'cytoscape-cola';
@@ -140,7 +141,7 @@
         @Watch('mapMode')
         private cyMapChange() {
             if (this.mapMode) {
-                this.map = toMap(<Element>this.$refs.graphd, this.graph, this.cy);
+                this.map = toMap(this.graph, this.cy);
             } else {
 
             }
@@ -190,6 +191,7 @@
         created() {
             Cytoscape.use(cola);
             Cytoscape.use(popper);
+            Cytoscape.use(cytoscapeMapboxgl);
 
             this.cy = Cytoscape();
 
