@@ -1,6 +1,6 @@
 # Ruined, not working code !!! Under recontruction
 
-Not updated version runs at https://www.ms.mff.cuni.cz/~stochelm/.
+Not updated version runs at https://www.ms.mff.cuni.cz/~stochelm/.\
 Needs data. Sample is here https://www.ms.mff.cuni.cz/~stochelm/masaryk.kgvb.
 
 # Knowledge Graph Visual Browser
