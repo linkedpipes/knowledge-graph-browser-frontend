@@ -83,7 +83,8 @@
     import GraphManipulator from "../../graph/GraphManipulator";
     import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
     import { toMap } from "./CyToMap";
-    import cytoscapeMapboxgl from 'cytoscape-mapbox-gl';
+    import cytoscapeMapboxgl from './cytoscape-mapbox-gl.js';
+    //import cytoscapeMapboxgl from 'cytoscape-mapbox-gl'; // TODO: vratit toto
     import mapboxgl from "mapbox-gl";
 
     import cola from 'cytoscape-cola';
