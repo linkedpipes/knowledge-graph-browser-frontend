@@ -180,8 +180,11 @@ export function toMap(graphAreaElement, graph, cy) {
                     ]
                 }
             }, {
-                    getPosition: (node) => {
-                        return [node.data('lng'), node.data('lat')];
+            getPosition: (node) => {
+                    let nodeLat = getLonLng(node, 1, geoIRI);
+                    let nodeLng = getLonLng(node, 0, geoIRI);
+                    return [nodeLng, nodeLat];
+                        //return [node._private.data('lng'), node._private.data('lat')];
                     },
                     setPosition: (node, lngLat) => {
                         node.data('lng', lngLat.lng);
@@ -379,7 +382,9 @@ export function toMap(graphAreaElement, graph, cy) {
             return [node.id(), _objectSpread({}, node.position())];
         }));
         var positions = fromEntries(nodes.map(function (node) {
-            return [node.id(), getGeographicPosition(node)];
+            let node_id = node.id();
+            let geo_pos = getGeographicPosition(node);
+            return [node_id, geo_pos];
         }).filter(function (_ref) {
             var _ref2 = slicedToArray(_ref, 2),
                 _id = _ref2[0],
@@ -388,12 +393,13 @@ export function toMap(graphAreaElement, graph, cy) {
             return !!position;
         }));
 
-        a = true;
+        let test = positions["http://www.wikidata.org/entity/Q3490671"];
+        let test_x = test.x;
 
         if (a) {
-            //a = false;
-            return "OrigoPos: " + originalPositions["http://www.wikidata.org/entity/Q3490671"].x + " " + originalPositions["http://www.wikidata.org/entity/Q3490671"].y //+
-                //" ; NewPos: " + positions["http://www.wikidata.org/entity/Q3490671"].x + " " + positions["http://www.wikidata.org/entity/Q3490671"].y;
+            a = false;
+            return "OrigoPos: " + originalPositions["http://www.wikidata.org/entity/Q3490671"].x + " " + originalPositions["http://www.wikidata.org/entity/Q3490671"].y
+                + " ; NewPos: " + positions["http://www.wikidata.org/entity/Q3490671"].x + " " + positions["http://www.wikidata.org/entity/Q3490671"].y;
 
         } else {
             return "NewPos: " + positions["http://www.wikidata.org/entity/Q3490671"].x + " " + positions["http://www.wikidata.org/entity/Q3490671"].y;

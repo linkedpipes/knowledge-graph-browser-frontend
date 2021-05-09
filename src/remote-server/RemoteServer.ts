@@ -21,14 +21,19 @@ export class RemoteServer {
         url.pathname = path;
         Object.keys(parameters).forEach(key => url.searchParams.append(key, parameters[key]));
 
-        let data = await fetch(url.href);
-        if (!data.ok) {
-            console.warn("Request", path, "with parameters", parameters, "failed with status code", data.status, data.statusText);
-            let text = await data.text();
-            console.log(text);
+        try {
+            let data = await fetch(url.href);
+            if (!data.ok) {
+                console.warn("Request", path, "with parameters", parameters, "failed with status code", data.status, data.statusText);
+                let text = await data.text();
+                console.log(text);
+                return false;
+            }
+            return await data.json();
+        } catch (e) {
+            console.warn("Fetch with", url.href, "not working.", url);
             return false;
         }
-        return await data.json();
     }
 
     //#region Queries

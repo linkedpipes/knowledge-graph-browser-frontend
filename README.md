@@ -1,3 +1,5 @@
+# Ruined, not working code !!! Under recontruction
+
 # Knowledge Graph Visual Browser
 
 ## Installation
