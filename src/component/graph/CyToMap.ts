@@ -61,6 +61,35 @@ function findGeoIRIs(nodes, regex) {
     return geoIRIs;
 }
 
+function copyWithout(stylesheet, name, value) {
+    let filteredStylesheet = stylesheet.filter(function (style) {
+        return style[name] !== value;
+    });
+    return filteredStylesheet;
+}
+
+function RemoveEdgeStyle(stylesheet) {
+    return copyWithout(stylesheet, 'selector', 'edge');
+}
+
+export function disableEdgeStyle(cy) {
+    let stylesheet = cy.style().json();
+    //const stylesheet = [...stylesheet_prop.map(obj => ({ style: obj["properties"], selector: obj["selector"] }))]; //bere styl z kgvb a prejmenovava properties na style
+    const stylesheetWithoutEdges = RemoveEdgeStyle(stylesheet);
+    cy.style().fromJson(stylesheetWithoutEdges).update();
+}
+
+export function setEdgeStyle(cy, stylesheet) {
+    cy.style(stylesheet).update();
+}
+
+let cyMap;
+
+export function destroyCyMap() {
+    cyMap.destroy();
+    cyMap = undefined;
+}
+
 export function toMap(graph, cy) {
     const nodes = Object.values(graph.nodes);
     const edges = Object.values(graph.edges); // Not used yet
@@ -73,7 +102,7 @@ export function toMap(graph, cy) {
         geoIRI = item; // TODO: zatim beru pouze posledni IRI o poloze. Pozdeji prepinat
     }
 
-    let cyMap = cy.mapboxgl({
+    cyMap = cy.mapboxgl({
         accessToken: 'pk.eyJ1IjoibWlyb3BpciIsImEiOiJja2xmZGtobDAyOXFnMnJuMGR4cnZvZTA5In0.TPg2_40hpE5k5v65NmdP5A',
         attributionControl: false,
         style: {
@@ -109,7 +138,7 @@ export function toMap(graph, cy) {
             animate: true,
             animationDuration: 1000,
         });
-
+    
     cyMap.map.addControl(new mapboxgl.AttributionControl(), 'bottom-left');
 
     return cyMap.map;

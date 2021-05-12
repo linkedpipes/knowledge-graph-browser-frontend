@@ -277,8 +277,11 @@ button_tooltip:
   zoom_in: Zoom in
   zoom_out: Zoom out
   fit_to_graph: Fit to graph
-  layout: Layout
+  continue_layout: Layout more
+  default_layout: Default layout
   compact_enable: Compact mode
   compact_disable: Disable compact mode
+  edge_style_enable: Default edge style
+  edge_style_disable: Disable edge style
   map_enable: Show graph on map
   map_disable: Disable map mode

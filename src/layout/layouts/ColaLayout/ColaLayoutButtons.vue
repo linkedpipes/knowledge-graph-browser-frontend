@@ -1,5 +1,5 @@
 <template>
-    <button-component :dark="true" :disabled="false" :icon="icon" :tool-tip="colaLayoutToolTip" @click="layout.run()" />
+    <button-component :dark="true" :icon="icon" :tool-tip="colaLayoutToolTip" @click="layout.run()" />
 </template>
 <script lang="ts">
     import Component from "vue-class-component";
@@ -18,6 +18,6 @@
         @Prop() layout !: ColaLayout;
         private icon = mdiLayersTriple;
 
-        private colaLayoutToolTip = this.$t("button_tooltip.layout");;
+        private colaLayoutToolTip = this.$t("button_tooltip.continue_layout");
     }
 </script>

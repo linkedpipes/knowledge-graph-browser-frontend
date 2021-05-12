@@ -13,6 +13,7 @@
             <button-component :dark="!modeCompact" :disabled="modeCompact" :icon="icons.fit" :tool-tip="fitToolTip" @click="areaManipulator.fit()" />
             <button-component :enableButtonDiv="layoutManager.currentLayout.supportsCompactMode"
                               :dark="isNodeSelected && !mapMode" :disabled="!isNodeSelected || mapMode" :icon="icons.compactMode[modeCompact ? 1 : 0]" :tool-tip="modeCompactToolTip" @click="compactModeChange(!modeCompact)" />
+            <button-component :icon="icons.edgeStyle[edgeStyle ? 1 : 0]" :tool-tip="edgeStyleToolTip" @click="edgeStyleChange()" />
             <button-component :icon="icons.mapMode[mapMode ? 1 : 0]" :tool-tip="mapModeToolTip" @click="mapModeChange()" />
         </div>
 
@@ -57,14 +58,15 @@
     import { Emit, Mixins, Prop, Watch } from "vue-property-decorator";
     import { ResponseStylesheet } from "../../remote-server/ResponseInterfaces";
     import { Graph } from "../../graph/Graph";
-    import { mdiPlus, mdiMinus, mdiArrowExpandAll, mdiChartBubble, mdiArrowDecisionOutline, mdiMap, mdiMapMinus } from '@mdi/js';
+    import { mdiPlus, mdiMinus, mdiArrowExpandAll, mdiChartBubble, mdiArrowDecisionOutline, mdiMap, mdiMapMinus, mdiChartTimelineVariant, mdiChartTimelineVariantShimmer } from '@mdi/js';
     import SearchComponent from "../SearchComponent.vue";
     import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
     import ViewOptions from "../../graph/ViewOptions";
     import GraphSearcher from "../../searcher/GraphSearcher";
     import GraphManipulator from "../../graph/GraphManipulator";
     import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
-    import { toMap } from "./CyToMap";
+    import clone from "clone";
+    import { toMap, disableEdgeStyle, setEdgeStyle, destroyCyMap } from "./CyToMap";
     import cytoscapeMapboxgl from 'cytoscape-mapbox-gl';
     import mapboxgl from "mapbox-gl";
 
@@ -115,6 +117,9 @@
         private mapMode: boolean = false;
         private mapModeToolTip = this.$t("button_tooltip.map_enable");
 
+        private edgeStyle: boolean = false;
+        private edgeStyleToolTip = this.$t("button_tooltip.edge_style_disable");
+
         private fitToolTip = this.$t("button_tooltip.fit_to_graph");
         private zoomInToolTip = this.$t("button_tooltip.zoom_in");
         private zoomOutToolTip = this.$t("button_tooltip.zoom_out");
@@ -124,7 +129,8 @@
             zoomOut: mdiMinus,
             fit: mdiArrowExpandAll,
             compactMode: [mdiArrowDecisionOutline, mdiChartBubble],
-            mapMode: [mdiMap, mdiMapMinus]
+            mapMode: [mdiMap, mdiMapMinus],
+            edgeStyle: [mdiChartTimelineVariant, mdiChartTimelineVariantShimmer]
         }
 
         @Watch('mapMode')
@@ -135,8 +141,23 @@
 
                 this.changeMapAttributionOffset();
             } else {
-                // TODO: Znicit mapu
+                destroyCyMap();
+                //this.cy.panzoom(); // TODO???
                 this.mapModeToolTip = this.$t("button_tooltip.map_enable");
+            }
+        }
+
+        @Watch('edgeStyle')
+        private styleChange() {
+            if (this.edgeStyle) {
+                disableEdgeStyle(this.cy);
+                this.edgeStyleToolTip = this.$t("button_tooltip.edge_style_disable");
+            } else {
+                this.stylesheetUpdated();
+                ///////this.cy.style(clone(this.stylesheet.styles));
+                //setEdgeStyle(this.cy, clone(this.stylesheet)); // TODO: Co je toto za stylesheet? :o
+                //setEdgeStyle(this.cy, this.cyStyle);
+                //this.edgeStyleToolTip = this.$t("button_tooltip.edge_style_enable");
             }
         }
 
@@ -152,6 +173,10 @@
 
         private mapModeChange() {
             this.mapMode = !this.mapMode;
+        }
+
+        private edgeStyleChange() {
+            this.edgeStyle = !this.edgeStyle;
         }
 
         /**
