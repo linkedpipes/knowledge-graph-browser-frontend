@@ -593,4 +593,13 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
     .toolbar {
         z-index: 10;
     }
+
+    .mapboxgl-ctrl-bottom-left {
+        display: flex !important;
+        flex-direction: column;
+    }
+
+    .mapboxgl-ctrl.mapboxgl-ctrl-attrib {
+        order: 2;
+    }
 </style>

@@ -310,6 +310,7 @@ button_tooltip:
   zoom_in: Přiblížit
   zoom_out: Oddálit
   fit_to_graph: Výchozí zobrazení
+  layout: Layout
   compact_enable: Kompaktní mód
   compact_disable: Zrušit kompaktní mód
   map_enable: Zobrazit graf na mapě

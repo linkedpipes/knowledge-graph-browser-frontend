@@ -1,13 +1,15 @@
 <template>
-    <v-tooltip left>
-        <template v-slot:activator="{ on }">
-                <v-btn color="primary" fab small :dark="true" :disabled="false" v-on="on" @click="click($event)">
+    <div class="my-2" v-if="enableButtonDiv">
+        <v-tooltip left>
+            <template v-slot:activator="{ on }">
+                <v-btn color="primary" fab small :dark="dark" :disabled="disabled" v-on="on" @click="click($event)">
                     <v-icon>{{ icon }}</v-icon>
                 </v-btn>
 
-        </template>
-        <span>{{ toolTip }}</span>
-    </v-tooltip>
+            </template>
+            <span>{{ toolTip }}</span>
+        </v-tooltip>
+        </div>
 </template>
 
 <script lang="ts">
@@ -16,8 +18,12 @@
 
     @Component
     export default class ButtonComponent extends Vue {
+        @Prop({ default: true }) private enableButtonDiv: boolean;
+
         @Prop(String) private icon: string;
         @Prop(String) private toolTip: string;
+        @Prop({ default: true }) private dark: boolean;
+        @Prop({ default: false }) private disabled: boolean;
 
         @Emit()
         public click(e) { // Emituje se s celou udalosti kliknuti, i kdy asi neni potreba

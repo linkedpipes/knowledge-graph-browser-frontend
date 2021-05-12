@@ -1,3 +1,5 @@
+import mapboxgl from "mapbox-gl";
+
 function findNode(nodes, cynode) {
     let iri = cynode.id();
     for (let i = 0; i < nodes.length; i++) {
@@ -73,6 +75,7 @@ export function toMap(graph, cy) {
 
     let cyMap = cy.mapboxgl({
         accessToken: 'pk.eyJ1IjoibWlyb3BpciIsImEiOiJja2xmZGtobDAyOXFnMnJuMGR4cnZvZTA5In0.TPg2_40hpE5k5v65NmdP5A',
+        attributionControl: false,
         style: {
             'version': 8,
             'sources': {
@@ -106,6 +109,8 @@ export function toMap(graph, cy) {
             animate: true,
             animationDuration: 1000,
         });
+
+    cyMap.map.addControl(new mapboxgl.AttributionControl(), 'bottom-left');
 
     return cyMap.map;
 }

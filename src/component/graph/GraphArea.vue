@@ -8,26 +8,11 @@
 
         <div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
             <component v-if="layoutManager.currentLayoutData.buttons && !mapMode" :is="layoutManager.currentLayoutData.buttons" :layout="layoutManager.currentLayout" />
-            <div class="my-2">
-                <v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact" @click="map ? areaManipulator.zoomIn(map) : areaManipulator.zoomIn()">
-                    <v-icon>{{ icons.zoomIn }}</v-icon>
-                </v-btn>
-            </div>
-            <div class="my-2">
-                <v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact" @click="map ? areaManipulator.zoomOut(map) : areaManipulator.zoomOut()">
-                    <v-icon>{{ icons.zoomOut }}</v-icon>
-                </v-btn>
-            </div>
-            <div class="my-2">
-                <v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact" @click="areaManipulator.fit()">
-                    <v-icon>{{ icons.fit }}</v-icon>
-                </v-btn>
-            </div>
-            <div class="my-2" v-if="layoutManager.currentLayout.supportsCompactMode">
-                <v-btn color="primary" fab small :dark="isNodeSelected && !mapMode" :disabled="!isNodeSelected || mapMode" @click="compactModeChange(!modeCompact)">
-                    <v-icon>{{ icons.compactMode[modeCompact ? 1 : 0] }}</v-icon>
-                </v-btn>
-            </div>
+            <button-component :dark="!modeCompact" :disabled="modeCompact" :icon="icons.zoomIn" :tool-tip="zoomInToolTip" @click="map ? areaManipulator.zoomIn(map) : areaManipulator.zoomIn()" />
+            <button-component :dark="!modeCompact" :disabled="modeCompact" :icon="icons.zoomOut" :tool-tip="zoomOutToolTip" @click="map ? areaManipulator.zoomOut(map) : areaManipulator.zoomOut()" />
+            <button-component :dark="!modeCompact" :disabled="modeCompact" :icon="icons.fit" :tool-tip="fitToolTip" @click="areaManipulator.fit()" />
+            <button-component :enableButtonDiv="layoutManager.currentLayout.supportsCompactMode"
+                              :dark="isNodeSelected && !mapMode" :disabled="!isNodeSelected || mapMode" :icon="icons.compactMode[modeCompact ? 1 : 0]" :tool-tip="modeCompactToolTip" @click="compactModeChange(!modeCompact)" />
             <button-component :icon="icons.mapMode[mapMode ? 1 : 0]" :tool-tip="mapModeToolTip" @click="mapModeChange()" />
         </div>
 
@@ -80,8 +65,7 @@
     import GraphManipulator from "../../graph/GraphManipulator";
     import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
     import { toMap } from "./CyToMap";
-    //import cytoscapeMapboxgl from './cytoscape-mapbox-gl.js';
-    import cytoscapeMapboxgl from 'cytoscape-mapbox-gl'; // TODO: vratit toto
+    import cytoscapeMapboxgl from 'cytoscape-mapbox-gl';
     import mapboxgl from "mapbox-gl";
 
     import cola from 'cytoscape-cola';
@@ -116,8 +100,7 @@
          * Compact mode is a mode where selected nodes with all its neighbours are layouted independently of others
          * */
         @Prop(Boolean) private modeCompact !: boolean;
-
-        @Prop(mapboxgl.Map) private map !: mapboxgl.Map;
+        private modeCompactToolTip = this.$t("button_tooltip.compact_enable");
 
         /**
          * How much of the graph area is covered by panels. This array is readonly so it could be passed by reference.
@@ -127,8 +110,14 @@
          */
         private readonly offset: [number, number, number, number] = [0, 0, 0, 0];
 
+        private map !: mapboxgl.Map;
+
         private mapMode: boolean = false;
         private mapModeToolTip = this.$t("button_tooltip.map_enable");
+
+        private fitToolTip = this.$t("button_tooltip.fit_to_graph");
+        private zoomInToolTip = this.$t("button_tooltip.zoom_in");
+        private zoomOutToolTip = this.$t("button_tooltip.zoom_out");
 
         private icons = {
             zoomIn: mdiPlus,
@@ -143,9 +132,21 @@
             if (this.mapMode) {
                 this.map = toMap(this.graph, this.cy);
                 this.mapModeToolTip = this.$t("button_tooltip.map_disable");
+
+                this.changeMapAttributionOffset();
             } else {
                 // TODO: Znicit mapu
                 this.mapModeToolTip = this.$t("button_tooltip.map_enable");
+            }
+        }
+
+        @Watch('leftOffset', { immediate: true })
+        private changeMapAttributionOffset() {
+            if (this.mapMode) {
+                this.map.getContainer().querySelector('.mapboxgl-control-container').querySelector('.mapboxgl-ctrl-bottom-left')
+                    .style["margin-left"] = this.leftOffset + "px";
+                this.map.getContainer().querySelector('.mapboxgl-control-container').querySelector('.mapboxgl-ctrl-bottom-left')
+                    .style["transition-duration"] =  "0.2s"; // TODO: Natvrdo opsano podle leveho panelu
             }
         }
 
@@ -229,6 +230,14 @@
             this.cy.userPanningEnabled(!this.modeCompact);
             this.cy.userZoomingEnabled(!this.modeCompact);
             this.cy.boxSelectionEnabled(!this.modeCompact);
+
+            if (this.modeCompact) {
+                this.modeCompactToolTip = this.$t("button_tooltip.compact_disable");
+            }
+            else {
+                this.modeCompactToolTip = this.$t("button_tooltip.compact_enable");
+            }
+            
         }
 
         @Watch('dataForCompactMode')
@@ -347,9 +356,9 @@
         left: 56px;
     }
 
-        .toolbar.toolbar-move {
-            left: 256px;
-        }
+    .toolbar.toolbar-move {
+        left: 256px;
+    }
 
     .buttons {
         position: absolute;
