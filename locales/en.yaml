@@ -272,3 +272,12 @@ load_dialog:
 
 any_data_value:
   open_node: Show node
+
+button_tooltip:
+  zoom_in: Zoom in
+  zoom_out: Zoom out
+  fit_to_graph: Fit to graph
+  compact_enable: Compact mode
+  compact_disable: Disable compact mode
+  map_enable: Show graph on map
+  map_disable: Disable map mode

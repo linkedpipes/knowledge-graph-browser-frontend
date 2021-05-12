@@ -306,3 +306,11 @@ load_dialog:
   cancel: Zrušit
 any_data_value:
   open_node: Zobrazit vrchol
+button_tooltip:
+  zoom_in: Přiblížit
+  zoom_out: Oddálit
+  fit_to_graph: Výchozí zobrazení
+  compact_enable: Kompaktní mód
+  compact_disable: Zrušit kompaktní mód
+  map_enable: Zobrazit graf na mapě
+  map_disable: Zrušit mapové zobrazení

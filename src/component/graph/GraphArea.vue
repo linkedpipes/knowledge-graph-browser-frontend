@@ -28,11 +28,7 @@
                     <v-icon>{{ icons.compactMode[modeCompact ? 1 : 0] }}</v-icon>
                 </v-btn>
             </div>
-            <div class="my-2">
-                <v-btn color="primary" fab small dark @click="mapModeChange()">
-                    <v-icon>{{ icons.mapMode[mapMode ? 1 : 0] }}</v-icon>
-                </v-btn>
-            </div>
+            <button-component :icon="icons.mapMode[mapMode ? 1 : 0]" :tool-tip="mapModeToolTip" @click="mapModeChange()" />
         </div>
 
         <graph-element-node v-for="node in graph.nodes"
@@ -71,6 +67,7 @@
     import Component from "vue-class-component";
     import GraphElementNode from "./GraphElementNode.vue";
     import GraphElementEdge from "./GraphElementEdge";
+    import ButtonComponent from "../helper/ButtonComponent.vue";
     import Cytoscape from "cytoscape";
     import { Emit, Mixins, Prop, Watch } from "vue-property-decorator";
     import { ResponseStylesheet } from "../../remote-server/ResponseInterfaces";
@@ -83,8 +80,8 @@
     import GraphManipulator from "../../graph/GraphManipulator";
     import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
     import { toMap } from "./CyToMap";
-    import cytoscapeMapboxgl from './cytoscape-mapbox-gl.js';
-    //import cytoscapeMapboxgl from 'cytoscape-mapbox-gl'; // TODO: vratit toto
+    //import cytoscapeMapboxgl from './cytoscape-mapbox-gl.js';
+    import cytoscapeMapboxgl from 'cytoscape-mapbox-gl'; // TODO: vratit toto
     import mapboxgl from "mapbox-gl";
 
     import cola from 'cytoscape-cola';
@@ -101,6 +98,7 @@
             GraphElementNode,
             GraphElementEdge,
             GraphElementNodeGroup,
+            ButtonComponent,
         }
     })
     export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
@@ -130,6 +128,7 @@
         private readonly offset: [number, number, number, number] = [0, 0, 0, 0];
 
         private mapMode: boolean = false;
+        private mapModeToolTip = this.$t("button_tooltip.map_enable");
 
         private icons = {
             zoomIn: mdiPlus,
@@ -143,8 +142,10 @@
         private cyMapChange() {
             if (this.mapMode) {
                 this.map = toMap(this.graph, this.cy);
+                this.mapModeToolTip = this.$t("button_tooltip.map_disable");
             } else {
-
+                // TODO: Znicit mapu
+                this.mapModeToolTip = this.$t("button_tooltip.map_enable");
             }
         }
 
