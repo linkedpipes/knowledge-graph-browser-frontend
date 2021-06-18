@@ -7,7 +7,7 @@
     import { Prop } from "vue-property-decorator";
     import DagreLayout from "./DagreLayout";
     import ButtonComponent from "../../../component/helper/ButtonComponent.vue";
-    import { mdiLayersTriple } from "@mdi/js";
+    import { mdiGraphOutline } from "@mdi/js";
 
     @Component({
         components: {
@@ -16,7 +16,7 @@
     })
     export default class DagreLayoutButtons extends Vue {
         @Prop() layout !: DagreLayout;
-        private icon = mdiLayersTriple;
+        private icon = mdiGraphOutline;
 
         private dagreLayoutToolTip = this.$t("button_tooltip.default_layout");
     }

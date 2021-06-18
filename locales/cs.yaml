@@ -7,6 +7,7 @@ menu:
   view_options: Možnosti pohledu
   hidden_nodes: Skryté uzly
   layout: Nastavení layoutu
+  map_layers: Nastavení mapové vrstvy
   load: Načíst ze souboru
   save: Uložit do souboru
   new_graph: Nový graf
@@ -174,6 +175,22 @@ view_options:
     full: Vše
     hide_text: Skrýt text
     hide: Skrýt
+map_layer_dialog:
+  title: Nastavení mapové vrstvy
+  standard:
+    title: Standardní
+    open_street_map: OpenStreetMap
+  satellite:
+    title: Satelitní
+    mapbox: MapBox
+  close: Zavřít
+map_configuration:
+  baseMaps:
+    name: Podkladová mapa
+  noPositionNodeStyles:
+    name: Vrcholy bez polohy
+  currentConfiguration:
+    name: Současná konfigurace
 save_dialog:
   title: Uložit graf?
   text: >-

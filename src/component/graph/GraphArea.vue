@@ -58,15 +58,16 @@
     import { Emit, Mixins, Prop, Watch } from "vue-property-decorator";
     import { ResponseStylesheet } from "../../remote-server/ResponseInterfaces";
     import { Graph } from "../../graph/Graph";
-    import { mdiPlus, mdiMinus, mdiArrowExpandAll, mdiChartBubble, mdiArrowDecisionOutline, mdiMap, mdiMapMinus, mdiChartTimelineVariant, mdiChartTimelineVariantShimmer } from '@mdi/js';
+    import { mdiPlus, mdiMinus, mdiFitToPageOutline, mdiChartBubble, mdiSvg, mdiMap, mdiMapMinus, mdiChartTimelineVariant, mdiChartTimelineVariantShimmer } from '@mdi/js';
     import SearchComponent from "../SearchComponent.vue";
     import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
     import ViewOptions from "../../graph/ViewOptions";
+    import MapConfiguration from "../../map/MapConfiguration";
     import GraphSearcher from "../../searcher/GraphSearcher";
     import GraphManipulator from "../../graph/GraphManipulator";
     import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
     import clone from "clone";
-    import { toMap, disableEdgeStyle, setEdgeStyle, destroyCyMap } from "./CyToMap";
+    import { toMap, disableEdgeStyle, destroyCyMap, setMapLayer } from "../../map/CyToMap";
     import cytoscapeMapboxgl from 'cytoscape-mapbox-gl';
     import mapboxgl from "mapbox-gl";
 
@@ -93,6 +94,7 @@
         @Prop() leftOffset: number;
         @Prop() rightOffset: number;
         @Prop() viewOptions: ViewOptions;
+        @Prop() mapConfiguration: MapConfiguration;
         @Prop() private graphSearcher: GraphSearcher;
         @Prop() private manipulator: GraphManipulator;
         @Prop(Object) private areaManipulator: GraphAreaManipulator;
@@ -127,10 +129,17 @@
         private icons = {
             zoomIn: mdiPlus,
             zoomOut: mdiMinus,
-            fit: mdiArrowExpandAll,
-            compactMode: [mdiArrowDecisionOutline, mdiChartBubble],
+            fit: mdiFitToPageOutline,
+            compactMode: [mdiSvg, mdiChartBubble],
             mapMode: [mdiMap, mdiMapMinus],
             edgeStyle: [mdiChartTimelineVariant, mdiChartTimelineVariantShimmer]
+        }
+
+        @Watch('mapConfiguration')
+        private changeMapLayer() {
+            if (this.mapMode) {
+                setMapLayer(this.mapConfiguration);
+            }
         }
 
         @Watch('mapMode')

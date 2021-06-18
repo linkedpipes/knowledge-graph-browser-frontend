@@ -34,9 +34,9 @@
 <script lang="ts">
     import {Component, Prop, Watch} from "vue-property-decorator";
 import Vue from "vue";
-import ColaLayoutSettingsComponent from "../layout/layouts/ColaLayout/ColaLayoutSettingsComponent.vue";
-import {ColaLayoutOptions} from "../layout/layouts/ColaLayout/ColaLayout";
-    import {LayoutManager} from "../layout/LayoutManager";
+import ColaLayoutSettingsComponent from "../../layout/layouts/ColaLayout/ColaLayoutSettingsComponent.vue";
+import {ColaLayoutOptions} from "../../layout/layouts/ColaLayout/ColaLayout";
+    import {LayoutManager} from "../../layout/LayoutManager";
 @Component({
     components: {ColaLayoutSettingsComponent}
 })

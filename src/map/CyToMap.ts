@@ -1,4 +1,5 @@
 import mapboxgl from "mapbox-gl";
+import MapConfiguration from "./MapConfiguration";
 
 function findNode(nodes, cynode) {
     let iri = cynode.id();
@@ -13,8 +14,7 @@ function findNode(nodes, cynode) {
 
 function getLonLng(nodes, cynode, pointPosition, geoIRI) {
     let node = findNode(nodes, cynode);
-
-
+    
     let currentViewDetail;
     for (let viewSet in node['viewSets']) {
         let views = node['viewSets'][viewSet]['views'];
@@ -72,6 +72,32 @@ function RemoveEdgeStyle(stylesheet) {
     return copyWithout(stylesheet, 'selector', 'edge');
 }
 
+let cyMap;
+
+var layerStyles = {
+    openStreetMap: {
+        'version': 8,
+        'sources': {
+            'raster-tiles': {
+                'type': 'raster',
+                'tiles': ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                'tileSize': 256,
+                'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }
+        },
+        'layers': [
+            {
+                'id': 'raster-tiles',
+                'type': 'raster',
+                'source': 'raster-tiles',
+                'minzoom': 0,
+                'maxzoom': 19
+      }
+        ]
+    },
+    mapbox: 'mapbox://styles/mapbox/satellite-streets-v11'
+};
+
 export function disableEdgeStyle(cy) {
     let stylesheet = cy.style().json();
     //const stylesheet = [...stylesheet_prop.map(obj => ({ style: obj["properties"], selector: obj["selector"] }))]; //bere styl z kgvb a prejmenovava properties na style
@@ -79,11 +105,9 @@ export function disableEdgeStyle(cy) {
     cy.style().fromJson(stylesheetWithoutEdges).update();
 }
 
-export function setEdgeStyle(cy, stylesheet) {
-    cy.style(stylesheet).update();
+export function setMapLayer(mapConfiguration: MapConfiguration) {
+    cyMap.map.setStyle(mapConfiguration.currentConfiguration.baseMap.style);
 }
-
-let cyMap;
 
 export function destroyCyMap() {
     cyMap.destroy();
@@ -105,26 +129,7 @@ export function toMap(graph, cy) {
     cyMap = cy.mapboxgl({
         accessToken: 'pk.eyJ1IjoibWlyb3BpciIsImEiOiJja2xmZGtobDAyOXFnMnJuMGR4cnZvZTA5In0.TPg2_40hpE5k5v65NmdP5A',
         attributionControl: false,
-        style: {
-            'version': 8,
-            'sources': {
-                'raster-tiles': {
-                    'type': 'raster',
-                    'tiles': ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                    'tileSize': 256,
-                    'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }
-            },
-            'layers': [
-                {
-                    'id': 'raster-tiles',
-                    'type': 'raster',
-                    'source': 'raster-tiles',
-                    'minzoom': 0,
-                    'maxzoom': 19
-                }
-            ]
-        }
+        style: layerStyles.openStreetMap,
     }, {
             getPosition: (node) => {
                 let nodeLat = getLonLng(nodes, node, 1, geoIRI);

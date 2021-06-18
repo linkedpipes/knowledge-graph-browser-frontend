@@ -7,7 +7,7 @@
     import { Prop } from "vue-property-decorator";
     import ColaLayout from "./ColaLayout";
     import ButtonComponent from "../../../component/helper/ButtonComponent.vue";
-    import { mdiLayersTriple } from "@mdi/js";
+    import { mdiArrowDecisionOutline } from "@mdi/js";
 
     @Component({
         components: {
@@ -16,7 +16,7 @@
     })
     export default class ColaLayoutButtons extends Vue {
         @Prop() layout !: ColaLayout;
-        private icon = mdiLayersTriple;
+        private icon = mdiArrowDecisionOutline;
 
         private colaLayoutToolTip = this.$t("button_tooltip.continue_layout");
     }
