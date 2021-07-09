@@ -38,8 +38,34 @@ function getLonLng(nodes, cynode, pointPosition, geoIRI) {
     }
 }
 
+function getLonLngWithMultipleGeoIRIs(nodes, cynode, pointPosition, geoIRIs) {
+    let node = findNode(nodes, cynode);
+
+    let currentViewDetail;
+    for (let viewSet in node['viewSets']) {
+        let views = node['viewSets'][viewSet]['views'];
+        for (let view in views) {
+            if (views[view]['IRI'] === node['currentView']['IRI']) {
+                currentViewDetail = views[view]['detail'];
+            }
+        }
+    }
+    if (currentViewDetail) {
+        for (let geoIRI of geoIRIs) {
+            if (geoIRI.active) {
+                let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI.IRI);
+                if (detailGeoIRI) {
+                    return detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ')[pointPosition]; // The first geoIRI that is in the nodes detail is used
+                }
+            }
+        }
+        return null; // Has currentView, but not geoIRI in it
+    }
+    return null; // No currentView detail at all
+}
+
 function findGeoIRIs(nodes, regex) {
-    let geoIRIs = new Set();
+    let geoIRIs = new Map<string, string>();
     for (let i = 0; i < nodes.length; i++) {
         let node = nodes[i];
         let viewSets = node['viewSets'];
@@ -51,7 +77,7 @@ function findGeoIRIs(nodes, regex) {
                     for (let l = 0; l < details.length; l++) {
                         let detail = details[l];
                         if (regex.test(detail['value'])) {
-                            geoIRIs.add(detail['IRI']);
+                            geoIRIs.set(detail['IRI'], detail['type']['label']);
                         }
                     }
                 }
@@ -114,17 +140,57 @@ export function destroyCyMap() {
     cyMap = undefined;
 }
 
-export function toMap(graph, cy) {
+// To find IRI of nodes coordinates Point(...)
+export function getGeoIRIs(graph) {
+    const nodes = Object.values(graph.nodes);
+    const regex = new RegExp(/^Point\s*\(([0-9]+\.[0-9]+)\s+([0-9]+\.[0-9]+)\)$/); // Point(XX.XXX Y.YYYYY)
+    return findGeoIRIs(nodes, regex); // Array of IRIs with value Point. For example "http://www.wikidata.org/prop/direct/P19"
+}
+
+export function getNodesWithoutPosition(graph, cy, geoIRIs) {
+    let nodesWithoutPosition = [];
+
+    const nodes = Object.values(graph.nodes);
+    for (let node of nodes) {
+
+        let nodeLng = null;
+
+        // TODO okopirovane z metody vyse
+        let currentViewDetail;
+        for (let viewSet in node['viewSets']) {
+            let views = node['viewSets'][viewSet]['views'];
+            for (let view in views) {
+                if (views[view]['IRI'] === node['currentView']['IRI']) {
+                    currentViewDetail = views[view]['detail'];
+                }
+            }
+        }
+        if (currentViewDetail) {
+            for (let geoIRI of geoIRIs) {
+                if (geoIRI.active) {
+                    let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI.IRI);
+                    if (detailGeoIRI) {
+                        nodeLng = detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ')[0]; // The first geoIRI that is in the nodes detail is used
+                    }
+                }
+            }
+            // Has currentView, but not geoIRI in it
+        }
+        // No currentView detail at all
+
+
+
+        if (!nodeLng) {
+            nodesWithoutPosition.push(node);
+        }
+    }
+
+    return nodesWithoutPosition;
+}
+
+export function toMap(graph, cy, geoIRIs) {
     const nodes = Object.values(graph.nodes);
     const edges = Object.values(graph.edges); // Not used yet
-
-    // To find IRI of nodes coordinates Point(...)
-    const regex = new RegExp(/^Point\s*\(([0-9]+\.[0-9]+)\s+([0-9]+\.[0-9]+)\)$/); // Point(XX.XXX Y.YYYYY)
-    let geoIRIs = findGeoIRIs(nodes, regex); // Array of IRIs with value Point. For example "http://www.wikidata.org/prop/direct/P19"
-    let geoIRI;
-    for (let item of geoIRIs) {
-        geoIRI = item; // TODO: zatim beru pouze posledni IRI o poloze. Pozdeji prepinat
-    }
 
     cyMap = cy.mapboxgl({
         accessToken: 'pk.eyJ1IjoibWlyb3BpciIsImEiOiJja2xmZGtobDAyOXFnMnJuMGR4cnZvZTA5In0.TPg2_40hpE5k5v65NmdP5A',
@@ -132,8 +198,10 @@ export function toMap(graph, cy) {
         style: layerStyles.openStreetMap,
     }, {
             getPosition: (node) => {
-                let nodeLat = getLonLng(nodes, node, 1, geoIRI);
-                let nodeLng = getLonLng(nodes, node, 0, geoIRI);
+            //let nodeLat = getLonLng(nodes, node, 1, geoIRI); // Varianta pri pouze jednom predanem geoIRI
+            //let nodeLng = getLonLng(nodes, node, 0, geoIRIs[0].IRI); // Pripadne s polem, ale s vyberem pouze prvniho geoIRI
+            let nodeLat = getLonLngWithMultipleGeoIRIs(nodes, node, 1, geoIRIs);
+            let nodeLng = getLonLngWithMultipleGeoIRIs(nodes, node, 0, geoIRIs);
                 return [nodeLng, nodeLat];
             },
             setPosition: (node, lngLat) => {

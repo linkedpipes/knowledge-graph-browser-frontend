@@ -62,12 +62,12 @@
     import SearchComponent from "../SearchComponent.vue";
     import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
     import ViewOptions from "../../graph/ViewOptions";
-    import MapConfiguration from "../../map/MapConfiguration";
+    import MapConfiguration, { GeoIRI } from "../../map/MapConfiguration";
     import GraphSearcher from "../../searcher/GraphSearcher";
     import GraphManipulator from "../../graph/GraphManipulator";
     import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
     import clone from "clone";
-    import { toMap, disableEdgeStyle, destroyCyMap, setMapLayer } from "../../map/CyToMap";
+    import { toMap, disableEdgeStyle, destroyCyMap, setMapLayer, getGeoIRIs, getNodesWithoutPosition } from "../../map/CyToMap";
     import cytoscapeMapboxgl from 'cytoscape-mapbox-gl';
     import mapboxgl from "mapbox-gl";
 
@@ -78,6 +78,8 @@
     import GroupEdge from "../../graph/GroupEdge";
     import NodeCommon from "../../graph/NodeCommon";
     import EdgeCommon from "../../graph/EdgeCommon";
+
+    import { Node, NodeType } from '../../graph/Node'; // TODO Kvuli tomu okopcenemu z HiddenNodesPanel.vue
 
     @Component({
         components: {
@@ -145,7 +147,15 @@
         @Watch('mapMode')
         private cyMapChange() {
             if (this.mapMode) {
-                this.map = toMap(this.graph, this.cy);
+                getGeoIRIs(this.graph).forEach((value, key) => {
+                    if (this.mapConfiguration.geoIRIs.filter(function (geoIRI) { return geoIRI.IRI === key; }).length > 0) {
+                        // array contains the geoIRI with new geoIRI
+                    }
+                    else { this.mapConfiguration.geoIRIs.push(new GeoIRI(key, value, true));}
+                });
+                
+                this.map = toMap(this.graph, this.cy, this.mapConfiguration.geoIRIs); // TODO bere pouze jednu z geopozic vrcholu
+                this.hideNodesWithoutPosition();
                 this.mapModeToolTip = this.$t("button_tooltip.map_disable");
 
                 this.changeMapAttributionOffset();
@@ -153,6 +163,33 @@
                 destroyCyMap();
                 //this.cy.panzoom(); // TODO???
                 this.mapModeToolTip = this.$t("button_tooltip.map_enable");
+
+                this.changeVisibility(true);
+            }
+        }
+
+        // TODO: okopirovano z HiddenNodesPanel.vue
+        private get nodes(): Node[] {
+            let nodes: Node[] = [];
+            for (let iri in this.graph.nodes) {
+                if (!this.graph.nodes[iri].isVisible) {
+                    nodes.push(this.graph.nodes[iri]);
+                }
+            }
+
+            return nodes;
+        }
+
+        // TODO: okopirovano z HiddenNodesPanel.vue
+        private changeVisibility(visibility: boolean) {
+            for (let node of this.nodes) {
+                node.visible = visibility;
+            }
+        }
+
+        private hideNodesWithoutPosition() {
+            for (let node of getNodesWithoutPosition(this.graph, this.cy, this.mapConfiguration.geoIRIs)) {
+                node.visible = false;
             }
         }
 

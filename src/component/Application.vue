@@ -269,10 +269,7 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
                 name: 'mapbox',
                 style: 'mapbox://styles/mapbox/satellite-streets-v11'
             }],
-            [{
-                name: 'hide',
-                style: 'hide' // TODO
-            }]
+             'hide' // TODO
         );
 
         /**

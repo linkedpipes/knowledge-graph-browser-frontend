@@ -174,8 +174,14 @@ map_layer_dialog:
 map_configuration:
   base_map:
     name: Base map layer
+  geo_iris:
+    name: Node properties for position
   no_position_nodes_style:
     name: Nodes without position
+    title: How nodes with no position will be shown
+    hide: Hide
+    layout: Layout by original layout (not implemented yet)
+    aside: Show in upper right edge (not implemented yet)
   current_configuration:
     name: Current configuration
 
