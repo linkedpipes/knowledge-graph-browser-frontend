@@ -67,7 +67,6 @@
     import GraphManipulator from "../../graph/GraphManipulator";
     import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
     import clone from "clone";
-    import { toMap, disableEdgeStyle, destroyCyMap, setMapLayer, getGeoIRIs, getNodesWithoutPosition } from "../../map/CyToMap";
     import cytoscapeMapboxgl from 'cytoscape-mapbox-gl';
     import mapboxgl from "mapbox-gl";
 
@@ -140,27 +139,29 @@
         @Watch('mapConfiguration')
         private changeMapLayer() {
             if (this.mapMode) {
-                setMapLayer(this.mapConfiguration);
+                this.setMapLayer(this.mapConfiguration);
             }
         }
 
         @Watch('mapMode')
         private cyMapChange() {
             if (this.mapMode) {
-                getGeoIRIs(this.graph).forEach((value, key) => {
+                this.layoutManager.switchToLayout('circle') // Switch to circle layout to lock nodes TODO natvrdo napsany circle, cili je povinny
+
+                this.getGeoIRIs(this.graph).forEach((value, key) => {
                     if (this.mapConfiguration.geoIRIs.filter(function (geoIRI) { return geoIRI.IRI === key; }).length > 0) {
                         // array contains the geoIRI with new geoIRI
                     }
-                    else { this.mapConfiguration.geoIRIs.push(new GeoIRI(key, value, true));}
+                    else { this.mapConfiguration.geoIRIs.push(new GeoIRI(key, value, true)); }
                 });
-                
-                this.map = toMap(this.graph, this.cy, this.mapConfiguration.geoIRIs); // TODO bere pouze jednu z geopozic vrcholu
+
+                this.map = this.toMap(this.graph, this.cy, this.mapConfiguration.geoIRIs); // TODO bere pouze jednu z geopozic vrcholu
                 this.hideNodesWithoutPosition();
                 this.mapModeToolTip = this.$t("button_tooltip.map_disable");
 
                 this.changeMapAttributionOffset();
             } else {
-                destroyCyMap();
+                this.destroyCyMap();
                 //this.cy.panzoom(); // TODO???
                 this.mapModeToolTip = this.$t("button_tooltip.map_enable");
 
@@ -188,7 +189,7 @@
         }
 
         private hideNodesWithoutPosition() {
-            for (let node of getNodesWithoutPosition(this.graph, this.cy, this.mapConfiguration.geoIRIs)) {
+            for (let node of this.getNodesWithoutPosition(this.graph, this.cy, this.mapConfiguration.geoIRIs)) {
                 node.visible = false;
             }
         }
@@ -196,7 +197,7 @@
         @Watch('edgeStyle')
         private styleChange() {
             if (this.edgeStyle) {
-                disableEdgeStyle(this.cy);
+                this.disableEdgeStyle(this.cy);
                 this.edgeStyleToolTip = this.$t("button_tooltip.edge_style_disable");
             } else {
                 this.stylesheetUpdated();
@@ -213,7 +214,7 @@
                 this.map.getContainer().querySelector('.mapboxgl-control-container').querySelector('.mapboxgl-ctrl-bottom-left')
                     .style["margin-left"] = this.leftOffset + "px";
                 this.map.getContainer().querySelector('.mapboxgl-control-container').querySelector('.mapboxgl-ctrl-bottom-left')
-                    .style["transition-duration"] =  "0.2s"; // TODO: Natvrdo opsano podle leveho panelu
+                    .style["transition-duration"] = "0.2s"; // TODO: Natvrdo opsano podle leveho panelu
             }
         }
 
@@ -308,7 +309,7 @@
             else {
                 this.modeCompactToolTip = this.$t("button_tooltip.compact_enable");
             }
-            
+
         }
 
         @Watch('dataForCompactMode')
@@ -405,6 +406,288 @@
             this.offset[1] = this.rightOffset;
             this.offset[3] = this.leftOffset;
         }
+
+        /**
+         * Vue method called after the creation of the object.
+         * Mounts the Cytoscape instance to HTML and registers basic events handlers
+         */
+
+        private cyMap;
+
+        findNode(nodes, cynode) {
+            let iri = cynode.id();
+            for (let i = 0; i < nodes.length; i++) {
+                let node = nodes[i];
+                if (node.IRI == iri) {
+                    return node;
+                }
+            }
+            return null;
+        }
+
+        getLonLng(nodes, cynode, pointPosition, geoIRI) {
+            let node = this.findNode(nodes, cynode);
+
+            let currentViewDetail;
+            for (let viewSet in node['viewSets']) {
+                let views = node['viewSets'][viewSet]['views'];
+                for (let view in views) {
+                    if (views[view]['IRI'] === node['currentView']['IRI']) {
+                        currentViewDetail = views[view]['detail'];
+                    }
+                }
+            }
+            if (currentViewDetail) {
+                let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI);
+                if (detailGeoIRI) {
+                    return detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ')[pointPosition];
+                }
+                else {
+                    return null; // Has currentView, but not geoIRI in it
+                }
+            }
+            else {
+                return null; // No currentView detail at all
+            }
+        }
+
+        getLonOrLngWithMultipleGeoIRIs(nodes, cynode, pointPosition, geoIRIs) {
+            let node = this.findNode(nodes, cynode);
+
+            let currentViewDetail;
+            for (let viewSet in node['viewSets']) {
+                let views = node['viewSets'][viewSet]['views'];
+                for (let view in views) {
+                    if (views[view]['IRI'] === node['currentView']['IRI']) {
+                        currentViewDetail = views[view]['detail'];
+                    }
+                }
+            }
+            if (currentViewDetail) {
+                for (let geoIRI of geoIRIs) {
+                    if (geoIRI.active) {
+                        let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI.IRI);
+                        if (detailGeoIRI) {
+                            return detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ')[pointPosition]; // The first geoIRI that is in the nodes detail is used
+                        }
+                    }
+                }
+                return null; // Has currentView, but not geoIRI in it
+            }
+            return null; // No currentView detail at all
+        }
+
+        getLonLngWithMultipleGeoIRIs(nodes, cynode, geoIRIs) {
+            let node = this.findNode(Object.values(this.graph.nodes), cynode);
+
+            let currentViewDetail;
+            for (let viewSet in node['viewSets']) {
+                let views = node['viewSets'][viewSet]['views'];
+                for (let view in views) {
+                    if (views[view]['IRI'] === node['currentView']['IRI']) {
+                        currentViewDetail = views[view]['detail'];
+                    }
+                }
+            }
+
+            let lonLat = [];
+
+            if (currentViewDetail) {
+                for (let geoIRI of geoIRIs) {
+                    if (geoIRI.active) {
+                        let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI.IRI);
+                        if (detailGeoIRI) {
+                            lonLat.push(detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' '));
+                        }
+                    }
+                }
+                // Has currentView, but not geoIRI in it
+            }
+            return lonLat; // No currentView detail at all
+        }
+
+        findGeoIRIs(nodes, regex) {
+            let geoIRIs = new Map<string, string>();
+            for (let i = 0; i < nodes.length; i++) {
+                let node = nodes[i];
+                let viewSets = node['viewSets'];
+                for (let viewSet in viewSets) {
+                    let views = node['viewSets'][viewSet]['views'];
+                    for (let view in views) {
+                        let details = views[view]['detail'];
+                        if (details) {
+                            for (let l = 0; l < details.length; l++) {
+                                let detail = details[l];
+                                if (regex.test(detail['value'])) {
+                                    geoIRIs.set(detail['IRI'], detail['type']['label']);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return geoIRIs;
+        }
+
+        copyWithout(stylesheet, name, value) {
+            let filteredStylesheet = stylesheet.filter(function (style) {
+                return style[name] !== value;
+            });
+            return filteredStylesheet;
+        }
+
+        removeEdgeStyle(stylesheet) {
+            return this.copyWithout(stylesheet, 'selector', 'edge');
+        }
+
+        layerStyles = {
+            openStreetMap: {
+                'version': 8,
+                'sources': {
+                    'raster-tiles': {
+                        'type': 'raster',
+                        'tiles': ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                        'tileSize': 256,
+                        'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }
+                },
+                'layers': [
+                    {
+                        'id': 'raster-tiles',
+                        'type': 'raster',
+                        'source': 'raster-tiles',
+                        'minzoom': 0,
+                        'maxzoom': 18
+                    }
+                ]
+            },
+            mapbox: 'mapbox://styles/mapbox/satellite-streets-v11'
+        };
+
+        disableEdgeStyle(cy) {
+            let stylesheet = cy.style().json();
+            //const stylesheet = [...stylesheet_prop.map(obj => ({ style: obj["properties"], selector: obj["selector"] }))]; //bere styl z kgvb a prejmenovava properties na style
+            const stylesheetWithoutEdges = this.removeEdgeStyle(stylesheet);
+            cy.style().fromJson(stylesheetWithoutEdges).update();
+        }
+
+        setMapLayer(mapConfiguration: MapConfiguration) {
+            this.cyMap.map.setStyle(mapConfiguration.currentConfiguration.baseMap.style);
+        }
+
+        destroyCyMap() {
+            this.cyMap.destroy();
+            this.cyMap = undefined;
+        }
+
+        // To find IRI of nodes coordinates Point(...)
+        getGeoIRIs(graph) {
+            const nodes = Object.values(graph.nodes);
+            const regex = new RegExp(/^Point\s*\(([0-9]+\.[0-9]+)\s+([0-9]+\.[0-9]+)\)$/); // Point(XX.XXX Y.YYYYY)
+            return this.findGeoIRIs(nodes, regex); // Array of IRIs with value Point. For example "http://www.wikidata.org/prop/direct/P19"
+        }
+
+        getNodesWithoutPosition(graph, cy, geoIRIs) {
+            let nodesWithoutPosition = [];
+
+            const nodes = Object.values(graph.nodes);
+            for (let node of nodes) {
+
+                let nodeLng = null;
+
+                // TODO okopirovane z metody vyse
+                let currentViewDetail;
+                for (let viewSet in node['viewSets']) {
+                    let views = node['viewSets'][viewSet]['views'];
+                    for (let view in views) {
+                        if (views[view]['IRI'] === node['currentView']['IRI']) {
+                            currentViewDetail = views[view]['detail'];
+                        }
+                    }
+                }
+                if (currentViewDetail) {
+                    for (let geoIRI of geoIRIs) {
+                        if (geoIRI.active) {
+                            let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI.IRI);
+                            if (detailGeoIRI) {
+                                nodeLng = detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ')[0]; // The first geoIRI that is in the nodes detail is used
+                            }
+                        }
+                    }
+                    // Has currentView, but not geoIRI in it
+                }
+                // No currentView detail at all
+
+
+
+                if (!nodeLng) {
+                    nodesWithoutPosition.push(node);
+                }
+            }
+
+            return nodesWithoutPosition;
+        }
+
+        // Jednoduse prumer souradnic, bez ohledu na specialni pripady, bez ohledu na zakriveni a podobne
+        getCenter(lngLats) {
+            let lng = 0;
+            let lat = 0;
+            for (let lngLat of lngLats) {
+                lng += parseFloat(lngLat[0]);
+                lat += parseFloat(lngLat[1]);
+            }
+            lng /= lngLats.length;
+            lat /= lngLats.length;
+            return [lng.toString(), lat.toString()];
+        }
+
+        addPositionNodes(node, lngLats) {
+            let graphNode = this.findNode(Object.values(this.graph.nodes), node);
+            for (let lngLat of lngLats) {
+                let newNode = this.graph.createNode("TODO_vymyslene_IRI_pro_vrcholy_o_pozici" + node.data().iri + lngLat[0] + lngLat[1]);
+                newNode.viewSets = graphNode.viewSets;
+                newNode.currentView = graphNode.currentView;
+                newNode.mounted = true;
+                newNode.currentView.detail
+            }
+        }
+
+        toMap(graph, cy, geoIRIs) {
+            const nodes = Object.values(graph.nodes);
+            const edges = Object.values(graph.edges); // Not used yet
+
+            this.cyMap = cy.mapboxgl({
+                accessToken: 'pk.eyJ1IjoibWlyb3BpciIsImEiOiJja2xmZGtobDAyOXFnMnJuMGR4cnZvZTA5In0.TPg2_40hpE5k5v65NmdP5A',
+                attributionControl: false,
+                style: this.layerStyles.openStreetMap,
+            }, {
+                    getPosition: (node) => {
+                        let lngLats = this.getLonLngWithMultipleGeoIRIs(nodes, node, geoIRIs);
+
+                        if (lngLats.length == 1) {
+                            return [lngLats[0][0], lngLats[0][1]];
+                        }
+                        else if (lngLats.length > 1) { //Node with multiple positions
+                            this.addPositionNodes(node, lngLats);
+                            return this.getCenter(lngLats);
+                        }
+                        else {
+                            return null;
+                        }
+                    },
+                    setPosition: (node, lngLat) => {
+                        node.data('lng', lngLat.lng);
+                        node.data('lat', lngLat.lat);
+                    },
+                    animate: true,
+                    animationDuration: 1000,
+                });
+
+            this.cyMap.map.addControl(new mapboxgl.AttributionControl(), 'bottom-left');
+
+            return this.cyMap.map;
+        }
+
     }
 </script>
 <!--@import 'https://api.mapbox.com/mapbox-gl-js/v1.13.0/mapbox-gl.css';-->
@@ -427,9 +710,9 @@
         left: 56px;
     }
 
-    .toolbar.toolbar-move {
-        left: 256px;
-    }
+        .toolbar.toolbar-move {
+            left: 256px;
+        }
 
     .buttons {
         position: absolute;
