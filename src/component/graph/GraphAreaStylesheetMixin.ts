@@ -156,6 +156,13 @@ export default class GraphAreaStylesheetMixin extends Vue {
             },
 
             {
+                selector: ".__node_position",
+                style: {
+                    "border-style": "dashed",
+                }
+            },
+
+            {
                 selector: "node:selected",
                 style: {
                     "overlay-color": "#000000",

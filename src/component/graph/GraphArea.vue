@@ -477,7 +477,7 @@
             return null; // No currentView detail at all
         }
 
-        getLonLngWithMultipleGeoIRIs(nodes, cynode, geoIRIs) {
+        getLonLngWithMultipleGeoIRIs(cynode, geoIRIs) {
             let node = this.findNode(Object.values(this.graph.nodes), cynode);
 
             let currentViewDetail;
@@ -497,7 +497,9 @@
                     if (geoIRI.active) {
                         let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI.IRI);
                         if (detailGeoIRI) {
-                            lonLat.push(detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' '));
+                            let point = detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ');
+                            point.push(geoIRI.IRI);
+                            lonLat.push(point);
                         }
                     }
                 }
@@ -644,12 +646,52 @@
         addPositionNodes(node, lngLats) {
             let graphNode = this.findNode(Object.values(this.graph.nodes), node);
             for (let lngLat of lngLats) {
-                let newNode = this.graph.createNode("TODO_vymyslene_IRI_pro_vrcholy_o_pozici" + node.data().iri + lngLat[0] + lngLat[1]);
+                let newNode = this.graph.createNode("TODO_vymyslene_IRI_pro_vrcholy_o_pozici " + lngLat[0] + " " + lngLat[1] + " " + node.data().iri + "GeoIRI" + lngLat[2]); // TODO v IRI nesmi byt mezera!
+                //newNode.viewSets = graphNode.viewSets; //TODOOOOOO tady to zkopirovat a nechat tam pouze tu jednu polohu, taky
+                //newNode.viewSets = this.viewSetsWithGeoIRI(graphNode, lngLat[2]);
                 newNode.viewSets = graphNode.viewSets;
+                //newNode.currentView = { ...graphNode.currentView };
                 newNode.currentView = graphNode.currentView;
-                newNode.mounted = true;
-                newNode.currentView.detail
+                newNode.mounted = graphNode.mounted;
+                //newNode.currentView.detail = this.detailWithGeoIRI(graphNode, lngLat[2]);
+                if (!newNode.classes.includes("__node_position")) {
+                    newNode.classes.push("__node_position");
+                }
             }
+        }
+
+        //TODO okopirovane z vyse
+        detailWithGeoIRI(node, geoIRI) {
+            let currentViewDetail = node.currentView.detail;
+            let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI);
+            return detailGeoIRI;
+        }
+
+        //TODO okopirovane z vyse
+        viewSetsWithGeoIRI(node, geoIRI) {
+            const regex = new RegExp(/^Point\s*\(([0-9]+\.[0-9]+)\s+([0-9]+\.[0-9]+)\)$/); // Point(XX.XXX Y.YYYYY)
+
+            let viewSets = { ...node.viewSets };
+
+            for (let viewSet in node.viewSets) {
+                viewSets.push(viewSet);
+                let views = viewSet['views'];
+                for (let view in views) {
+                    let details = views[view]['detail'];
+                    if (details) {
+                        for (let l = details.length - 1; l >= 0; l--) {
+                            let detail = details[l];
+                            if (regex.test(detail['value'])) {
+                                if (detail['value'] != geoIRI) {
+                                    details.splice(l, 1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return viewSets;
         }
 
         toMap(graph, cy, geoIRIs) {
@@ -662,14 +704,21 @@
                 style: this.layerStyles.openStreetMap,
             }, {
                     getPosition: (node) => {
-                        let lngLats = this.getLonLngWithMultipleGeoIRIs(nodes, node, geoIRIs);
+                    let graphNode = this.findNode(Object.values(this.graph.nodes), node);
 
-                        if (lngLats.length == 1) {
-                            return [lngLats[0][0], lngLats[0][1]];
+                    if (graphNode.IRI.startsWith("TODO_vymyslene_IRI_pro_vrcholy_o_pozici")) {
+                        let substrs = graphNode.IRI.split(" ");
+                        return [substrs[1], substrs[2]];
+                    }
+                        //let lngLats = this.getLonLngWithMultipleGeoIRIs(nodes, node, geoIRIs);
+                        let lngLatWithIRIs = this.getLonLngWithMultipleGeoIRIs(node, geoIRIs);
+
+                    if (lngLatWithIRIs.length == 1) {
+                        return [lngLatWithIRIs[0][0], lngLatWithIRIs[0][1]];
                         }
-                        else if (lngLats.length > 1) { //Node with multiple positions
-                            this.addPositionNodes(node, lngLats);
-                            return this.getCenter(lngLats);
+                    else if (lngLatWithIRIs.length > 1) { //Node with multiple positions
+                        this.addPositionNodes(node, lngLatWithIRIs);
+                        return this.getCenter(lngLatWithIRIs);
                         }
                         else {
                             return null;
