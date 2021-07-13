@@ -25,7 +25,11 @@ export default class MapConfiguration implements ObjectSave {
 
     geoIRIs: GeoIRI[];
 
-
+    setMapLayer(mapLayerName) {
+        this.currentConfiguration.baseMap = this.baseMaps.find(mapLayer => {
+            return mapLayer.name === mapLayerName
+        });
+    }
 
     //Vyse okopceno vcetne ukladani, nize mnou pouzivane pro mapy. Je treba sjednotit TODO
 

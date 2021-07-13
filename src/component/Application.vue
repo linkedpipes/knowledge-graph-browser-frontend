@@ -262,7 +262,7 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
                             'type': 'raster',
                             'source': 'raster-tiles',
                             'minzoom': 0,
-                            'maxzoom': 19
+                            'maxzoom': 18
                         }
                     ]
                 }

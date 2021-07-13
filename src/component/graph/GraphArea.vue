@@ -331,7 +331,7 @@
 
         ////////////////////// MapLayerSection
 
-        @Watch('mapConfiguration')
+        @Watch('mapConfiguration.currentConfiguration.baseMap')
         private changeMapLayer() {
             if (this.mapMode) {
                 this.setMapLayer(this.mapConfiguration);
@@ -716,7 +716,7 @@
             this.cyMap = cy.mapboxgl({
                 accessToken: 'pk.eyJ1IjoibWlyb3BpciIsImEiOiJja2xmZGtobDAyOXFnMnJuMGR4cnZvZTA5In0.TPg2_40hpE5k5v65NmdP5A',
                 attributionControl: false,
-                style: this.layerStyles.openStreetMap,
+                style: this.mapConfiguration.currentConfiguration.baseMap.style,
             }, {
                     getPosition: (node) => {
                     let graphNode = this.findNode(Object.values(this.graph.nodes), node);

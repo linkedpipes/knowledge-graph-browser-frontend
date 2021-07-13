@@ -175,20 +175,20 @@ view_options:
     full: Vše
     hide_text: Skrýt text
     hide: Skrýt
-map_layer_dialog:
+map_layer:
   title: Nastavení mapové vrstvy
   standard:
-    title: Standardní
-    open_street_map: OpenStreetMap
+    title: Standardní (OpenStreetMap)
   satellite:
-    title: Satelitní
-    mapbox: MapBox
+    title: Satelitní (MapBox)
   close: Zavřít
 map_configuration:
   base_map:
     name: Podkladová mapa
+    title: Vyberte podkladovou mapu pod graf
   geo_iris:
     name: Vlastnosti vrcholů pro polohu
+    title: Seznam všech vlastností se souřadnicemi. Vybrané budou zobrazeny na mapě
   no_position_nodes_style:
     name: Vrcholy bez polohy
     title: Jak se budou zobrazovat vrcholy bez pozice

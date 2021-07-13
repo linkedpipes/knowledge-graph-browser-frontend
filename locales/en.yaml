@@ -161,21 +161,21 @@ view_options:
     hide_text: Hide text
     hide: Hide
 
-map_layer_dialog:
+map_layer:
   title: Map layer options
   standard:
-    title: Standard
-    open_street_map: OpenStreetMap
+    title: Standard (OpenStreetMap)
   satellite:
-    title: Satellite
-    mapbox: MapBox
+    title: Satellite (MapBox)
   close: Close
 
 map_configuration:
   base_map:
     name: Base map layer
+    title: Choose what base layer will be under graph
   geo_iris:
     name: Node properties for position
+    title: List of all properties with coordinates. Checked will be shown on the map
   no_position_nodes_style:
     name: Nodes without position
     title: How nodes with no position will be shown

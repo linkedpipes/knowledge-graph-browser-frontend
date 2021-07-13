@@ -2,7 +2,7 @@
     <v-dialog v-model="dialog" max-width="1000">
         <v-card>
             <v-toolbar flat color="secondary" dark>
-                <v-toolbar-title>{{ $t("map_layer_dialog.title") }}</v-toolbar-title>
+                <v-toolbar-title>{{ $t("map_layer.title") }}</v-toolbar-title>
             </v-toolbar>
 
             <v-tabs vertical>
@@ -11,7 +11,17 @@
                 <v-tab key="no_position_nodes_style"><v-icon left>{{icon}}</v-icon>{{ $t("map_configuration.no_position_nodes_style.name") }}</v-tab>
 
                 <v-tab-item key="base_map">
-                    sem pride vybirani mapy
+                    <v-card flat>
+                        <v-list-item>
+                            <v-list-item-content>
+                                <v-list-item-title>{{ $t("map_configuration.base_map.title") }}</v-list-item-title>
+                                <v-btn-toggle v-model="mapLayerToSet" tile group mandatory>
+                                    <v-btn value="openStreetMap">{{ $t("map_layer.standard.title") }}</v-btn>
+                                    <v-btn value="mapbox">{{ $t("map_layer.satellite.title") }}</v-btn>
+                                </v-btn-toggle>
+                            </v-list-item-content>
+                        </v-list-item>
+                    </v-card>
                 </v-tab-item>
                 <v-tab-item key="geo_iris">
                     <v-card flat>
@@ -49,7 +59,7 @@
 
             <v-card-actions>
                 <div class="flex-grow-1"></div>
-                <v-btn color="primary" text @click="close()">{{ $t("map_layer_dialog.close") }}</v-btn>
+                <v-btn color="primary" text @click="close()">{{ $t("map_layer.close") }}</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -57,13 +67,20 @@
 
 <script lang="ts">
     import Vue from 'vue';
-    import { Component, Prop } from 'vue-property-decorator';
+    import { Watch, Component, Prop } from 'vue-property-decorator';
     import MapConfiguration from "../../map/MapConfiguration";
     import { mdiFormatListBulletedType } from "@mdi/js";
     @Component export default class MapLayerDialog extends Vue {
         @Prop() mapConfiguration !: MapConfiguration;
 
         icon = mdiFormatListBulletedType;
+
+        mapLayerToSet = this.mapConfiguration.currentConfiguration.baseMap.name; //TODO because object may be selected in v-btn-toggle
+
+        @Watch('mapLayerToSet')
+        mapLayerChanged() {
+            this.mapConfiguration.setMapLayer(this.mapLayerToSet);
+        }
 
         dialog: boolean = false;
         // Which tab is currently opened
