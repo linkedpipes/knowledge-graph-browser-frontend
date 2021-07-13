@@ -13,7 +13,9 @@
                         :layout-manager="layouts"
                         :mode-compact="modeCompact"
                         @compact-mode-change="modeCompact = $event"
-                        @new-manipulator="areaManipulator = $event" />
+                        @new-manipulator="areaManipulator = $event"
+                        @saveAppState="saveAppState"
+                        @restoreAppState="restoreAppState" />
             <side-panel :graph="graph"
                         :area-manipulator="areaManipulator"
                         :manipulator="manipulator"
@@ -271,6 +273,16 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
             }],
              'hide' // TODO
         );
+
+        savedAppState = null;
+
+        saveAppState() {
+            this.savedAppState = this.saveToObject();
+        }
+
+        restoreAppState() {
+            this.restoreFromObject(this.savedAppState);
+        }
 
         /**
          * List of node filters supported in the application.

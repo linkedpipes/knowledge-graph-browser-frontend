@@ -191,7 +191,7 @@ export class Graph implements ObjectSave {
     }
 
     /**
-     * Returns all classes of nodes currently presented int the graph.
+     * Returns all classes of nodes currently presented in the graph.
      *
      * Every class is presented only once.
      */
@@ -201,6 +201,25 @@ export class Graph implements ObjectSave {
             let nodeClasses = this.nodes[node_iri].currentView?.preview?.classes;
             if (nodeClasses) {
                 for (let cls of nodeClasses) {
+                    classes.add(cls);
+                }
+            }
+        }
+
+        return classes;
+    }
+
+    /**
+     * Returns all classes of edges currently presented in the graph.
+     *
+     * Every class is presented only once.
+     */
+    getAllEdgeClasses(): Set<string> {
+        let classes = new Set<string>();
+        for (let edge in this.edges) {
+            let edgeClasses = this.edges[edge].classes;
+            if (edgeClasses) {
+                for (let cls of edgeClasses) {
                     classes.add(cls);
                 }
             }

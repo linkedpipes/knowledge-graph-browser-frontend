@@ -158,7 +158,20 @@ export default class GraphAreaStylesheetMixin extends Vue {
             {
                 selector: ".__node_position",
                 style: {
+                    "width": 30,
+                    "height": 30,
                     "border-style": "dashed",
+                    "background-blacken": -0.5,
+                    "background-opacity": 0.5,
+                    "z-index": 1,
+                }
+            },
+
+            {
+                selector: ".__KGVBMapLayerIRI_edge",
+                style: {
+                    "line-color": "gray",
+                    "font-size": 9,
                 }
             },
 

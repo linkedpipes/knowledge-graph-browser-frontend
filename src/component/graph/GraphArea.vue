@@ -80,6 +80,8 @@
 
     import { Node, NodeType } from '../../graph/Node'; // TODO Kvuli tomu okopcenemu z HiddenNodesPanel.vue
 
+    const KGVBMapLayerIRI = "KGVBMapLayerIRI"; //TODO napsat nekam jinam, aby totu nestrasilo
+
     @Component({
         components: {
             SearchComponent,
@@ -136,78 +138,6 @@
             edgeStyle: [mdiChartTimelineVariant, mdiChartTimelineVariantShimmer]
         }
 
-        @Watch('mapConfiguration')
-        private changeMapLayer() {
-            if (this.mapMode) {
-                this.setMapLayer(this.mapConfiguration);
-            }
-        }
-
-        @Watch('mapMode')
-        private cyMapChange() {
-            if (this.mapMode) {
-                this.layoutManager.switchToLayout('circle') // Switch to circle layout to lock nodes TODO natvrdo napsany circle, cili je povinny
-
-                this.getGeoIRIs(this.graph).forEach((value, key) => {
-                    if (this.mapConfiguration.geoIRIs.filter(function (geoIRI) { return geoIRI.IRI === key; }).length > 0) {
-                        // array contains the geoIRI with new geoIRI
-                    }
-                    else { this.mapConfiguration.geoIRIs.push(new GeoIRI(key, value, true)); }
-                });
-
-                this.map = this.toMap(this.graph, this.cy, this.mapConfiguration.geoIRIs); // TODO bere pouze jednu z geopozic vrcholu
-                this.hideNodesWithoutPosition();
-                this.mapModeToolTip = this.$t("button_tooltip.map_disable");
-
-                this.changeMapAttributionOffset();
-            } else {
-                this.destroyCyMap();
-                //this.cy.panzoom(); // TODO???
-                this.mapModeToolTip = this.$t("button_tooltip.map_enable");
-
-                this.changeVisibility(true);
-            }
-        }
-
-        // TODO: okopirovano z HiddenNodesPanel.vue
-        private get nodes(): Node[] {
-            let nodes: Node[] = [];
-            for (let iri in this.graph.nodes) {
-                if (!this.graph.nodes[iri].isVisible) {
-                    nodes.push(this.graph.nodes[iri]);
-                }
-            }
-
-            return nodes;
-        }
-
-        // TODO: okopirovano z HiddenNodesPanel.vue
-        private changeVisibility(visibility: boolean) {
-            for (let node of this.nodes) {
-                node.visible = visibility;
-            }
-        }
-
-        private hideNodesWithoutPosition() {
-            for (let node of this.getNodesWithoutPosition(this.graph, this.cy, this.mapConfiguration.geoIRIs)) {
-                node.visible = false;
-            }
-        }
-
-        @Watch('edgeStyle')
-        private styleChange() {
-            if (this.edgeStyle) {
-                this.disableEdgeStyle(this.cy);
-                this.edgeStyleToolTip = this.$t("button_tooltip.edge_style_disable");
-            } else {
-                this.stylesheetUpdated();
-                ///////this.cy.style(clone(this.stylesheet.styles));
-                //setEdgeStyle(this.cy, clone(this.stylesheet)); // TODO: Co je toto za stylesheet? :o
-                //setEdgeStyle(this.cy, this.cyStyle);
-                //this.edgeStyleToolTip = this.$t("button_tooltip.edge_style_enable");
-            }
-        }
-
         @Watch('leftOffset', { immediate: true })
         private changeMapAttributionOffset() {
             if (this.mapMode) {
@@ -216,14 +146,6 @@
                 this.map.getContainer().querySelector('.mapboxgl-control-container').querySelector('.mapboxgl-ctrl-bottom-left')
                     .style["transition-duration"] = "0.2s"; // TODO: Natvrdo opsano podle leveho panelu
             }
-        }
-
-        private mapModeChange() {
-            this.mapMode = !this.mapMode;
-        }
-
-        private edgeStyleChange() {
-            this.edgeStyle = !this.edgeStyle;
         }
 
         /**
@@ -407,10 +329,92 @@
             this.offset[3] = this.leftOffset;
         }
 
-        /**
-         * Vue method called after the creation of the object.
-         * Mounts the Cytoscape instance to HTML and registers basic events handlers
-         */
+        ////////////////////// MapLayerSection
+
+        @Watch('mapConfiguration')
+        private changeMapLayer() {
+            if (this.mapMode) {
+                this.setMapLayer(this.mapConfiguration);
+            }
+        }
+
+        @Watch('mapMode')
+        private cyMapChange() {
+            if (this.mapMode) {
+                //this.savedGraph = this.graph.saveToObject(); //TOTO smazat, pozuit to nize
+                this.$emit("saveAppState");
+
+                this.layoutManager.switchToLayout('circle') // Switch to circle layout to lock nodes TODO natvrdo napsany circle, cili je povinny
+
+                this.getGeoIRIs(this.graph).forEach((value, key) => {
+                    if (this.mapConfiguration.geoIRIs.filter(function (geoIRI) { return geoIRI.IRI === key; }).length > 0) {
+                        // array contains the geoIRI with new geoIRI
+                    }
+                    else { this.mapConfiguration.geoIRIs.push(new GeoIRI(key, value, true)); }
+                });
+
+                this.map = this.toMap(this.graph, this.cy, this.mapConfiguration.geoIRIs);
+                this.hideNodesWithoutPosition();
+                this.mapModeToolTip = this.$t("button_tooltip.map_disable");
+
+                this.changeMapAttributionOffset();
+            } else {
+                this.destroyCyMap();
+                //this.cy.panzoom(); // TODO???
+                this.mapModeToolTip = this.$t("button_tooltip.map_enable");
+
+                this.changeVisibility(true);
+
+                this.$emit("restoreAppState");
+            }
+        }
+
+        // TODO: okopirovano z HiddenNodesPanel.vue
+        private get nodes(): Node[] {
+            let nodes: Node[] = [];
+            for (let iri in this.graph.nodes) {
+                if (!this.graph.nodes[iri].isVisible) {
+                    nodes.push(this.graph.nodes[iri]);
+                }
+            }
+
+            return nodes;
+        }
+
+        // TODO: okopirovano z HiddenNodesPanel.vue
+        private changeVisibility(visibility: boolean) {
+            for (let node of this.nodes) {
+                node.visible = visibility;
+            }
+        }
+
+        private hideNodesWithoutPosition() {
+            for (let node of this.getNodesWithoutPosition(this.graph, this.cy, this.mapConfiguration.geoIRIs)) {
+                node.visible = false;
+            }
+        }
+
+        @Watch('edgeStyle')
+        private styleChange() {
+            if (this.edgeStyle) {
+                this.disableEdgeStyle(this.cy);
+                this.edgeStyleToolTip = this.$t("button_tooltip.edge_style_disable");
+            } else {
+                this.stylesheetUpdated();
+                ///////this.cy.style(clone(this.stylesheet.styles));
+                //setEdgeStyle(this.cy, clone(this.stylesheet)); // TODO: Co je toto za stylesheet? :o
+                //setEdgeStyle(this.cy, this.cyStyle);
+                //this.edgeStyleToolTip = this.$t("button_tooltip.edge_style_enable");
+            }
+        }
+
+        private mapModeChange() {
+            this.mapMode = !this.mapMode;
+        }
+
+        private edgeStyleChange() {
+            this.edgeStyle = !this.edgeStyle;
+        }
 
         private cyMap;
 
@@ -479,18 +483,9 @@
 
         getLonLngWithMultipleGeoIRIs(cynode, geoIRIs) {
             let node = this.findNode(Object.values(this.graph.nodes), cynode);
-
-            let currentViewDetail;
-            for (let viewSet in node['viewSets']) {
-                let views = node['viewSets'][viewSet]['views'];
-                for (let view in views) {
-                    if (views[view]['IRI'] === node['currentView']['IRI']) {
-                        currentViewDetail = views[view]['detail'];
-                    }
-                }
-            }
-
             let lonLat = [];
+
+            let currentViewDetail = node['currentView']['detail'];
 
             if (currentViewDetail) {
                 for (let geoIRI of geoIRIs) {
@@ -538,8 +533,11 @@
             return filteredStylesheet;
         }
 
-        removeEdgeStyle(stylesheet) {
-            return this.copyWithout(stylesheet, 'selector', 'edge');
+        removeEdgeStyle(stylesheet, selectors) {
+            for (let selector of selectors) {
+                stylesheet = this.copyWithout(stylesheet, 'selector', selector);
+            }
+            return stylesheet;
         }
 
         layerStyles = {
@@ -569,7 +567,16 @@
         disableEdgeStyle(cy) {
             let stylesheet = cy.style().json();
             //const stylesheet = [...stylesheet_prop.map(obj => ({ style: obj["properties"], selector: obj["selector"] }))]; //bere styl z kgvb a prejmenovava properties na style
-            const stylesheetWithoutEdges = this.removeEdgeStyle(stylesheet);
+
+            let edgeSelectors = Array.from(this.graph.getAllEdgeClasses()); //Bez tecky pro CSS
+
+            for (var i = 0; i < edgeSelectors.length; i++) { // Pridani tecky pro CSS
+                edgeSelectors[i] = "." + edgeSelectors[i];
+            }
+
+            //edgeSelectors.push("edge"); // Can be used to remove even edge styles. May result into hiding edge labels
+
+            const stylesheetWithoutEdges = this.removeEdgeStyle(stylesheet, edgeSelectors);
             cy.style().fromJson(stylesheetWithoutEdges).update();
         }
 
@@ -598,15 +605,7 @@
                 let nodeLng = null;
 
                 // TODO okopirovane z metody vyse
-                let currentViewDetail;
-                for (let viewSet in node['viewSets']) {
-                    let views = node['viewSets'][viewSet]['views'];
-                    for (let view in views) {
-                        if (views[view]['IRI'] === node['currentView']['IRI']) {
-                            currentViewDetail = views[view]['detail'];
-                        }
-                    }
-                }
+                let currentViewDetail = node['currentView']['detail'];
                 if (currentViewDetail) {
                     for (let geoIRI of geoIRIs) {
                         if (geoIRI.active) {
@@ -646,18 +645,34 @@
         addPositionNodes(node, lngLats) {
             let graphNode = this.findNode(Object.values(this.graph.nodes), node);
             for (let lngLat of lngLats) {
-                let newNode = this.graph.createNode("TODO_vymyslene_IRI_pro_vrcholy_o_pozici " + lngLat[0] + " " + lngLat[1] + " " + node.data().iri + "GeoIRI" + lngLat[2]); // TODO v IRI nesmi byt mezera!
-                //newNode.viewSets = graphNode.viewSets; //TODOOOOOO tady to zkopirovat a nechat tam pouze tu jednu polohu, taky
-                //newNode.viewSets = this.viewSetsWithGeoIRI(graphNode, lngLat[2]);
+                let newNode = this.graph.createNode(KGVBMapLayerIRI + " " + lngLat[0] + " " + lngLat[1] + " " + node.data().iri + "GeoIRI" + lngLat[2]); // TODO v IRI nesmi byt mezera!
+                newNode.currentView = { ...graphNode.currentView };
                 newNode.viewSets = graphNode.viewSets;
-                //newNode.currentView = { ...graphNode.currentView };
-                newNode.currentView = graphNode.currentView;
+                newNode.currentView.getDetail = graphNode.currentView.getDetail;
+                newNode.currentView.preview = { ...graphNode.currentView.preview };
+                newNode.currentView.preview.classes = JSON.parse(JSON.stringify(graphNode.currentView.preview.classes));
                 newNode.mounted = graphNode.mounted;
-                //newNode.currentView.detail = this.detailWithGeoIRI(graphNode, lngLat[2]);
                 if (!newNode.classes.includes("__node_position")) {
                     newNode.classes.push("__node_position");
                 }
+
+                this.addPositionEdge(graphNode, newNode, KGVBMapLayerIRI, lngLat[2]);
             }
+        }
+
+        addPositionEdge(fromNode, toNode, iri, geoIRI) {
+            let edgeType = {
+                "iri": iri,
+                "label": this.findLabelOfGeoIRI(geoIRI),
+                "description": geoIRI
+            };
+            this.graph.createEdge(fromNode, toNode, edgeType).classes.push("__" + KGVBMapLayerIRI + "_edge");
+        }
+
+        findLabelOfGeoIRI(geoIRI) {
+            return this.mapConfiguration.geoIRIs.find(e => {
+                return e.IRI === geoIRI
+            }).label;
         }
 
         //TODO okopirovane z vyse
@@ -706,7 +721,7 @@
                     getPosition: (node) => {
                     let graphNode = this.findNode(Object.values(this.graph.nodes), node);
 
-                    if (graphNode.IRI.startsWith("TODO_vymyslene_IRI_pro_vrcholy_o_pozici")) {
+                    if (graphNode.IRI.startsWith(KGVBMapLayerIRI)) {
                         let substrs = graphNode.IRI.split(" ");
                         return [substrs[1], substrs[2]];
                     }
