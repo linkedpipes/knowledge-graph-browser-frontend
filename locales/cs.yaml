@@ -197,6 +197,7 @@ map_configuration:
     aside: Zobrazit v pravém horním rohu (not implemented yet)
   current_configuration:
     name: Současná konfigurace
+  no_position_nodes: V grafu není žádný vrchol s informací o poloze
 save_dialog:
   title: Uložit graf?
   text: >-

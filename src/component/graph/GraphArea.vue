@@ -14,8 +14,27 @@
             <button-component :enableButtonDiv="layoutManager.currentLayout.supportsCompactMode"
                               :dark="isNodeSelected && !mapMode" :disabled="!isNodeSelected || mapMode" :icon="icons.compactMode[modeCompact ? 1 : 0]" :tool-tip="modeCompactToolTip" @click="compactModeChange(!modeCompact)" />
             <button-component :icon="icons.edgeStyle[edgeStyle ? 1 : 0]" :tool-tip="edgeStyleToolTip" @click="edgeStyleChange()" />
-            <button-component :icon="icons.mapMode[mapMode ? 1 : 0]" :tool-tip="mapModeToolTip" @click="mapModeChange()" />
+            <button-component :icon="icons.mapMode[mapMode ? 1 : 0]" :dark="!mapModeDisabled" :disabled="mapModeDisabled" :tool-tip="mapModeToolTip" @click="mapModeChange()" />
         </div>
+
+        <v-bottom-sheet v-model="mapModeDisabledAlert">
+          <v-sheet
+        class="text-center"
+        height="200px"
+      >
+        <v-btn
+          class="mt-6"
+          text
+          color="red"
+          @click="mapModeDisabledAlert = !mapModeDisabledAlert"
+        >
+          close
+        </v-btn>
+        <div class="py-3">
+            {{ $t("map_configuration.no_position_nodes") }}
+        </div>
+      </v-sheet>
+    </v-bottom-sheet>
 
         <graph-element-node v-for="node in graph.nodes"
                             v-if="node.mounted && !node.belongsToGroup"
@@ -120,6 +139,8 @@
         private map !: mapboxgl.Map;
 
         private mapMode: boolean = false;
+        private mapModeDisabled: boolean = false;
+        private mapModeDisabledAlert: boolean = false;
         private mapModeToolTip = this.$t("button_tooltip.map_enable");
 
         private edgeStyle: boolean = false;
@@ -340,33 +361,48 @@
 
         @Watch('mapMode')
         private cyMapChange() {
-            if (this.mapMode) {
-                //this.savedGraph = this.graph.saveToObject(); //TOTO smazat, pozuit to nize
-                this.$emit("saveAppState");
+            if (!this.mapModeDisabled) {
+                if (this.mapMode) {
+                    let geoIRIs = this.getGeoIRIs(this.graph);
 
-                this.layoutManager.switchToLayout('circle') // Switch to circle layout to lock nodes TODO natvrdo napsany circle, cili je povinny
-
-                this.getGeoIRIs(this.graph).forEach((value, key) => {
-                    if (this.mapConfiguration.geoIRIs.filter(function (geoIRI) { return geoIRI.IRI === key; }).length > 0) {
-                        // array contains the geoIRI with new geoIRI
+                    if (geoIRIs.size == 0) {
+                        this.alertNoNodesWithPosition();
+                        this.mapModeDisabled = true;
+                        this.mapModeDisabledAlert = true;
+                        this.mapMode = false;
                     }
-                    else { this.mapConfiguration.geoIRIs.push(new GeoIRI(key, value, true)); }
-                });
+                    else {
 
-                this.map = this.toMap(this.graph, this.cy, this.mapConfiguration.geoIRIs);
-                this.hideNodesWithoutPosition();
-                this.mapModeToolTip = this.$t("button_tooltip.map_disable");
+                        this.$emit("saveAppState");
+                        this.layoutManager.switchToLayout('circle') // Switch to circle layout to lock nodes TODO natvrdo napsany circle, cili je povinny
 
-                this.changeMapAttributionOffset();
-            } else {
-                this.destroyCyMap();
-                //this.cy.panzoom(); // TODO???
-                this.mapModeToolTip = this.$t("button_tooltip.map_enable");
+                        geoIRIs.forEach((value, key) => {
+                            if (this.mapConfiguration.geoIRIs.filter(function (geoIRI) { return geoIRI.IRI === key; }).length > 0) {
+                                // array contains the geoIRI with new geoIRI
+                            }
+                            else { this.mapConfiguration.geoIRIs.push(new GeoIRI(key, value, true)); }
+                        });
 
-                this.changeVisibility(true);
+                        this.map = this.toMap(this.graph, this.cy, this.mapConfiguration.geoIRIs);
+                        this.hideNodesWithoutPosition();
+                        this.mapModeToolTip = this.$t("button_tooltip.map_disable");
 
-                this.$emit("restoreAppState");
+                        this.changeMapAttributionOffset();
+                    }
+                } else {
+                    this.destroyCyMap();
+                    //this.cy.panzoom(); // TODO???
+                    this.mapModeToolTip = this.$t("button_tooltip.map_enable");
+
+                    this.changeVisibility(true);
+
+                    this.$emit("restoreAppState");
+                }
             }
+        }
+
+        alertNoNodesWithPosition() {
+            // TODO
         }
 
         // TODO: okopirovano z HiddenNodesPanel.vue
@@ -611,7 +647,7 @@
                         if (geoIRI.active) {
                             let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI.IRI);
                             if (detailGeoIRI) {
-                                nodeLng = detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ')[0]; // The first geoIRI that is in the nodes detail is used
+                                nodeLng = detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ')[0];
                             }
                         }
                     }
@@ -648,7 +684,7 @@
                 let newNode = this.graph.createNode(KGVBMapLayerIRI + " " + lngLat[0] + " " + lngLat[1] + " " + node.data().iri + "GeoIRI" + lngLat[2]); // TODO v IRI nesmi byt mezera!
                 newNode.currentView = { ...graphNode.currentView };
                 newNode.viewSets = graphNode.viewSets;
-                newNode.currentView.getDetail = graphNode.currentView.getDetail;
+                newNode.currentView.getDetail = graphNode.currentView.getDetail; // TODO: dont know why, but show and hide the panel
                 newNode.currentView.preview = { ...graphNode.currentView.preview };
                 newNode.currentView.preview.classes = JSON.parse(JSON.stringify(graphNode.currentView.preview.classes));
                 newNode.mounted = graphNode.mounted;
@@ -710,9 +746,6 @@
         }
 
         toMap(graph, cy, geoIRIs) {
-            const nodes = Object.values(graph.nodes);
-            const edges = Object.values(graph.edges); // Not used yet
-
             this.cyMap = cy.mapboxgl({
                 accessToken: 'pk.eyJ1IjoibWlyb3BpciIsImEiOiJja2xmZGtobDAyOXFnMnJuMGR4cnZvZTA5In0.TPg2_40hpE5k5v65NmdP5A',
                 attributionControl: false,
@@ -725,8 +758,7 @@
                         let substrs = graphNode.IRI.split(" ");
                         return [substrs[1], substrs[2]];
                     }
-                        //let lngLats = this.getLonLngWithMultipleGeoIRIs(nodes, node, geoIRIs);
-                        let lngLatWithIRIs = this.getLonLngWithMultipleGeoIRIs(node, geoIRIs);
+                    let lngLatWithIRIs = this.getLonLngWithMultipleGeoIRIs(node, geoIRIs);
 
                     if (lngLatWithIRIs.length == 1) {
                         return [lngLatWithIRIs[0][0], lngLatWithIRIs[0][1]];

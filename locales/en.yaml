@@ -184,6 +184,7 @@ map_configuration:
     aside: Show in upper right edge (not implemented yet)
   current_configuration:
     name: Current configuration
+  no_position_nodes: There is no node with position to be shown on a map
 
 save_dialog:
   title: Save graph?
