@@ -5,7 +5,7 @@ import { Graph } from "../graph/Graph";
 
 export default class MapConfiguration implements ObjectSave {
     /**
-     * TODO
+     * Layout possibilities for vertices
      */
     no_position_nodes_style: "hide" | "layout" | "aside" = "hide";
 
@@ -25,13 +25,13 @@ export default class MapConfiguration implements ObjectSave {
 
     geoIRIs: GeoIRI[];
 
+    classesForMapMode: ClassForMapMode[]; //Map<string, boolean>;
+
     setMapLayer(mapLayerName) {
         this.currentConfiguration.baseMap = this.baseMaps.find(mapLayer => {
             return mapLayer.name === mapLayerName
         });
     }
-
-    //Vyse okopceno vcetne ukladani, nize mnou pouzivane pro mapy. Je treba sjednotit TODO
 
     public baseMaps: BaseMap[] = [];
     public currentConfiguration: Configuration;
@@ -41,6 +41,8 @@ export default class MapConfiguration implements ObjectSave {
         this.no_position_nodes_style = noPositionNodeStylesIn;
 
         this.geoIRIs = [];
+
+        this.classesForMapMode = [];
 
         this.currentConfiguration = new Configuration();
         this.currentConfiguration.baseMap = baseMapsIn[0];
@@ -60,7 +62,16 @@ export class GeoIRI {
     }
 }
 
-//TODO??? Smazat to nize?
+export class ClassForMapMode {
+    public nodeClass: string;
+    public isSet: boolean;
+
+    constructor(nodeClass: string, isSet: boolean) {
+        this.nodeClass = nodeClass;
+        this.isSet = isSet;
+    }
+}
+
 export class BaseMap {
     public name: string;
     public style;

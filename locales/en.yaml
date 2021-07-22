@@ -176,6 +176,9 @@ map_configuration:
   geo_iris:
     name: Node properties for position
     title: List of all properties with coordinates. Checked will be shown on the map
+  classes_for_positions:
+    name: Node classes to position
+    title: List of all classes with nodes with coordinates. Checked will be shown on the map
   no_position_nodes_style:
     name: Nodes without position
     title: How nodes with no position will be shown

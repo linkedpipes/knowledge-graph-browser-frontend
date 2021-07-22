@@ -271,7 +271,7 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
                 name: 'mapbox',
                 style: 'mapbox://styles/mapbox/satellite-streets-v11'
             }],
-             'hide' // TODO
+             'hide'
         );
 
         savedAppState = null;

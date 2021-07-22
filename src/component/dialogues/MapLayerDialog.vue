@@ -8,6 +8,7 @@
             <v-tabs vertical>
                 <v-tab key="base_map"><v-icon left>{{icon}}</v-icon>{{ $t("map_configuration.base_map.name") }}</v-tab>
                 <v-tab key="geo_iris"><v-icon left>{{icon}}</v-icon>{{ $t("map_configuration.geo_iris.name") }}</v-tab>
+                <v-tab key="classes_for_positions"><v-icon left>{{icon}}</v-icon>{{ $t("map_configuration.classes_for_positions.name") }}</v-tab>
                 <v-tab key="no_position_nodes_style"><v-icon left>{{icon}}</v-icon>{{ $t("map_configuration.no_position_nodes_style.name") }}</v-tab>
 
                 <v-tab-item key="base_map">
@@ -25,7 +26,7 @@
                 </v-tab-item>
                 <v-tab-item key="geo_iris">
                     <v-card flat>
-                        <v-list-item v-for="geoIRI of this.mapConfiguration.geoIRIs" :key="geoIRI.IRI">
+                        <v-list-item v-for="geoIRI of mapConfiguration.geoIRIs" :key="geoIRI.IRI">
                             <div>
                                 <v-checkbox v-model="geoIRI.active">
                                     <template v-slot:label>
@@ -35,6 +36,19 @@
                                 <div class="text--secondary mx-5">
                                     {{ geoIRI.label }}
                                 </div>
+                            </div>
+                        </v-list-item>
+                    </v-card>
+                </v-tab-item>
+                <v-tab-item key="classes_for_positions">
+                    <v-card flat>
+                        <v-list-item v-for="nodeClass of mapConfiguration.classesForMapMode" :key="nodeClass.nodeClass">
+                            <div>
+                                <v-checkbox v-model="nodeClass.isSet">
+                                    <template v-slot:label>
+                                        <span class="black--text">{{ nodeClass.nodeClass }}</span>
+                                    </template>
+                                </v-checkbox>
                             </div>
                         </v-list-item>
                     </v-card>
@@ -75,7 +89,7 @@
 
         icon = mdiFormatListBulletedType;
 
-        mapLayerToSet = this.mapConfiguration.currentConfiguration.baseMap.name; //TODO because object may be selected in v-btn-toggle
+        mapLayerToSet = this.mapConfiguration.currentConfiguration.baseMap.name; // because object may be selected in v-btn-toggle
 
         @Watch('mapLayerToSet')
         mapLayerChanged() {

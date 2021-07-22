@@ -189,6 +189,9 @@ map_configuration:
   geo_iris:
     name: Vlastnosti vrcholů pro polohu
     title: Seznam všech vlastností se souřadnicemi. Vybrané budou zobrazeny na mapě
+  classes_for_positions:
+    name: Typy vrcholů k pozicování
+    title: Seznam všech typů vrcholů s vrcholy se souřadnicemi. Vybrané budou zobrazeny na mapě
   no_position_nodes_style:
     name: Vrcholy bez polohy
     title: Jak se budou zobrazovat vrcholy bez pozice
