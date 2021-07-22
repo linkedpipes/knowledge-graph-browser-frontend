@@ -26,7 +26,7 @@
         @Prop({ default: false }) private disabled: boolean;
 
         @Emit()
-        public click(e) { // Emituje se s celou udalosti kliknuti, i kdy asi neni potreba
+        public click(e) { // Emit with the whole function, not just the value
             return e;
         }
     }
