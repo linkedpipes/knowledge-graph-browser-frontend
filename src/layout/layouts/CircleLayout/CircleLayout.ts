@@ -15,7 +15,6 @@ export interface CircleLayoutOptions extends LayoutsCommonGroupSettings {
 }
 
 export default class CircleLayout extends Layout {
-
     /**
      * Options for this layout which can be modified by a user
      */

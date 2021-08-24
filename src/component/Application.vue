@@ -1,28 +1,29 @@
 <template>
     <v-app class="app">
         <v-main class="d-flex flex-grow-1" style="overflow: hidden;">
-            <graph-area :graph="graph"
-                        :stylesheet="visualStyleSheet"
-                        :left-offset="leftOffset"
-                        :right-offset="rightOffset"
-                        :view-options="viewOptions"
-                        :map-configuration="mapConfiguration"
-                        :graph-searcher="graphSearcher"
-                        :manipulator="manipulator"
-                        :area-manipulator="areaManipulator"
-                        :layout-manager="layouts"
-                        :mode-compact="modeCompact"
-                        @compact-mode-change="modeCompact = $event"
-                        @new-manipulator="areaManipulator = $event"
-                        @saveAppState="saveAppState"
-                        @restoreAppState="restoreAppState" />
-            <side-panel :graph="graph"
-                        :area-manipulator="areaManipulator"
-                        :manipulator="manipulator"
-                        :hidden-panel.sync="hiddenPanel"
-                        :node-locking-supported="layouts.currentLayout.supportsNodeLocking"
-                        ref="sidePanel"
-                        @width-changed="rightOffset = $event" />
+            <graph-area
+                    :graph="graph"
+                    :stylesheet="visualStyleSheet"
+                    :left-offset="leftOffset"
+                    :right-offset="rightOffset"
+                    :view-options="viewOptions"
+                    :graph-searcher="graphSearcher"
+                    :manipulator="manipulator"
+                    :area-manipulator="areaManipulator"
+                    :layout-manager="layouts"
+                    :mode-compact="modeCompact"
+                    @compact-mode-change="modeCompact = $event"
+                    @new-manipulator="areaManipulator = $event"
+            />
+            <side-panel
+                    :graph="graph"
+                    :area-manipulator="areaManipulator"
+                    :manipulator="manipulator"
+                    :hidden-panel.sync="hiddenPanel"
+                    :node-locking-supported="layouts.currentLayout.supportsNodeLocking"
+                    ref="sidePanel"
+                    @width-changed="rightOffset = $event"
+            />
             <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
                 <v-list dense nav class="py-0">
                     <v-list-item two-line style="padding-left: 0;">
@@ -43,11 +44,10 @@
                     <v-list-item link @click="$refs.viewOptionsDialog.show()"><v-list-item-icon><v-badge dot :value="viewOptions.active"><v-icon>{{ icons.viewOptions }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.view_options") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="hiddenPanel = !hiddenPanel"><v-list-item-icon><v-badge dot :value="hiddenPanel"><v-icon>{{ icons.hidden }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.hidden_nodes") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="layoutDialog.show()"><v-list-item-icon><v-icon>{{ icons.layout }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.layout") }}</v-list-item-title></v-list-item-content></v-list-item>
-                    <v-list-item link @click="$refs.mapLayerDialog.show()"><v-list-item-icon><v-icon>{{ icons.mapLayer }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.map_layers") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
 
-                    <v-list-item link @click="askForSaveAndPerformAction(false, loadDialog.show)"><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="askForSaveAndPerformAction(false, loadDialog.show)" ><v-list-item-icon><v-icon>{{ icons.load }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.load") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="saveToFile()"><v-list-item-icon><v-icon>{{ icons.save }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.save") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="newGraphClicked()"><v-list-item-icon><v-icon>{{ icons.add }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.new_graph") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="changeConfigurationClicked()"><v-list-item-icon><v-icon>{{ icons.configuration }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title></v-list-item-content></v-list-item>
@@ -79,41 +79,61 @@
             </v-card>
         </v-footer>
 
-        <add-node ref="addNode"
-                  :graph="graph"
-                  :manipulator="manipulator"
-                  :graph-searcher="graphSearcher" />
-        <filter-dialog ref="filterDialog"
-                       :graph="graph"
-                       :filter="filter" />
-        <save-dialog ref="saveDialog" />
-        <vue-filter-component-creator :graph="graph"
-                                      :filter="filter" />
-        <view-options-dialog :options="viewOptions"
-                             ref="viewOptionsDialog" />
-        <map-layer-dialog :map-configuration="mapConfiguration"
-                             ref="mapLayerDialog" />
-        <settings-dialog :remote-url.sync="server.remoteUrl"
-                         :metaconfiguration.sync="defaultMetaconfigurationIRI"
-                         ref="settingsDialog" />
-        <settings :remote-url.sync="server.remoteUrl"
-                  :metaconfiguration.sync="defaultMetaconfigurationIRI"></settings>
-        <load-dialog ref="loadDialog"
-                     :load-url-function="loadFromUrl"
-                     @selected="loadFromFile($event)" />
-        <layout-dialog ref="layoutDialog"
-                       :layouts="layouts" />
-        <graph-vuex :graph="graph" />
-        <configuration-chooser-component ref="configurationChooser"
-                                         :default-metaconfiguration="defaultMetaconfiguration"
-                                         :configuration-manager="configurationManager"
-                                         :remote-server="server"
-                                         :graph-searcher="graphSearcher"
-                                         :graph="graph"
-                                         :graph-manipulator="manipulator"
-                                         :mode="configurationChooserComponentMode"
-                                         @configuration-update="changeConfiguration($event)"
-                                         @load-from-file="$refs.loadDialog.show()" />
+        <add-node
+                ref="addNode"
+                :graph="graph"
+                :manipulator="manipulator"
+                :graph-searcher="graphSearcher"
+        />
+        <filter-dialog
+                ref="filterDialog"
+                :graph="graph"
+                :filter="filter"
+        />
+        <save-dialog
+                ref="saveDialog"
+        />
+        <vue-filter-component-creator
+                :graph="graph"
+                :filter="filter"
+        />
+        <view-options-dialog
+                :options="viewOptions"
+                ref="viewOptionsDialog"
+        />
+        <settings-dialog
+                :remote-url.sync="server.remoteUrl"
+                :metaconfiguration.sync="defaultMetaconfigurationIRI"
+                ref="settingsDialog"
+        />
+        <settings
+                :remote-url.sync="server.remoteUrl"
+                :metaconfiguration.sync="defaultMetaconfigurationIRI"
+        ></settings>
+        <load-dialog
+                ref="loadDialog"
+                :load-url-function="loadFromUrl"
+                @selected="loadFromFile($event)"
+        />
+        <layout-dialog
+                ref="layoutDialog"
+                :layouts="layouts"
+        />
+        <graph-vuex
+            :graph="graph"
+        />
+        <configuration-chooser-component
+            ref="configurationChooser"
+            :default-metaconfiguration="defaultMetaconfiguration"
+            :configuration-manager="configurationManager"
+            :remote-server="server"
+            :graph-searcher="graphSearcher"
+            :graph="graph"
+            :graph-manipulator="manipulator"
+            :mode="configurationChooserComponentMode"
+            @configuration-update="changeConfiguration($event)"
+            @load-from-file="$refs.loadDialog.show()"
+        />
     </v-app>
 </template>
 
@@ -148,10 +168,7 @@ import {VListGroup, VNavigationDrawer} from "vuetify/lib";
 import SettingsDialog from "./dialogues/SettingsDialog.vue";
 import Settings from "./Settings";
 import ViewOptionsDialog from "./dialogues/ViewOptionsDialog.vue";
-import MapLayerDialog from "./dialogues/MapLayerDialog.vue";
 import ViewOptions from "../graph/ViewOptions";
-import mapboxgl from "mapbox-gl";
-import MapConfiguration, { BaseMap } from "../map/MapConfiguration";
 import {FiltersList} from "../filter/Filter";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
 import GraphManipulator from "../graph/GraphManipulator";
@@ -183,14 +200,13 @@ import Configuration from "../configurations/Configuration";
 import ApplicationConfiguration from '../conf';
 import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChooserComponent.vue";
 
-    @Component({
+@Component({
         components: {
             ConfigurationChooserComponent,
             GraphVuex,
             LayoutDialog,
             LoadDialog,
             ViewOptionsDialog,
-            MapLayerDialog,
             Settings,
             SettingsDialog,
             VueFilterComponentCreator,
@@ -242,47 +258,6 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
          * Example: Show dots instead of labeled nodes without edges.
          * */
         viewOptions = new ViewOptions();
-
-        mapConfiguration: MapConfiguration = new MapConfiguration(
-            [{
-                name: 'openStreetMap',
-                style: {
-                    'version': 8,
-                    'sources': {
-                        'raster-tiles': {
-                            'type': 'raster',
-                            'tiles': ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                            'tileSize': 256,
-                            'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        }
-                    },
-                    'layers': [
-                        {
-                            'id': 'raster-tiles',
-                            'type': 'raster',
-                            'source': 'raster-tiles',
-                            'minzoom': 0,
-                            'maxzoom': 18
-                        }
-                    ]
-                }
-            },
-            {
-                name: 'mapbox',
-                style: 'mapbox://styles/mapbox/satellite-streets-v11'
-            }],
-             'hide'
-        );
-
-        savedAppState = null;
-
-        saveAppState() {
-            this.savedAppState = this.saveToObject();
-        }
-
-        restoreAppState() {
-            this.restoreFromObject(this.savedAppState);
-        }
 
         /**
          * List of node filters supported in the application.
@@ -413,7 +388,6 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
             viewOptions: mdiChartTimelineVariantShimmer,
             hidden: mdiImageFilterTiltShift,
             layout: mdiSlack,
-            mapLayer: mdiLayersTriple,
             projectWebsite: mdiOpenInNew,
 
             load: mdiFileUploadOutline,
@@ -619,14 +593,5 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
 
     .toolbar {
         z-index: 10;
-    }
-
-    .mapboxgl-ctrl-bottom-left {
-        display: flex !important;
-        flex-direction: column;
-    }
-
-    .mapboxgl-ctrl.mapboxgl-ctrl-attrib {
-        order: 2;
     }
 </style>

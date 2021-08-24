@@ -7,7 +7,6 @@ menu:
   view_options: Možnosti pohledu
   hidden_nodes: Skryté uzly
   layout: Nastavení layoutu
-  map_layers: Nastavení mapové vrstvy
   load: Načíst ze souboru
   save: Uložit do souboru
   new_graph: Nový graf
@@ -175,32 +174,6 @@ view_options:
     full: Vše
     hide_text: Skrýt text
     hide: Skrýt
-map_layer:
-  title: Nastavení mapové vrstvy
-  standard:
-    title: Standardní (OpenStreetMap)
-  satellite:
-    title: Satelitní (MapBox)
-  close: Zavřít
-map_configuration:
-  base_map:
-    name: Podkladová mapa
-    title: Vyberte podkladovou mapu pod graf
-  geo_iris:
-    name: Vlastnosti vrcholů pro polohu
-    title: Seznam všech vlastností se souřadnicemi. Vybrané budou zobrazeny na mapě
-  classes_for_positions:
-    name: Typy vrcholů k pozicování
-    title: Seznam všech typů vrcholů s vrcholy se souřadnicemi. Vybrané budou zobrazeny na mapě
-  no_position_nodes_style:
-    name: Vrcholy bez polohy
-    title: Jak se budou zobrazovat vrcholy bez pozice
-    hide: Skrýt
-    layout: Podle původního layoutu (not implemented yet)
-    aside: Zobrazit v pravém horním rohu (not implemented yet)
-  current_configuration:
-    name: Současná konfigurace
-  no_position_nodes: V grafu není žádný vrchol s informací o poloze
 save_dialog:
   title: Uložit graf?
   text: >-
@@ -343,5 +316,3 @@ button_tooltip:
   compact_disable: Zrušit kompaktní mód
   edge_style_enable: Původní styl hran
   edge_style_disable: Zrušit styl hran
-  map_enable: Zobrazit graf na mapě
-  map_disable: Zrušit mapové zobrazení

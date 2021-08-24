@@ -1,9 +1,3 @@
-# Ruined, not working code !!! Under reconstruction
-
-Not updated version runs at https://www.ms.mff.cuni.cz/~stochelm/ \
-Needs data. Sample is here https://www.ms.mff.cuni.cz/~stochelm/masaryk.kgvb \
-(In one URL: https://www.ms.mff.cuni.cz/~stochelm/?load=https://www.ms.mff.cuni.cz/~stochelm/masaryk.kgvb)
-
 # Knowledge Graph Visual Browser
 
 ## Installation

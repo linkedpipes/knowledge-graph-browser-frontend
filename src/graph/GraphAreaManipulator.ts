@@ -5,7 +5,6 @@ import {LayoutManager} from "../layout/LayoutManager";
 import {NodeView} from "./NodeView";
 import GraphArea from "../component/graph/GraphArea.vue";
 import NodeCommon from "./NodeCommon";
-import mapboxgl from "mapbox-gl";
 
 /**
  * This class performs basic operations with graph area like zooming, animations etc.
@@ -53,18 +52,13 @@ export default class GraphAreaManipulator implements ObjectSave {
         });
     }
 
-    zoomIn(map?: mapboxgl.Map) {
+    zoomIn() {
         this.changeZoomByQuotient(this.manualZoomScale);
-        if (map) {
-            map.zoomIn();
-        }
+
     }
 
-    zoomOut(map?: mapboxgl.Map) {
+    zoomOut() {
         this.changeZoomByQuotient(1 / this.manualZoomScale);
-        if (map) {
-            map.zoomOut();
-        }
     }
 
     /**

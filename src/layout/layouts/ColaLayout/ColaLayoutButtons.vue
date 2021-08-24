@@ -4,7 +4,7 @@
 <script lang="ts">
     import Component from "vue-class-component";
     import Vue from "vue";
-    import { Prop } from "vue-property-decorator";
+    import {Prop} from "vue-property-decorator";
     import ColaLayout from "./ColaLayout";
     import ButtonComponent from "../../../component/helper/ButtonComponent.vue";
     import { mdiArrowDecisionOutline } from "@mdi/js";

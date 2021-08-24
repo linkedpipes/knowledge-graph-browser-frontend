@@ -22,6 +22,7 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
+# Visual Studio stuff, generated files, run script
 /.vs
 /bin
 /obj/Debug

@@ -4,7 +4,7 @@
 <script lang="ts">
     import Component from "vue-class-component";
     import Vue from "vue";
-    import { Prop } from "vue-property-decorator";
+    import {Prop} from "vue-property-decorator";
     import DagreLayout from "./DagreLayout";
     import ButtonComponent from "../../../component/helper/ButtonComponent.vue";
     import { mdiGraphOutline } from "@mdi/js";
