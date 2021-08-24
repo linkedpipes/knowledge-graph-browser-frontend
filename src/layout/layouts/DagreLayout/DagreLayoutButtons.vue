@@ -1,20 +1,23 @@
 <template>
-    <div class="my-2">
-        <v-btn color="primary" fab small dark @click="layout.run()">
-            <v-icon>{{ icon }}</v-icon>
-        </v-btn>
-    </div>
+    <button-component :dark="true" :icon="icon" :tool-tip="dagreLayoutToolTip" @click="layout.run()" />
 </template>
 <script lang="ts">
     import Component from "vue-class-component";
     import Vue from "vue";
     import {Prop} from "vue-property-decorator";
-    import {mdiLayersTriple} from "@mdi/js";
     import DagreLayout from "./DagreLayout";
+    import ButtonComponent from "../../../component/helper/ButtonComponent.vue";
+    import { mdiGraphOutline } from "@mdi/js";
 
-    @Component
+    @Component({
+        components: {
+            ButtonComponent,
+        }
+    })
     export default class DagreLayoutButtons extends Vue {
         @Prop() layout !: DagreLayout;
-        private icon = mdiLayersTriple;
+        private icon = mdiGraphOutline;
+
+        private dagreLayoutToolTip = this.$t("button_tooltip.default_layout");
     }
 </script>

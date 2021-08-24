@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="dialog" max-width="500">
+    <v-dialog v-model="dialog" max-width="600">
         <v-card>
             <v-toolbar flat color="secondary" dark>
                 <v-toolbar-title>{{ $t("view_options.title") }}</v-toolbar-title>
@@ -35,7 +35,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import {Component, Prop} from 'vue-property-decorator';
-import ViewOptions from "../graph/ViewOptions";
+import ViewOptions from "../../graph/ViewOptions";
 @Component export default class ViewOptionsDialog extends Vue {
     @Prop() options !: ViewOptions;
 

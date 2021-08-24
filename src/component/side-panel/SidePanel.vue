@@ -1,5 +1,5 @@
 <template>
-    <v-navigation-drawer v-model="active" color="white" absolute stateless right width="650" :permanent="active" ref="panel">
+    <v-navigation-drawer v-model="active" color="white" absolute stateless right :width="panelWidth" :permanent="active" ref="panel">
         <detail-panel
                 v-if="panelMode === 1"
                 :node="detailNode"
@@ -72,6 +72,9 @@ export default class SidePanel extends Vue {
     @Ref() readonly panel !: any;
     active: boolean = false;
 
+    readonly DefaultPanelWidth = 650;
+    private panelWidth: number = this.DefaultPanelWidth;
+
     get selectedNodes(): Node[] {
         let selected: Node[] = [];
         for (const IRI in this.graph?.nodes) {
@@ -92,6 +95,10 @@ export default class SidePanel extends Vue {
             () => {return this.panel.computedWidth},
             this.widthChanged
         );
+
+        window.addEventListener('resize', () => {
+            this.panelWidth = Math.min(this.DefaultPanelWidth, window.innerWidth / 2);
+        })
     }
 
     @Watch('active')

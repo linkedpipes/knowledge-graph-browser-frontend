@@ -5,6 +5,8 @@ import {LayoutManager} from "../layout/LayoutManager";
 import {NodeView} from "./NodeView";
 import GraphArea from "../component/graph/GraphArea.vue";
 import NodeCommon from "./NodeCommon";
+import mapboxgl from "mapbox-gl";
+import cytoscapeMapboxgl from 'cytoscape-mapbox-gl';
 
 /**
  * This class performs basic operations with graph area like zooming, animations etc.
@@ -52,13 +54,20 @@ export default class GraphAreaManipulator implements ObjectSave {
         });
     }
 
-    zoomIn() {
-        this.changeZoomByQuotient(this.manualZoomScale);
-
+    zoomIn(map?: mapboxgl.Map) {
+        if (map) {
+            map.zoomIn();
+        } else {
+            this.changeZoomByQuotient(this.manualZoomScale);
+        }
     }
 
-    zoomOut() {
-        this.changeZoomByQuotient(1 / this.manualZoomScale);
+    zoomOut(map?: mapboxgl.Map) {
+        if (map) {
+            map.zoomOut();
+        } else {
+            this.changeZoomByQuotient(1 / this.manualZoomScale);
+        }
     }
 
     /**
@@ -99,36 +108,42 @@ export default class GraphAreaManipulator implements ObjectSave {
      * Fit several nodes in the screen. If null, fit all of them.
      * @param nodes
      */
-    fit(nodes?: NodeCommon|NodeCommon[]|null) {
-        this.cy.stop();
-
-        if (nodes instanceof NodeCommon) {
-            nodes = [nodes];
-        }
-
-        let collection: Cytoscape.NodeCollection;
-        if (nodes == null) {
-            collection = this.cy.nodes();
+    fit(nodes?: NodeCommon|NodeCommon[]|null, cyMap?: mapboxgl.Map) {
+        if (cyMap) {
+            cyMap.fit(this.cy.nodes(), {
+                padding: { top: 40, bottom: 40, left: 100, right: 40 }
+            });
         } else {
-            collection = this.cy.collection();
-            for (let node of nodes) {
-                collection.merge(node.selfOrGroup.element.element);
+            this.cy.stop();
+
+            if (nodes instanceof NodeCommon) {
+                nodes = [nodes];
             }
-        }
 
-        let bb = collection.boundingBox({});
+            let collection: Cytoscape.NodeCollection;
+            if (nodes == null) {
+                collection = this.cy.nodes();
+            } else {
+                collection = this.cy.collection();
+                for (let node of nodes) {
+                    collection.merge(node.selfOrGroup.element.element);
+                }
+            }
 
-        if (bb.w > 0) {
-            let clientVP = [this.cy.container().clientWidth - this.offsetArray[1] - this.offsetArray[3], this.cy.container().clientHeight - this.offsetArray[0] - this.offsetArray[2]];
-            let zoom = Math.min(clientVP[0]*this.bbMaxSize/bb.w, clientVP[1]*this.bbMaxSize/bb.h);
-            this.cy.animate({
-                // @ts-ignore zoom accepts number
-                zoom,
-                pan: {
-                    x: clientVP[0]/2 + this.offsetArray[3] - zoom * (bb.x1 + bb.w/2),
-                    y: clientVP[1]/2 + this.offsetArray[0] - zoom * (bb.y1 + bb.h/2),
-                },
-            }, this.animateOptions);
+            let bb = collection.boundingBox({});
+
+            if (bb.w > 0) {
+                let clientVP = [this.cy.container().clientWidth - this.offsetArray[1] - this.offsetArray[3], this.cy.container().clientHeight - this.offsetArray[0] - this.offsetArray[2]];
+                let zoom = Math.min(clientVP[0] * this.bbMaxSize / bb.w, clientVP[1] * this.bbMaxSize / bb.h);
+                this.cy.animate({
+                    // @ts-ignore zoom accepts number
+                    zoom,
+                    pan: {
+                        x: clientVP[0] / 2 + this.offsetArray[3] - zoom * (bb.x1 + bb.w / 2),
+                        y: clientVP[1] / 2 + this.offsetArray[0] - zoom * (bb.y1 + bb.h / 2),
+                    },
+                }, this.animateOptions);
+            }
         }
     }
 

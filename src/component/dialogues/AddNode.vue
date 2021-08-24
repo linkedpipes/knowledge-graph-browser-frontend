@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="dialog" max-width="800" persistent>
+    <v-dialog v-model="dialog" max-width="600" persistent>
         <v-card>
             <v-toolbar flat color="secondary" dark>
                 <v-toolbar-title>{{ $t("add_node_dialog.title") }}</v-toolbar-title>
@@ -54,10 +54,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import {Component, Prop} from 'vue-property-decorator';
-import { Graph } from '../graph/Graph';
-import SearchComponent from "./SearchComponent.vue";
-import GraphManipulator from "../graph/GraphManipulator";
-import GraphSearcher from "../searcher/GraphSearcher";
+import { Graph } from '../../graph/Graph';
+import SearchComponent from "../SearchComponent.vue";
+import GraphManipulator from "../../graph/GraphManipulator";
+import GraphSearcher from "../../searcher/GraphSearcher";
 @Component({
     components: {SearchComponent}
 })

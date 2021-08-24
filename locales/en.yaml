@@ -7,6 +7,7 @@ menu:
   view_options: View options
   hidden_nodes: Hidden nodes
   layout: Layout options
+  map_layers: Map layer options
   load: Load graph
   save: Save graph
   new_graph: New graph
@@ -160,6 +161,34 @@ view_options:
     hide_text: Hide text
     hide: Hide
 
+map_layer:
+  title: Map layer options
+  standard:
+    title: Standard (OpenStreetMap)
+  satellite:
+    title: Satellite (MapBox)
+  close: Close
+
+map_configuration:
+  base_map:
+    name: Base map layer
+    title: Choose what base layer will be under graph
+  geo_iris:
+    name: Node properties for position
+    title: List of all properties with coordinates. Checked will be shown on the map
+  classes_for_positions:
+    name: Node classes to position
+    title: List of all classes with nodes with coordinates. Checked will be shown on the map
+  no_position_nodes_style:
+    name: Nodes without position
+    title: How nodes with no position will be shown
+    hide: Hide
+    layout: Layout by original layout (not implemented yet)
+    aside: Show in upper right edge (not implemented yet)
+  current_configuration:
+    name: Current configuration
+  no_position_nodes: There is no node with position to be shown on a map
+
 save_dialog:
   title: Save graph?
   text: Would you like to save current graph to a local file on your computer? You would be able to access it later.
@@ -272,3 +301,16 @@ load_dialog:
 
 any_data_value:
   open_node: Show node
+
+button_tooltip:
+  zoom_in: Zoom in
+  zoom_out: Zoom out
+  fit_to_graph: Fit to graph
+  continue_layout: Layout more
+  default_layout: Default layout
+  compact_enable: Compact mode
+  compact_disable: Disable compact mode
+  edge_style_enable: Default edge style
+  edge_style_disable: Disable edge style
+  map_enable: Show graph on map
+  map_disable: Disable map mode
