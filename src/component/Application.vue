@@ -7,6 +7,7 @@
                     :left-offset="leftOffset"
                     :right-offset="rightOffset"
                     :view-options="viewOptions"
+                    :map-configuration="mapConfiguration"
                     :graph-searcher="graphSearcher"
                     :manipulator="manipulator"
                     :area-manipulator="areaManipulator"
@@ -14,6 +15,8 @@
                     :mode-compact="modeCompact"
                     @compact-mode-change="modeCompact = $event"
                     @new-manipulator="areaManipulator = $event"
+                    @saveAppState="saveAppState"
+                    @restoreAppState="restoreAppState"
             />
             <side-panel
                     :graph="graph"
@@ -44,6 +47,7 @@
                     <v-list-item link @click="$refs.viewOptionsDialog.show()"><v-list-item-icon><v-badge dot :value="viewOptions.active"><v-icon>{{ icons.viewOptions }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.view_options") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="hiddenPanel = !hiddenPanel"><v-list-item-icon><v-badge dot :value="hiddenPanel"><v-icon>{{ icons.hidden }}</v-icon></v-badge></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.hidden_nodes") }}</v-list-item-title></v-list-item-content></v-list-item>
                     <v-list-item link @click="layoutDialog.show()"><v-list-item-icon><v-icon>{{ icons.layout }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.layout") }}</v-list-item-title></v-list-item-content></v-list-item>
+                    <v-list-item link @click="$refs.mapLayerDialog.show()"><v-list-item-icon><v-icon>{{ icons.mapLayer }}</v-icon></v-list-item-icon><v-list-item-content><v-list-item-title>{{ $t("menu.map_layers") }}</v-list-item-title></v-list-item-content></v-list-item>
 
                     <v-divider></v-divider>
 
@@ -100,6 +104,10 @@
         <view-options-dialog
                 :options="viewOptions"
                 ref="viewOptionsDialog"
+        />
+        <map-layer-dialog
+                :map-configuration="mapConfiguration"
+                ref="mapLayerDialog"
         />
         <settings-dialog
                 :remote-url.sync="server.remoteUrl"
@@ -168,7 +176,10 @@ import {VListGroup, VNavigationDrawer} from "vuetify/lib";
 import SettingsDialog from "./dialogues/SettingsDialog.vue";
 import Settings from "./Settings";
 import ViewOptionsDialog from "./dialogues/ViewOptionsDialog.vue";
+import MapLayerDialog from "./dialogues/MapLayerDialog.vue";
 import ViewOptions from "../graph/ViewOptions";
+import mapboxgl from "mapbox-gl";
+import MapConfiguration, {BaseMap} from "../map/MapConfiguration";
 import {FiltersList} from "../filter/Filter";
 import GraphAreaManipulator from "../graph/GraphAreaManipulator";
 import GraphManipulator from "../graph/GraphManipulator";
@@ -207,6 +218,7 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
             LayoutDialog,
             LoadDialog,
             ViewOptionsDialog,
+            MapLayerDialog,
             Settings,
             SettingsDialog,
             VueFilterComponentCreator,
@@ -258,6 +270,47 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
          * Example: Show dots instead of labeled nodes without edges.
          * */
         viewOptions = new ViewOptions();
+
+        mapConfiguration: MapConfiguration = new MapConfiguration(
+            [{
+                name: 'openStreetMap',
+                style: {
+                    'version': 8,
+                    'sources': {
+                        'raster-tiles': {
+                            'type': 'raster',
+                            'tiles': ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                            'tileSize': 256,
+                            'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        }
+                    },
+                    'layers': [
+                        {
+                            'id': 'raster-tiles',
+                            'type': 'raster',
+                            'source': 'raster-tiles',
+                            'minzoom': 0,
+                            'maxzoom': 18
+                        }
+                    ]
+                }
+            },
+            {
+                name: 'mapbox',
+                style: 'mapbox://styles/mapbox/satellite-streets-v11'
+            }],
+             'hide'
+        );
+
+        savedAppState = null;
+
+        saveAppState() {
+            this.savedAppState = this.saveToObject();
+        }
+
+        restoreAppState() {
+            this.restoreFromObject(this.savedAppState);
+        }
 
         /**
          * List of node filters supported in the application.
@@ -388,6 +441,7 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
             viewOptions: mdiChartTimelineVariantShimmer,
             hidden: mdiImageFilterTiltShift,
             layout: mdiSlack,
+            mapLayer: mdiLayersTriple,
             projectWebsite: mdiOpenInNew,
 
             load: mdiFileUploadOutline,
@@ -593,5 +647,14 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
 
     .toolbar {
         z-index: 10;
+    }
+
+    .mapboxgl-ctrl-bottom-left {
+        display: flex !important;
+        flex-direction: column;
+    }
+
+    .mapboxgl-ctrl.mapboxgl-ctrl-attrib {
+        order: 2;
     }
 </style>

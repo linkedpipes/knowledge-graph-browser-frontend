@@ -7,14 +7,26 @@
 		</v-toolbar>
 
 		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
-			<button-component :dark="!modeCompact" :disabled="modeCompact" :icon="icons.zoomIn" :tool-tip="zoomInToolTip" @click="areaManipulator.zoomIn()" />
-			<button-component :dark="!modeCompact" :disabled="modeCompact" :icon="icons.zoomOut" :tool-tip="zoomOutToolTip" @click="areaManipulator.zoomOut()" />
-			<button-component :dark="!modeCompact" :disabled="modeCompact" :icon="icons.fit" :tool-tip="fitToolTip" @click="areaManipulator.fit()" />
-			<button-component :enableButtonDiv="layoutManager.currentLayout.supportsCompactMode"
-                              :dark="isNodeSelected" :disabled="!isNodeSelected" :icon="icons.compactMode[modeCompact ? 1 : 0]" :tool-tip="modeCompactToolTip[modeCompact ? 1 : 0]" @click="compactModeChange(!modeCompact)" />
-			<button-component :icon="icons.edgeStyle[edgeStyle ? 1 : 0]" :tool-tip="edgeStyleToolTip[edgeStyle ? 1 : 0]" @click="edgeStyleChange()" />
 			<component v-if="layoutManager.currentLayoutData.buttons" :is="layoutManager.currentLayoutData.buttons" :layout="layoutManager.currentLayout" />
+			<button-component :dark="!modeCompact" :disabled="modeCompact" :icon="icons.zoomIn" :tool-tip="zoomInToolTip" @click="map ? areaManipulator.zoomIn(map) : areaManipulator.zoomIn()" />
+			<button-component :dark="!modeCompact" :disabled="modeCompact" :icon="icons.zoomOut" :tool-tip="zoomOutToolTip" @click="map ? areaManipulator.zoomOut(map) : areaManipulator.zoomOut()" />
+			<button-component :dark="!modeCompact" :disabled="modeCompact" :icon="icons.fit" :tool-tip="fitToolTip" @click="areaManipulator.fit(null, cyMap)" />
+			<button-component :enableButtonDiv="layoutManager.currentLayout.supportsCompactMode"
+                              :dark="isNodeSelected && !mapMode" :disabled="!isNodeSelected || mapMode" :icon="icons.compactMode[modeCompact ? 1 : 0]" :tool-tip="modeCompactToolTip[modeCompact ? 1 : 0]" @click="compactModeChange(!modeCompact)" />
+			<button-component :icon="icons.edgeStyle[edgeStyle ? 1 : 0]" :tool-tip="edgeStyleToolTip[edgeStyle ? 1 : 0]" @click="edgeStyleChange()" />
+			<button-component :icon="icons.mapMode[mapMode ? 1 : 0]" :dark="!mapModeDisabled" :disabled="mapModeDisabled" :tool-tip="mapModeToolTip" @click="mapModeChange()" />
 		</div>
+
+		<v-bottom-sheet v-model="mapModeDisabledAlert">
+			<v-sheet class="text-center" height="200px">
+				<v-btn class="mt-6" text color="red" @click="mapModeDisabledAlert = !mapModeDisabledAlert">
+					close
+				</v-btn>
+				<div class="py-3">
+					{{ $t("map_configuration.no_position_nodes") }}
+				</div>
+			</v-sheet>
+		</v-bottom-sheet>
 
 		<graph-element-node
 			v-for="node in graph.nodes"
@@ -65,13 +77,17 @@ import Cytoscape from "cytoscape";
 import {Emit, Mixins, Prop, Watch} from "vue-property-decorator";
 import {ResponseStylesheet} from "../../remote-server/ResponseInterfaces";
 import {Graph} from "../../graph/Graph";
-import {mdiPlus, mdiMinus, mdiFitToPageOutline, mdiChartBubble, mdiSvg, mdiChartTimelineVariant, mdiChartTimelineVariantShimmer} from '@mdi/js';
+import {mdiPlus, mdiMinus, mdiFitToPageOutline, mdiChartBubble, mdiSvg, mdiMap, mdiMapMinus, mdiChartTimelineVariant, mdiChartTimelineVariantShimmer} from '@mdi/js';
 import SearchComponent from "../SearchComponent.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import ViewOptions from "../../graph/ViewOptions";
+import MapConfiguration, { GeoIRI, ClassForMapMode } from "../../map/MapConfiguration";
 import GraphSearcher from "../../searcher/GraphSearcher";
 import GraphManipulator from "../../graph/GraphManipulator";
 import GraphAreaStylesheetMixin from "./GraphAreaStylesheetMixin";
+import clone from "clone";
+import cytoscapeMapboxgl from 'cytoscape-mapbox-gl';
+import mapboxgl from "mapbox-gl";
 
 import cola from 'cytoscape-cola';
 import popper from 'cytoscape-popper';
@@ -80,6 +96,10 @@ import GraphElementNodeGroup from "./GraphElementNodeGroup.vue";
 import GroupEdge from "../../graph/GroupEdge";
 import NodeCommon from "../../graph/NodeCommon";
 import EdgeCommon from "../../graph/EdgeCommon";
+
+import { Node, NodeType } from '../../graph/Node'; // For nodes and change visibility like in HiddenNodesPanel.vue
+
+const KGVBMapLayerIRI = "KGVBMapLayerIRI"; // Unique IRI to distinguish fake objects
 
 @Component({
 	components: {
@@ -96,6 +116,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	@Prop() leftOffset: number;
 	@Prop() rightOffset: number;
 	@Prop() viewOptions: ViewOptions;
+	@Prop() mapConfiguration: MapConfiguration;
 	@Prop() private graphSearcher: GraphSearcher;
 	@Prop() private manipulator: GraphManipulator;
 	@Prop(Object) private areaManipulator: GraphAreaManipulator;
@@ -115,6 +136,13 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	 */
 	private readonly offset: [number, number, number, number] = [0, 0, 0, 0];
 
+	private map !: mapboxgl.Map;
+
+	private mapMode: boolean = false;
+	private mapModeDisabled: boolean = false;
+	private mapModeDisabledAlert: boolean = false;
+	private mapModeToolTip = this.$t("button_tooltip.map_enable");
+
 	private edgeStyle: boolean = false;
 	private edgeStyleToolTip = [this.$t("button_tooltip.edge_style_disable"), this.$t("button_tooltip.edge_style_enable")];
 
@@ -127,7 +155,18 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		zoomOut: mdiMinus,
 		fit: mdiFitToPageOutline,
 		compactMode: [mdiSvg, mdiChartBubble],
+		mapMode: [mdiMap, mdiMapMinus],
 		edgeStyle: [mdiChartTimelineVariant, mdiChartTimelineVariantShimmer]
+	}
+
+	@Watch('leftOffset', { immediate: true })
+	private changeMapAttributionOffset() {
+		if (this.mapMode) {
+			this.map.getContainer().querySelector('.mapboxgl-control-container').querySelector('.mapboxgl-ctrl-bottom-left')
+				.style["margin-left"] = this.leftOffset + "px";
+			this.map.getContainer().querySelector('.mapboxgl-control-container').querySelector('.mapboxgl-ctrl-bottom-left')
+				.style["transition-duration"] = "0.2s"; // just like the left panel
+		}
 	}
 
 	/**
@@ -170,6 +209,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	created() {
 		Cytoscape.use(cola);
 		Cytoscape.use(popper);
+		Cytoscape.use(cytoscapeMapboxgl);
 
 		this.cy = Cytoscape();
 
@@ -302,8 +342,85 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		this.offset[3] = this.leftOffset;
 	}
 
+	// MapLayerSection
 
+	@Watch('mapConfiguration.currentConfiguration.baseMap')
+	private changeMapLayer() {
+		if (this.mapMode) {
+			this.setMapLayer(this.mapConfiguration);
+		}
+		// Set white edge labels for map "mapbox" which should be satellite
+		if (this.mapConfiguration.currentConfiguration.baseMap.name == "mapbox") {
+			this.setEdgeLabelColor(this.cy, "white");
+		} else {
+			this.setEdgeLabelColor(this.cy, "black");
+		}
+	}
 
+	@Watch('mapMode')
+	private cyMapChange() {
+		if (!this.mapModeDisabled) {
+			if (this.mapMode) {
+				let geoIRIs = this.getGeoIRIs(this.graph);
+
+				if (geoIRIs.size == 0) {
+				this.mapModeDisabled = true;
+				this.mapModeDisabledAlert = true;
+				this.mapMode = false;
+				}
+				else {
+
+				this.$emit("saveAppState");
+				this.layoutManager.switchToLayout('circle') // Switch to circle layout to lock nodes. Circle layout muset be presented in the application
+
+				geoIRIs.forEach((value, key) => {
+					if (this.mapConfiguration.geoIRIs.filter(function (geoIRI) { return geoIRI.IRI === key; }).length > 0) {
+						// array contains the geoIRI with new geoIRI
+					}
+					else { this.mapConfiguration.geoIRIs.push(new GeoIRI(key, value, true)); }
+				});
+
+				this.map = this.toMap(this.graph, this.cy, this.mapConfiguration.geoIRIs);
+				this.hideNodesWithoutPosition();
+				this.mapModeToolTip = this.$t("button_tooltip.map_disable");
+
+				this.changeMapAttributionOffset();
+				}
+			} else {
+				this.destroyCyMap();
+				this.mapModeToolTip = this.$t("button_tooltip.map_enable");
+
+				this.changeVisibility(true);
+
+				this.$emit("restoreAppState");
+			}
+		}
+	}
+
+	// Just like in HiddenNodesPanel.vue
+	private get nodes(): Node[] {
+		let nodes: Node[] = [];
+		for (let iri in this.graph.nodes) {
+			if (!this.graph.nodes[iri].isVisible) {
+				nodes.push(this.graph.nodes[iri]);
+			}
+		}
+
+		return nodes;
+	}
+
+	// Just like in HiddenNodesPanel.vue
+	private changeVisibility(visibility: boolean) {
+		for (let node of this.nodes) {
+			node.visible = visibility;
+		}
+	}
+
+	private hideNodesWithoutPosition() {
+		for (let node of this.getNodesWithoutPosition(this.graph, this.cy, this.mapConfiguration.geoIRIs)) {
+			node.visible = false;
+		}
+	}
 
 	@Watch('edgeStyle')
 	private styleChange() {
@@ -314,9 +431,146 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		}
 	}
 
+	private mapModeChange() {
+		this.mapMode = !this.mapMode;
+	}
 
 	private edgeStyleChange() {
 		this.edgeStyle = !this.edgeStyle;
+	}
+
+	// Instance of cytoscape-mapbox-gl plugin. cyMap.map is instance of mapbox itself
+	private cyMap;
+
+	findNode(nodes, cynode) {
+		let iri = cynode.id();
+		for (let i = 0; i < nodes.length; i++) {
+			let node = nodes[i];
+			if (node.IRI == iri) {
+				return node;
+			}
+		}
+		return null;
+	}
+
+	getLonLng(nodes, cynode, pointPosition, geoIRI) {
+		let node = this.findNode(nodes, cynode);
+
+		let currentViewDetail;
+		for (let viewSet in node['viewSets']) {
+			let views = node['viewSets'][viewSet]['views'];
+			for (let view in views) {
+				if (views[view]['IRI'] === node['currentView']['IRI']) {
+				currentViewDetail = views[view]['detail'];
+				}
+			}
+		}
+		if (currentViewDetail) {
+			let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI);
+			if (detailGeoIRI) {
+				return detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ')[pointPosition];
+			}
+			else {
+				return null; // Has currentView, but not geoIRI in it
+			}
+		}
+		else {
+			return null; // No currentView detail at all
+		}
+	}
+
+	getLonOrLngWithMultipleGeoIRIs(nodes, cynode, pointPosition, geoIRIs) {
+		let node = this.findNode(nodes, cynode);
+
+		let currentViewDetail;
+		for (let viewSet in node['viewSets']) {
+			let views = node['viewSets'][viewSet]['views'];
+			for (let view in views) {
+				if (views[view]['IRI'] === node['currentView']['IRI']) {
+				currentViewDetail = views[view]['detail'];
+				}
+			}
+		}
+		if (currentViewDetail) {
+			for (let geoIRI of geoIRIs) {
+				if (geoIRI.active) {
+				let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI.IRI);
+				if (detailGeoIRI) {
+					return detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ')[pointPosition]; // The first geoIRI that is in the nodes detail is used
+				}
+				}
+			}
+			return null; // Has currentView, but not geoIRI in it
+		}
+		return null; // No currentView detail at all
+	}
+
+	getLonLngWithMultipleGeoIRIs(cynode, geoIRIs) {
+		let node = this.findNode(Object.values(this.graph.nodes), cynode);
+		let lonLat = [];
+
+		if (this.hasClassForMapMode(node)) {
+			let currentViewDetail = node['currentView']['detail'];
+
+			if (currentViewDetail) {
+				for (let geoIRI of geoIRIs) {
+				if (geoIRI.active) {
+					let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI.IRI);
+					if (detailGeoIRI) {
+						let point = detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ');
+						point.push(geoIRI.IRI);
+						lonLat.push(point);
+
+						node.classes.forEach(nodeClass => {
+							if (this.mapConfiguration.classesForMapMode.filter(function (obj) { return obj.nodeClass === nodeClass; }).length > 0) {
+							// array contains the geoIRI with new geoIRI
+							}
+							else { this.mapConfiguration.classesForMapMode.push(new ClassForMapMode(nodeClass, true)); }
+						});
+					}
+				}
+				}
+				// Has currentView, but not geoIRI in it
+			}
+		}
+		return lonLat; // No currentView detail at all
+	}
+
+	hasClassForMapMode(node) {
+		let hasClassForMapMode = false;
+		node.classes.forEach(nodeClass => {
+			let founded = this.mapConfiguration.classesForMapMode.find(obj => obj.nodeClass === nodeClass);
+			if (founded) {
+				founded.isSet && (hasClassForMapMode = true);
+			}
+			else { // class is not (yet) in the map, so it should be placed on map
+				hasClassForMapMode = true;
+			}
+		});
+		return hasClassForMapMode;
+	}
+
+	findGeoIRIs(nodes, regex) {
+		let geoIRIs = new Map<string, string>();
+		for (let i = 0; i < nodes.length; i++) {
+			let node = nodes[i];
+			let viewSets = node['viewSets'];
+			for (let viewSet in viewSets) {
+				let views = node['viewSets'][viewSet]['views'];
+				for (let view in views) {
+				let details = views[view]['detail'];
+				if (details) {
+					for (let l = 0; l < details.length; l++) {
+						let detail = details[l];
+						if (regex.test(detail['value'])) {
+							geoIRIs.set(detail['IRI'], detail['type']['label']);
+						}
+					}
+				}
+				}
+			}
+		}
+		return geoIRIs;
 	}
 
 	copyWithout(stylesheet, name, value) {
@@ -333,6 +587,30 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		return stylesheet;
 	}
 
+	layerStyles = {
+		openStreetMap: {
+			'version': 8,
+			'sources': {
+				'raster-tiles': {
+				'type': 'raster',
+				'tiles': ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+				'tileSize': 256,
+				'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+				}
+			},
+			'layers': [
+				{
+				'id': 'raster-tiles',
+				'type': 'raster',
+				'source': 'raster-tiles',
+				'minzoom': 0,
+				'maxzoom': 18
+				}
+			]
+		},
+		mapbox: 'mapbox://styles/mapbox/satellite-streets-v11'
+	};
+
 	disableEdgeStyle(cy) {
 		let stylesheet = cy.style().json();
 
@@ -348,23 +626,189 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		cy.style().fromJson(stylesheetWithoutEdges).update();
 	}
 
+	setEdgeLabelColor(cy, color) {
+		let stylesheet = cy.style().json();
+
+		stylesheet.forEach(function (obj) {
+			if (obj.selector === "edge") {
+				obj.style["color"] = "white"
+			}
+		});
+		
+		cy.style().fromJson(stylesheet).update();
+	}
+
+	setMapLayer(mapConfiguration: MapConfiguration) {
+		this.cyMap.map.setStyle(mapConfiguration.currentConfiguration.baseMap.style);
+	}
+
+	destroyCyMap() {
+		this.cyMap.destroy();
+		this.cyMap = undefined;
+	}
+
+	// To find IRI of nodes coordinates Point(...)
+	getGeoIRIs(graph) {
+		const nodes = Object.values(graph.nodes);
+		const regex = new RegExp(/^Point\s*\(([0-9]+\.[0-9]+)\s+([0-9]+\.[0-9]+)\)$/); // Point(XX.XXX Y.YYYYY)
+		return this.findGeoIRIs(nodes, regex); // Array of IRIs with value Point. For example "http://www.wikidata.org/prop/direct/P19"
+	}
+
+	getNodesWithoutPosition(graph, cy, geoIRIs) {
+		let nodesWithoutPosition = [];
+
+		const nodes = Object.values(graph.nodes);
+		for (let node of nodes) {
+
+			let nodeLng = null;
+			
+			let currentViewDetail = node['currentView']['detail'];
+			if (currentViewDetail) {
+				for (let geoIRI of geoIRIs) {
+				if (geoIRI.active) {
+					let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI.IRI);
+					if (detailGeoIRI) {
+						nodeLng = detailGeoIRI['value'].replace(/[^-. 0-9]/g, '').split(' ')[0];
+					}
+				}
+				}
+				// Has currentView, but not geoIRI in it
+			}
+			// No currentView detail at all
 
 
 
+			if (!nodeLng) {
+				nodesWithoutPosition.push(node);
+			}
+		}
 
+		return nodesWithoutPosition;
+	}
 
+	// simply arithmetic mean, does not care about extrem cases and coordinate systems
+	getCenter(lngLats) {
+		let lng = 0;
+		let lat = 0;
+		for (let lngLat of lngLats) {
+			lng += parseFloat(lngLat[0]);
+			lat += parseFloat(lngLat[1]);
+		}
+		lng /= lngLats.length;
+		lat /= lngLats.length;
+		return [lng.toString(), lat.toString()];
+	}
 
+	addPositionNodes(node, lngLats) {
+		let graphNode = this.findNode(Object.values(this.graph.nodes), node);
+		for (let lngLat of lngLats) {
+			let newNode = this.graph.createNode(KGVBMapLayerIRI + " " + lngLat[0] + " " + lngLat[1] + " " + node.data().iri + "GeoIRI" + lngLat[2]); // There must not be a space in any IRI. Space would fail this split
+			newNode.currentView = { ...graphNode.currentView };
+			newNode.viewSets = graphNode.viewSets;
+			newNode.currentView.getDetail = graphNode.currentView.getDetail; // TODO: dont know why, but show and hide the panel
+			newNode.currentView.preview = { ...graphNode.currentView.preview };
+			newNode.currentView.preview.classes = JSON.parse(JSON.stringify(graphNode.currentView.preview.classes));
+			newNode.mounted = graphNode.mounted;
+			if (!newNode.classes.includes("__node_position")) {
+				newNode.classes.push("__node_position");
+			}
 
+			this.addPositionEdge(graphNode, newNode, KGVBMapLayerIRI, lngLat[2]);
+		}
+	}
 
+	addPositionEdge(fromNode, toNode, iri, geoIRI) {
+		let edgeType = {
+			"iri": iri,
+			"label": this.findLabelOfGeoIRI(geoIRI),
+			"description": geoIRI
+		};
+		this.graph.createEdge(fromNode, toNode, edgeType).classes.push("__" + KGVBMapLayerIRI + "_edge");
+	}
 
+	findLabelOfGeoIRI(geoIRI) {
+		return this.mapConfiguration.geoIRIs.find(e => {
+			return e.IRI === geoIRI
+		}).label;
+	}
 
+	// Just for testing
+	detailWithGeoIRI(node, geoIRI) {
+		let currentViewDetail = node.currentView.detail;
+		let detailGeoIRI = currentViewDetail.find(detail => detail.IRI === geoIRI);
+		return detailGeoIRI;
+	}
 
+	// Just for testing
+	viewSetsWithGeoIRI(node, geoIRI) {
+		const regex = new RegExp(/^Point\s*\(([0-9]+\.[0-9]+)\s+([0-9]+\.[0-9]+)\)$/); // Point(XX.XXX Y.YYYYY)
 
+		let viewSets = { ...node.viewSets };
 
+		for (let viewSet in node.viewSets) {
+			viewSets.push(viewSet);
+			let views = viewSet['views'];
+			for (let view in views) {
+				let details = views[view]['detail'];
+				if (details) {
+				for (let l = details.length - 1; l >= 0; l--) {
+					let detail = details[l];
+					if (regex.test(detail['value'])) {
+						if (detail['value'] != geoIRI) {
+							details.splice(l, 1);
+						}
+					}
+				}
+				}
+			}
+		}
 
+		return viewSets;
+	}
+
+	toMap(graph, cy, geoIRIs) {
+		this.cyMap = cy.mapboxgl({
+			accessToken: 'pk.eyJ1IjoibWlyb3BpciIsImEiOiJja2xmZGtobDAyOXFnMnJuMGR4cnZvZTA5In0.TPg2_40hpE5k5v65NmdP5A',
+			attributionControl: false,
+			style: this.mapConfiguration.currentConfiguration.baseMap.style,
+		}, {
+				getPosition: (node) => {
+				let graphNode = this.findNode(Object.values(this.graph.nodes), node);
+
+				if (graphNode.IRI.startsWith(KGVBMapLayerIRI)) {
+				let substrs = graphNode.IRI.split(" ");
+				return [substrs[1], substrs[2]];
+				}
+				let lngLatWithIRIs = this.getLonLngWithMultipleGeoIRIs(node, geoIRIs);
+
+				if (lngLatWithIRIs.length == 1) {
+				return [lngLatWithIRIs[0][0], lngLatWithIRIs[0][1]];
+				}
+				else if (lngLatWithIRIs.length > 1) { //Node with multiple positions
+				this.addPositionNodes(node, lngLatWithIRIs);
+				return this.getCenter(lngLatWithIRIs);
+				}
+				else {
+					return null;
+				}
+				},
+				setPosition: (node, lngLat) => {
+				node.data('lng', lngLat.lng);
+				node.data('lat', lngLat.lat);
+				},
+				animate: true,
+				animationDuration: 1000,
+			});
+
+		this.cyMap.map.addControl(new mapboxgl.AttributionControl(), 'bottom-left');
+
+		return this.cyMap.map;
+	}
 }
 </script>
 <style lang="scss" scoped>
+@import '../../mapbox-gl.css';
+
 .graph-area {
     flex: auto;
 	position: absolute;

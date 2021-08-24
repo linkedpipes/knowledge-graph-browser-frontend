@@ -21,7 +21,7 @@
         @Prop({ default: true }) private enableButtonDiv: boolean;
 
         @Prop(String) private icon: string;
-        @Prop(String) private toolTip: string;
+        @Prop(String) private toolTip: string | [string, string];
         @Prop({ default: true }) private dark: boolean;
         @Prop({ default: false }) private disabled: boolean;
 
