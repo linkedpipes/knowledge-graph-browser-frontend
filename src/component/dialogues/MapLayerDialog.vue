@@ -9,7 +9,7 @@
                 <v-tab key="base_map"><v-icon left>{{icon}}</v-icon>{{ $t("map_configuration.base_map.name") }}</v-tab>
                 <v-tab key="geo_iris"><v-icon left>{{icon}}</v-icon>{{ $t("map_configuration.geo_iris.name") }}</v-tab>
                 <v-tab key="classes_for_positions"><v-icon left>{{icon}}</v-icon>{{ $t("map_configuration.classes_for_positions.name") }}</v-tab>
-                <v-tab key="no_position_nodes_style"><v-icon left>{{icon}}</v-icon>{{ $t("map_configuration.no_position_nodes_style.name") }}</v-tab>
+                <!--<v-tab key="no_position_nodes_style"><v-icon left>{{icon}}</v-icon>{{ $t("map_configuration.no_position_nodes_style.name") }}</v-tab>-->
 
                 <v-tab-item key="base_map">
                     <v-card flat>
@@ -53,7 +53,7 @@
                         </v-list-item>
                     </v-card>
                 </v-tab-item>
-                <v-tab-item key="no_position_nodes_style">
+                <!--<v-tab-item key="no_position_nodes_style">
                     <v-card flat>
                         <v-list-item>
                             <v-list-item-content>
@@ -66,7 +66,7 @@
                             </v-list-item-content>
                         </v-list-item>
                     </v-card>
-                </v-tab-item>
+                </v-tab-item>-->
 
             </v-tabs>
 
