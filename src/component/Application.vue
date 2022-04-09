@@ -24,7 +24,7 @@
                     ref="sidePanel"
                     @width-changed="rightOffset = $event"
             />
-            <v-navigation-drawer expand-on-hover absolute dark permanent stateless ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
+            <v-navigation-drawer absolute ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
                 <v-list dense nav class="py-0">
                     <v-list-item two-line style="padding-left: 0;">
                         <v-list-item-avatar>
@@ -359,7 +359,7 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
         //#endregion References to components used in Application
 
         private rightOffset: number = 0;
-        private leftOffset: number = 56; // Collapsed width of Vuetify v-navigation-drawer
+        private leftOffset: number = 256;  // Default width of Vuetify v-navigation-drawer
 
         // Whether the item "Language" is opened with all the available languages
         // noinspection JSUnusedLocalSymbols
