@@ -49,7 +49,7 @@
 
         <v-tabs-items v-model="navDrawerTab">
           <v-tab-item>
-            ahoj filtrovanie
+            <facet-filtering-area/>
           </v-tab-item>
 
           <v-tab-item>
@@ -172,6 +172,7 @@
         </v-tabs-items>
 
       </v-navigation-drawer>
+<!--    <test-import/>-->
     </v-main>
 
     <v-footer v-if="false" dark padless>
@@ -254,6 +255,7 @@ import Component from "vue-class-component";
 import {LocaleMessage} from "vue-i18n";
 import {Mixins, Ref, Watch} from "vue-property-decorator";
 import {ResponseStylesheet} from "../remote-server/ResponseInterfaces";
+import FacetFilteringArea from './facet-filtering/FacetFilteringArea.vue';
 
 import {
   mdiCogs,
@@ -318,6 +320,7 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
     SidePanel,
     SaveDialog,
     FilterDialog,
+    FacetFilteringArea
   }
 })
 export default class Application extends Mixins(ApplicationLoadStoreMixin) {
