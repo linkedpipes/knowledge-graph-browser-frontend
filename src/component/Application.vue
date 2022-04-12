@@ -49,7 +49,7 @@
 
         <v-tabs-items v-model="navDrawerTab">
           <v-tab-item>
-            <facet-filtering-area/>
+            <facet-filtering-area :graph="graph"/>
           </v-tab-item>
 
           <v-tab-item>
@@ -168,11 +168,8 @@
               </v-list-item>
             </v-list>
           </v-tab-item>
-
         </v-tabs-items>
-
       </v-navigation-drawer>
-<!--    <test-import/>-->
     </v-main>
 
     <v-footer v-if="false" dark padless>
@@ -325,6 +322,7 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
 })
 export default class Application extends Mixins(ApplicationLoadStoreMixin) {
   navDrawerTab = null;
+
   modeCompact: boolean = false;
 
   /**
