@@ -42,5 +42,7 @@ export class RemoteServer {
     getMetaConfiguration = (IRI: string, languages: string[]): Promise<ResponseMetaConfiguration|false> => this.sentRequest("/meta-configuration", {iri: IRI, languages: languages.join(',')});
     getConfiguration = (IRI: string, languages: string[]): Promise<ResponseConfiguration|false> => this.sentRequest("/configuration", {iri: IRI, languages: languages.join(',')});
 
+    callTest = (message: string): Promise<any> => this.sentRequest("/test", {message: message});
+
     //#endregion Queries
 }
