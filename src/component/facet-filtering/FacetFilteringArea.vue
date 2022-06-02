@@ -156,22 +156,19 @@ export default class FacetFilteringArea extends Vue {
     this.remoteServer = new RemoteServer();
     this.remoteServer.remoteUrl = ApplicationConfiguration.api;
 
-    this.facets = await this.remoteServer.getFacetsFromConfiguration("testIRI");
+    let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
+    this.facets = await this.remoteServer.getFacetsFromConfiguration("testIRI", currentNodesIRIs);
   }
 
   async filterBtnPressed(event) {
     // for (const nodeIRI in this.graph.nodes) {
-    //   // this.graph.nodes[node].visible = false;
     //   // Filter Charles Darwin
     //   if (nodeIRI === "http://www.wikidata.org/entity/Q1035") {
     //     this.graph.nodes[nodeIRI].visible = false;
     //   }
     // }
 
-    let promise = await this.graph.server.getFacetsFromConfiguration("testIRI");
-
-    this.facets = promise;
-
+    this.facets = await this.remoteServer.getFacetsFromConfiguration("testIRI", []);
   }
 
   resetFiltering(event) {
