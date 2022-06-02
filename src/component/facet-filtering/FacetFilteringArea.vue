@@ -139,48 +139,24 @@ import Vue from 'vue';
 import {Prop} from "vue-property-decorator";
 import {Graph} from "../../graph/Graph";
 import {RemoteServer} from "@/remote-server/RemoteServer";
+import ApplicationConfiguration from "@/conf";
 
 @Component
 export default class FacetFilteringArea extends Vue {
   @Prop() graph: Graph;
-  public remoteServer: RemoteServer = new RemoteServer();
+  remoteServer: RemoteServer = null;
 
   facets = {
-    labelType: [{
-      title: 'Born in country label',
-      labels: ['Germany', 'Poland', 'France'],
-      // selected labels for each facet
-      selectedLabels: []
-    },
-      {
-        title: 'Label facet 2',
-        labels: ['opt1', 'opt2', 'opt3'],
-        selectedLabels: []
-      }],
-    numericType: [{
-      title: 'Born in country population',
-      minPossible: 10000000,
-      maxPossible: 200000000,
-      selectedRange: [10000000, 200000000]
-    },
-      {
-        title: 'numeric facet 2',
-        minPossible: 10000000,
-        maxPossible: 200000000,
-        selectedRange: [10000000, 200000000]
-      }],
-    numberOfEdgesType: [{
-      title: 'Number of siblings',
-      minPossible: 2,
-      maxPossible: 5,
-      selectedRange: [2, 5]
-    },
-      {
-        title: 'numberOfEdges facet 2',
-        minPossible: 2,
-        maxPossible: 5,
-        selectedRange: [2, 5]
-      }],
+    labelType: [],
+    numericType: [],
+    numberOfEdgesType: [],
+  };
+
+  async created() {
+    this.remoteServer = new RemoteServer();
+    this.remoteServer.remoteUrl = ApplicationConfiguration.api;
+
+    this.facets = await this.remoteServer.getFacetsFromConfiguration("testIRI");
   }
 
   async filterBtnPressed(event) {
@@ -192,9 +168,9 @@ export default class FacetFilteringArea extends Vue {
     //   }
     // }
 
-    let promise = await this.graph.server.callTest("no message");
+    let promise = await this.graph.server.getFacetsFromConfiguration("testIRI");
 
-    console.log(promise.m)
+    this.facets = promise;
 
   }
 

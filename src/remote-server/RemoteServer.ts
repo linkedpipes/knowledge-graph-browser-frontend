@@ -44,5 +44,7 @@ export class RemoteServer {
 
     callTest = (message: string): Promise<any> => this.sentRequest("/test", {message: message});
 
+    getFacetsFromConfiguration = (IRI: string): Promise<any> => this.sentRequest("/facetsFromConfiguration", {iri: IRI})
+
     //#endregion Queries
 }
