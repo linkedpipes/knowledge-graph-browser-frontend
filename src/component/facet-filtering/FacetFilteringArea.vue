@@ -140,10 +140,12 @@ import {Prop} from "vue-property-decorator";
 import {Graph} from "../../graph/Graph";
 import {RemoteServer} from "@/remote-server/RemoteServer";
 import ApplicationConfiguration from "@/conf";
+import Configuration from "@/configurations/Configuration";
 
 @Component
 export default class FacetFilteringArea extends Vue {
   @Prop() graph: Graph;
+  @Prop() configuration: Configuration;
   remoteServer: RemoteServer = null;
 
   facets = {
@@ -157,25 +159,39 @@ export default class FacetFilteringArea extends Vue {
     this.remoteServer.remoteUrl = ApplicationConfiguration.api;
 
     let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
-    this.facets = await this.remoteServer.getFacetsFromConfiguration("testIRI", currentNodesIRIs);
+    this.facets = await this.remoteServer.getFacetItems("testIRI", currentNodesIRIs);
   }
 
   async filterBtnPressed(event) {
+    // Get IRIs of nodes that should be left visible in the current graph - filterByFacets
+    // Get current input values from facet options
+    // let chosenOptions = {
+    //
+    // }
+    //
+    // // let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
+    // let filteredNodesIRIs = await this.remoteServer.filterByFacets("testMessage");
+    // console.log(filteredNodesIRIs.nodesIRIs);
+    //
     // for (const nodeIRI in this.graph.nodes) {
-    //   // Filter Charles Darwin
-    //   if (nodeIRI === "http://www.wikidata.org/entity/Q1035") {
+    //   // Apply filter
+    //   if (!(nodeIRI in filteredNodesIRIs)) {
     //     this.graph.nodes[nodeIRI].visible = false;
     //   }
     // }
 
-    this.facets = await this.remoteServer.getFacetsFromConfiguration("testIRI", []);
+    let facetIRIs = await this.remoteServer.getFacets(this.configuration.iri);
+    console.log(facetIRIs);
   }
 
   resetFiltering(event) {
     if (event) {
-      // reset filtering ...
+      // Set all nodes' visibility property to true
+      for (const nodeIRI in this.graph.nodes) {
+          this.graph.nodes[nodeIRI].visible = true;
+      }
 
-      // clear facet filters' values
+      // Clear facet filters' values
       for (const labelFacet of this.facets.labelType) {
         labelFacet.selectedLabels = []
       }

@@ -49,7 +49,10 @@
 
         <v-tabs-items v-model="navDrawerTab">
           <v-tab-item>
-            <facet-filtering-area :graph="graph"/>
+            <facet-filtering-area
+                :graph="graph"
+                :configuration="configuration"
+            />
           </v-tab-item>
 
           <v-tab-item>
