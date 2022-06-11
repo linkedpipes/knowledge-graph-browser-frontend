@@ -159,7 +159,7 @@ export default class FacetFilteringArea extends Vue {
     this.remoteServer.remoteUrl = ApplicationConfiguration.api;
 
     let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
-    this.facets = await this.remoteServer.getFacetItems("testIRI", currentNodesIRIs);
+    // this.facets = await this.remoteServer.getFacetItems("https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/wikidata/scientists-with-facets-dev", currentNodesIRIs);
   }
 
   async filterBtnPressed(event) {
@@ -180,8 +180,13 @@ export default class FacetFilteringArea extends Vue {
     //   }
     // }
 
-    let facetIRIs = await this.remoteServer.getFacets(this.configuration.iri);
-    console.log(facetIRIs);
+    let getFacetsResponse = await this.remoteServer.getFacets(this.configuration.iri);
+    let facetsIRIs = getFacetsResponse.facetsIRIs;
+
+    let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
+    this.facets = await this.remoteServer.getFacetsItems(facetsIRIs, currentNodesIRIs);
+
+
   }
 
   resetFiltering(event) {

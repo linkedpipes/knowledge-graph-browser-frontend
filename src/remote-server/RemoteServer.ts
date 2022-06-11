@@ -44,7 +44,7 @@ export class RemoteServer {
 
     getFacets = (configIRI: string): Promise<any> => this.sentRequest("/facets", {configIRI: configIRI})
 
-    getFacetItems = (configIRI: string, currentNodesIRIs: string[]): Promise<any> => this.sentRequest("/facet-items", {configIRI: configIRI, currentNodesIRIs: currentNodesIRIs.join(',')})
+    getFacetsItems = (facetsIRIs: string[], currentNodesIRIs: string[]): Promise<any> => this.sentRequest("/facets-items", {facetsIRIs: facetsIRIs.join(','), currentNodesIRIs: currentNodesIRIs.join(',')})
 
     filterByFacets = (configIRI: string, facetOptions: string): Promise<any> => this.sentRequest("/filter-by-facets", {configIRI: configIRI, facetOptions: facetOptions});
 
