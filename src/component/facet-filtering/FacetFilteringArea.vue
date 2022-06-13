@@ -123,6 +123,7 @@
             </v-list-item>
           </v-list>
 
+          <v-btn @click="loadFacets" block>Load facets</v-btn>
           <v-btn @click="filterBtnPressed" block>Filter</v-btn>
 
           <v-btn @click="resetFiltering" block>Reset filtering</v-btn>
@@ -149,7 +150,13 @@ export default class FacetFilteringArea extends Vue {
   remoteServer: RemoteServer = null;
 
   facets = {
-    labelType: [],
+    labelType: [{
+      facetIRI: "",
+      title: "",
+      description: "",
+      labels: [],
+      selectedLabels: []
+    }],
     numericType: [],
     numberOfEdgesType: [],
   };
@@ -157,43 +164,51 @@ export default class FacetFilteringArea extends Vue {
   async created() {
     this.remoteServer = new RemoteServer();
     this.remoteServer.remoteUrl = ApplicationConfiguration.api;
-
-    let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
-    // this.facets = await this.remoteServer.getFacetItems("https://linked.opendata.cz/resource/knowledge-graph-browser/configuration/wikidata/scientists-with-facets-dev", currentNodesIRIs);
   }
 
-  async filterBtnPressed(event) {
-    // Get IRIs of nodes that should be left visible in the current graph - filterByFacets
-    // Get current input values from facet options
-    // let chosenOptions = {
-    //
-    // }
-    //
-    // // let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
-    // let filteredNodesIRIs = await this.remoteServer.filterByFacets("testMessage");
-    // console.log(filteredNodesIRIs.nodesIRIs);
-    //
-    // for (const nodeIRI in this.graph.nodes) {
-    //   // Apply filter
-    //   if (!(nodeIRI in filteredNodesIRIs)) {
-    //     this.graph.nodes[nodeIRI].visible = false;
-    //   }
-    // }
-
+  async loadFacets(event) {
     let getFacetsResponse = await this.remoteServer.getFacets(this.configuration.iri);
     let facetsIRIs = getFacetsResponse.facetsIRIs;
 
     let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
     this.facets = await this.remoteServer.getFacetsItems(facetsIRIs, currentNodesIRIs);
+  }
 
+  async filterBtnPressed(event) {
+    let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
 
+    // Get current input values and tie them to their facet's IRI
+    let facetParams = {
+      facetParams: []
+    };
+
+    for (let labelFacet of this.facets.labelType) {
+      let facetParam = {
+        facetIRI: labelFacet.facetIRI,
+        chosenLabels: labelFacet.selectedLabels
+      };
+
+      facetParams.facetParams.push(facetParam)
+    }
+
+    // Get IRIs of nodes that should be left visible in the current graph
+    let nodesThatPassedFiltering = await this.remoteServer.filterByFacets(facetParams, currentNodesIRIs);
+
+    let filteredNodesIRIs = nodesThatPassedFiltering.nodesIRIs;
+
+    // Apply filter
+    for (const nodeIRI in this.graph.nodes) {
+      if (!filteredNodesIRIs.includes(nodeIRI)) {
+        this.graph.nodes[nodeIRI].visible = false;
+      }
+    }
   }
 
   resetFiltering(event) {
     if (event) {
       // Set all nodes' visibility property to true
       for (const nodeIRI in this.graph.nodes) {
-          this.graph.nodes[nodeIRI].visible = true;
+        this.graph.nodes[nodeIRI].visible = true;
       }
 
       // Clear facet filters' values
