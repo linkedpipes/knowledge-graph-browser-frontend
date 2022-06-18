@@ -88,13 +88,13 @@ export default class FacetFilteringArea extends Vue {
     this.remoteServer.remoteUrl = ApplicationConfiguration.api;
   }
 
-  async loadFacets(event) {
+  async loadFacets() {
     let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
     let response = await this.remoteServer.getFacetsItems(this.configuration.iri, currentNodesIRIs);
     this.facets = this.transformFacets(response.facetsItems);
   }
 
-  async filterBtnPressed(event) {
+  async filterBtnPressed() {
     // let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
     //
     // // Get current input values and tie them to their facet's IRI
@@ -124,23 +124,23 @@ export default class FacetFilteringArea extends Vue {
     // }
   }
 
-  resetFiltering(event) {
-    // if (event) {
-    //   // Set all nodes' visibility property to true
-    //   for (const nodeIRI in this.graph.nodes) {
-    //     this.graph.nodes[nodeIRI].visible = true;
-    //   }
-    //
-    //   // Clear facet filters' values
-    //   for (const labelFacet of this.facets.labelType) {
-    //     labelFacet.selectedLabels = []
-    //   }
-    //
-    //   for (const numericFacet of this.facets.numericType) {
-    //     Vue.set(numericFacet.selectedRange, 0, numericFacet.minPossible)
-    //     Vue.set(numericFacet.selectedRange, 1, numericFacet.maxPossible)
-    //   }
-    // }
+  resetFiltering() {
+
+      // Set all nodes' visibility property to true
+      // for (const nodeIRI in this.graph.nodes) {
+      //   this.graph.nodes[nodeIRI].visible = true;
+      // }
+      //
+      // // Clear facet filters' values
+      // for (const labelFacet of this.facets.labelType) {
+      //   labelFacet.selectedLabels = []
+      // }
+      //
+      // for (const numericFacet of this.facets.numericType) {
+      //   Vue.set(numericFacet.selectedRange, 0, numericFacet.minPossible)
+      //   Vue.set(numericFacet.selectedRange, 1, numericFacet.maxPossible)
+      // }
+
   }
 
   // Transforms facets received from the server so they
@@ -161,13 +161,18 @@ export default class FacetFilteringArea extends Vue {
               displayLabels: [],
               selectedLabels: []
             },
-            index: {}
+            index: new Map()
           };
 
           for (const item of oldFacet.items) {
-            // pridať hodnoty do indexu (mapy) a do displayLabels dať pole kľúčov - vyhnem sa tak duplicitám
-            newLabelFacet.values.displayLabels.push(item.itemValue);
+            if (newLabelFacet.index.get(item.value) == undefined) {
+              newLabelFacet.index.set(item.value, [item.nodeIRI]);
+            } else {
+              newLabelFacet.index.get(item.value).push(item.nodeIRI);
+            }
           }
+
+          newLabelFacet.values.displayLabels = Array.from(newLabelFacet.index.keys());
 
           transformedFacets.push(newLabelFacet);
           break;
@@ -190,19 +195,20 @@ export default class FacetFilteringArea extends Vue {
           var localMax = Number.MIN_VALUE;
 
           for (const item of oldFacet.items) {
-            // vytvoriť pole objektov a utriediť ho podľa itemValue
-            if (item.itemValue < localMin) {
-              localMin = item.itemValue;
+            if (item.value < localMin) {
+              localMin = item.value;
             }
 
-            if (item.itemValue > localMax) {
-              localMax = item.itemValue;
+            if (item.value > localMax) {
+              localMax = item.value;
             }
           }
 
           newNumericFacet.values.minPossible = localMin;
           newNumericFacet.values.maxPossible = localMax;
           newNumericFacet.values.selectedRange = [localMin, localMax];
+
+          newNumericFacet.index = oldFacet.items.sort((a, b) => a.value - b.value);
 
           transformedFacets.push(newNumericFacet);
           break;
