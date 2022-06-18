@@ -1,136 +1,68 @@
 <template>
   <div id="rootElement">
-    <v-list>
-      <v-list-item>
+    <v-list dense>
+      <v-list-item v-for="(facet, index) in facets" :key="index">
         <v-list-item-content>
+          <v-list-item-title class="facetTitle">
+            {{ facet.title }}
+          </v-list-item-title>
+          <template v-if="facet.type === 'label'">
+            <v-list>
+              <v-list-item
+                  v-for="(label, index) in facet.values.displayLabels"
+                  :key="index"
+              >
+                <v-list-item-content>
+                  <!-- label's checkbox -->
+                  <v-checkbox
+                      dense
+                      v-model="facet.values.selectedLabels"
+                      :label="label"
+                      :value="label"
+                  ></v-checkbox>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </template>
 
-          <!-- list of label type facets -->
-          <v-list dense>
-            <v-list-item
-                v-for="labelFacet in facets.labelType"
-                :key="labelFacet.title"
+          <template v-else>
+            <v-range-slider
+                v-model="facet.values.selectedRange"
+                :min="facet.values.minPossible"
+                :max="facet.values.maxPossible"
             >
-              <v-list-item-content>
-                <v-list-item-title class="facetTitle">{{ labelFacet.title }}</v-list-item-title>
-                <!-- list of labelFacet's labels -->
-                <v-list>
-                  <v-list-item
-                      v-for="label in labelFacet.labels"
-                      v-bind:key="label"
-                  >
-                    <v-list-item-content>
-                      <!-- label's checkbox for user to choose labels -->
-                      <v-checkbox
-                          dense
-                          v-model="labelFacet.selectedLabels"
-                          :label="label"
-                          :value="label"
-                      ></v-checkbox>
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-list>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
+              <template v-slot:prepend>
+                <v-layout class="sliderInput">
+                  <v-text-field
+                      :value="facet.values.selectedRange[0]"
+                      type="number"
+                      style="width: 60px"
+                      @change="$set(facet.values.selectedRange, 0, $event)"
+                  ></v-text-field>
+                </v-layout>
+              </template>
 
-          <v-divider></v-divider>
-
-          <!-- list of numeric type facets -->
-          <v-list>
-            <v-list-item
-                v-for="numericFacet in facets.numericType"
-                v-bind:key="numericFacet.title"
-            >
-              <v-list-item-content>
-                <v-list-item-title
-                    class="facetTitle"
-                >{{ numericFacet.title }}
-                </v-list-item-title>
-                <!-- slider for user to choose interval -->
-                <v-range-slider
-                    v-model="numericFacet.selectedRange"
-                    :min="numericFacet.minPossible"
-                    :max="numericFacet.maxPossible"
-                >
-                  <template v-slot:prepend>
-                    <v-layout class="sliderInput">
-                      <v-text-field
-                          :value="numericFacet.selectedRange[0]"
-                          type="number"
-                          style="width: 60px"
-                          @change="$set(numericFacet.selectedRange, 0, $event)"
-                      ></v-text-field>
-                    </v-layout>
-                  </template>
-
-                  <template v-slot:append>
-                    <v-layout class="sliderInput">
-                      <v-text-field
-                          :value="numericFacet.selectedRange[1]"
-                          type="number"
-                          style="width: 60px"
-                          @change="$set(numericFacet.selectedRange, 1, $event)"
-                      ></v-text-field>
-                    </v-layout>
-                  </template>
-                </v-range-slider>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-
-          <v-divider></v-divider>
-
-          <!-- list of numberOfEdges type facets -->
-          <v-list>
-            <v-list-item
-                v-for="numOfEdgesFacet in facets.numberOfEdgesType"
-                v-bind:key="numOfEdgesFacet.title"
-            >
-              <v-list-item-content>
-                <v-list-item-title
-                    class="facetTitle"
-                >{{ numOfEdgesFacet.title }}
-                </v-list-item-title>
-                <!-- slider for user to choose interval -->
-                <v-range-slider
-                    v-model="numOfEdgesFacet.selectedRange"
-                    :min="numOfEdgesFacet.minPossible"
-                    :max="numOfEdgesFacet.maxPossible"
-                >
-                  <template v-slot:prepend>
-                    <v-layout class="sliderInput">
-                      <v-text-field
-                          :value="numOfEdgesFacet.selectedRange[0]"
-                          type="number"
-                          style="width: 60px"
-                          @change="$set(numOfEdgesFacet.selectedRange, 0, $event)"
-                      ></v-text-field>
-                    </v-layout>
-                  </template>
-
-                  <template v-slot:append>
-                    <v-layout class="sliderInput">
-                      <v-text-field
-                          :value="numOfEdgesFacet.selectedRange[1]"
-                          type="number"
-                          style="width: 60px"
-                          @change="$set(numOfEdgesFacet.selectedRange, 1, $event)"
-                      ></v-text-field>
-                    </v-layout>
-                  </template>
-                </v-range-slider>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-
-          <v-btn @click="loadFacets" block>Load facets</v-btn>
-          <v-btn @click="filterBtnPressed" block>Filter</v-btn>
-
-          <v-btn @click="resetFiltering" block>Reset filtering</v-btn>
-
+              <template v-slot:append>
+                <v-layout class="sliderInput">
+                  <v-text-field
+                      :value="facet.values.selectedRange[1]"
+                      type="number"
+                      style="width: 60px"
+                      @change="$set(facet.values.selectedRange, 1, $event)"
+                  ></v-text-field>
+                </v-layout>
+              </template>
+            </v-range-slider>
+          </template>
         </v-list-item-content>
       </v-list-item>
     </v-list>
+
+    <v-divider></v-divider>
+
+    <v-btn @click="loadFacets" block>Load facets</v-btn>
+    <v-btn @click="filterBtnPressed" block>Filter</v-btn>
+    <v-btn @click="resetFiltering" block>Reset filtering</v-btn>
   </div>
 </template>
 
@@ -149,17 +81,7 @@ export default class FacetFilteringArea extends Vue {
   @Prop() configuration: Configuration;
   remoteServer: RemoteServer = null;
 
-  facets = {
-    labelType: [{
-      facetIRI: "",
-      title: "",
-      description: "",
-      labels: [],
-      selectedLabels: []
-    }],
-    numericType: [],
-    numberOfEdgesType: [],
-  };
+  facets = [];
 
   async created() {
     this.remoteServer = new RemoteServer();
@@ -167,65 +89,126 @@ export default class FacetFilteringArea extends Vue {
   }
 
   async loadFacets(event) {
-    let getFacetsResponse = await this.remoteServer.getFacets(this.configuration.iri);
-    let facetsIRIs = getFacetsResponse.facetsIRIs;
-
     let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
-    this.facets = await this.remoteServer.getFacetsItems(facetsIRIs, currentNodesIRIs);
+    let response = await this.remoteServer.getFacetsItems(this.configuration.iri, currentNodesIRIs);
+    this.facets = this.transformFacets(response.facetsItems);
   }
 
   async filterBtnPressed(event) {
-    let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
-
-    // Get current input values and tie them to their facet's IRI
-    let facetParams = {
-      facetParams: []
-    };
-
-    for (let labelFacet of this.facets.labelType) {
-      let facetParam = {
-        facetIRI: labelFacet.facetIRI,
-        chosenLabels: labelFacet.selectedLabels
-      };
-
-      facetParams.facetParams.push(facetParam)
-    }
-
-    // Get IRIs of nodes that should be left visible in the current graph
-    let nodesThatPassedFiltering = await this.remoteServer.filterByFacets(facetParams, currentNodesIRIs);
-
-    let filteredNodesIRIs = nodesThatPassedFiltering.nodesIRIs;
-
-    // Apply filter
-    for (const nodeIRI in this.graph.nodes) {
-      if (!filteredNodesIRIs.includes(nodeIRI)) {
-        this.graph.nodes[nodeIRI].visible = false;
-      }
-    }
+    // let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
+    //
+    // // Get current input values and tie them to their facet's IRI
+    // let facetParams = {
+    //   facetParams: []
+    // };
+    //
+    // for (let labelFacet of this.facets.labelType) {
+    //   let facetParam = {
+    //     facetIRI: labelFacet.facetIRI,
+    //     chosenLabels: labelFacet.selectedLabels
+    //   };
+    //
+    //   facetParams.facetParams.push(facetParam)
+    // }
+    //
+    // // Get IRIs of nodes that should be left visible in the current graph
+    // let nodesThatPassedFiltering = await this.remoteServer.filterByFacets(facetParams, currentNodesIRIs);
+    //
+    // let filteredNodesIRIs = nodesThatPassedFiltering.nodesIRIs;
+    //
+    // // Apply filter
+    // for (const nodeIRI in this.graph.nodes) {
+    //   if (!filteredNodesIRIs.includes(nodeIRI)) {
+    //     this.graph.nodes[nodeIRI].visible = false;
+    //   }
+    // }
   }
 
   resetFiltering(event) {
-    if (event) {
-      // Set all nodes' visibility property to true
-      for (const nodeIRI in this.graph.nodes) {
-        this.graph.nodes[nodeIRI].visible = true;
-      }
+    // if (event) {
+    //   // Set all nodes' visibility property to true
+    //   for (const nodeIRI in this.graph.nodes) {
+    //     this.graph.nodes[nodeIRI].visible = true;
+    //   }
+    //
+    //   // Clear facet filters' values
+    //   for (const labelFacet of this.facets.labelType) {
+    //     labelFacet.selectedLabels = []
+    //   }
+    //
+    //   for (const numericFacet of this.facets.numericType) {
+    //     Vue.set(numericFacet.selectedRange, 0, numericFacet.minPossible)
+    //     Vue.set(numericFacet.selectedRange, 1, numericFacet.maxPossible)
+    //   }
+    // }
+  }
 
-      // Clear facet filters' values
-      for (const labelFacet of this.facets.labelType) {
-        labelFacet.selectedLabels = []
-      }
+  // Transforms facets received from the server so they
+  // can be displayed, also create indexes for filtering
+  // in future
+  transformFacets(backendFacets) {
+    let transformedFacets = []
 
-      for (const numericFacet of this.facets.numericType) {
-        Vue.set(numericFacet.selectedRange, 0, numericFacet.minPossible)
-        Vue.set(numericFacet.selectedRange, 1, numericFacet.maxPossible)
-      }
+    for (const oldFacet of backendFacets) {
+      switch (oldFacet.type) {
+        case "label":
+          var newLabelFacet = {
+            iri: oldFacet.iri,
+            title: oldFacet.title,
+            type: oldFacet.type,
+            description: oldFacet.description,
+            values: {
+              displayLabels: [],
+              selectedLabels: []
+            },
+            index: {}
+          };
 
-      for (const numOfEdgesFacet of this.facets.numberOfEdgesType) {
-        Vue.set(numOfEdgesFacet.selectedRange, 0, numOfEdgesFacet.minPossible)
-        Vue.set(numOfEdgesFacet.selectedRange, 1, numOfEdgesFacet.maxPossible)
+          for (const item of oldFacet.items) {
+            // pridať hodnoty do indexu (mapy) a do displayLabels dať pole kľúčov - vyhnem sa tak duplicitám
+            newLabelFacet.values.displayLabels.push(item.itemValue);
+          }
+
+          transformedFacets.push(newLabelFacet);
+          break;
+
+        case "numeric":
+          const newNumericFacet = {
+            iri: oldFacet.iri,
+            title: oldFacet.title,
+            type: oldFacet.type,
+            description: oldFacet.description,
+            values: {
+              minPossible: Number.NaN,
+              maxPossible: Number.NaN,
+              selectedRange: [Number.NaN, Number.NaN]
+            },
+            index: []
+          };
+
+          var localMin = Number.MAX_VALUE;
+          var localMax = Number.MIN_VALUE;
+
+          for (const item of oldFacet.items) {
+            // vytvoriť pole objektov a utriediť ho podľa itemValue
+            if (item.itemValue < localMin) {
+              localMin = item.itemValue;
+            }
+
+            if (item.itemValue > localMax) {
+              localMax = item.itemValue;
+            }
+          }
+
+          newNumericFacet.values.minPossible = localMin;
+          newNumericFacet.values.maxPossible = localMax;
+          newNumericFacet.values.selectedRange = [localMin, localMax];
+
+          transformedFacets.push(newNumericFacet);
+          break;
       }
     }
+    return transformedFacets;
   }
 }
 </script>

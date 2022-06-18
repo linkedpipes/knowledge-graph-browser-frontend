@@ -42,9 +42,6 @@ export class RemoteServer {
     getMetaConfiguration = (IRI: string, languages: string[]): Promise<ResponseMetaConfiguration|false> => this.sentRequest("/meta-configuration", {iri: IRI, languages: languages.join(',')});
     getConfiguration = (IRI: string, languages: string[]): Promise<ResponseConfiguration|false> => this.sentRequest("/configuration", {iri: IRI, languages: languages.join(',')});
 
-    getFacets = (configIRI: string): Promise<any> => this.sentRequest("/facets", {configIRI: configIRI})
-    getFacetsItems = (facetsIRIs: string[], currentNodesIRIs: string[]): Promise<any> => this.sentRequest("/facets-items", {facetsIRIs: facetsIRIs.join(','), currentNodesIRIs: currentNodesIRIs.join(',')})
-    filterByFacets = (facetsParams: object, currentNodesIRIs: string[]): Promise<any> => this.sentRequest("/filter-by-facets", { facetsParams: JSON.stringify(facetsParams), currentNodesIRIs: currentNodesIRIs.join(',')});
-
-    //#endregion Queries
+    getFacetsItems = (configIRI: string, currentNodesIRIs: string[]): Promise<any> => this.sentRequest("/facets-items", {configIRI: configIRI, currentNodesIRIs: currentNodesIRIs.join(',')})
+     //#endregion Queries
 }
