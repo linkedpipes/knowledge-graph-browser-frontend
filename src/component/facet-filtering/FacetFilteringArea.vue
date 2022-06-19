@@ -6,6 +6,7 @@
           <v-list-item-title class="facetTitle">
             {{ facet.title }}
           </v-list-item-title>
+
           <template v-if="facet.type === 'label'">
             <v-list>
               <v-list-item
@@ -13,7 +14,6 @@
                   :key="index"
               >
                 <v-list-item-content>
-                  <!-- label's checkbox -->
                   <v-checkbox
                       dense
                       v-model="facet.values.selectedLabels"
@@ -31,6 +31,7 @@
                 :min="facet.values.minPossible"
                 :max="facet.values.maxPossible"
             >
+
               <template v-slot:prepend>
                 <v-layout class="sliderInput">
                   <v-text-field
@@ -61,7 +62,9 @@
               :label="'Use for filtering'"
               :value="facet.useForFiltering"
           ></v-checkbox>
+
           <v-divider/>
+
         </v-list-item-content>
       </v-list-item>
     </v-list>
@@ -100,38 +103,71 @@ export default class FacetFilteringArea extends Vue {
     this.facets = this.transformFacets(response.facetsItems);
   }
 
-  async filterBtnPressed() {
-    let filteredNodes = Object.keys(this.graph.nodes);
-    // preiterovať facety
-    console.log(filteredNodes);
+  // Filter currently loaded nodes based on facet values
+  // chosen by the user
+  filterBtnPressed() {
+    // Make all nodes visible first
+    this.resetFiltering();
 
+    // Sets of nodes' IRIs calculated by each facet
+    let filteringSets = [];
 
-    
-    // // Apply filter
-    // for (const nodeIRI in this.graph.nodes) {
-    //   if (!filteredNodesIRIs.includes(nodeIRI)) {
-    //     this.graph.nodes[nodeIRI].visible = false;
-    //   }
-    // }
+    for (const facet of this.facets) {
+      // Skip an unused facet
+      if (!facet.useForFiltering) {
+        continue;
+      }
+
+      let filteringSet = new Set<string>();
+
+      if (facet.type == "label") {
+        // For each chosen label put contents of its mapped array in index to the filteringSet
+        for (const label of facet.values.selectedLabels) {
+          facet.index.get(label).forEach(nodeIRI => filteringSet.add(nodeIRI));
+        }
+      } else {
+        const min = facet.values.selectedRange[0];
+        const max = facet.values.selectedRange[1];
+
+        const filteredItems = facet.index.filter(nodeItem => nodeItem.value >= min && nodeItem.value <= max);
+
+        // Add IRIs of filtered nodes to the filteringSet
+        filteredItems.forEach(item => filteringSet.add(item.nodeIRI));
+      }
+
+      filteringSets.push(filteringSet);
+    }
+
+    // If no facets are chosen to be used for filtering
+    if (filteringSets.length == 0) {
+      return;
+    }
+
+    // Do consecutive intersections on filteringSets to
+    // obtain one final set of filtered nodes
+    for (let i = 1; i < filteringSets.length; i++) {
+      const setA = filteringSets[i];
+      const setB = filteringSets[i - 1];
+
+      // Intersection
+      filteringSets[i] = new Set(
+          Array.from(setA).filter(nodeIRI => setB.has(nodeIRI))
+      );
+    }
+
+    // Apply filter
+    for (const nodeIRI in this.graph.nodes) {
+      if (!filteringSets[filteringSets.length - 1].has(nodeIRI)) {
+        this.graph.nodes[nodeIRI].visible = false;
+      }
+    }
   }
 
   resetFiltering() {
-
-      // Set all nodes' visibility property to true
-      // for (const nodeIRI in this.graph.nodes) {
-      //   this.graph.nodes[nodeIRI].visible = true;
-      // }
-      //
-      // // Clear facet filters' values
-      // for (const labelFacet of this.facets.labelType) {
-      //   labelFacet.selectedLabels = []
-      // }
-      //
-      // for (const numericFacet of this.facets.numericType) {
-      //   Vue.set(numericFacet.selectedRange, 0, numericFacet.minPossible)
-      //   Vue.set(numericFacet.selectedRange, 1, numericFacet.maxPossible)
-      // }
-
+    // Set all nodes' visibility property to true
+    for (const nodeIRI in this.graph.nodes) {
+      this.graph.nodes[nodeIRI].visible = true;
+    }
   }
 
   // Transforms facets received from the server so they
@@ -201,7 +237,7 @@ export default class FacetFilteringArea extends Vue {
           newNumericFacet.values.maxPossible = localMax;
           newNumericFacet.values.selectedRange = [localMin, localMax];
 
-          newNumericFacet.index = oldFacet.items.sort((a, b) => a.value - b.value);
+          newNumericFacet.index = oldFacet.items;
 
           transformedFacets.push(newNumericFacet);
           break;
