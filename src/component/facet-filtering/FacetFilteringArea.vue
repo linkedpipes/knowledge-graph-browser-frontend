@@ -54,11 +54,17 @@
               </template>
             </v-range-slider>
           </template>
+
+          <v-checkbox
+              dense
+              v-model="facet.useForFiltering"
+              :label="'Use for filtering'"
+              :value="facet.useForFiltering"
+          ></v-checkbox>
+          <v-divider/>
         </v-list-item-content>
       </v-list-item>
     </v-list>
-
-    <v-divider></v-divider>
 
     <v-btn @click="loadFacets" block>Load facets</v-btn>
     <v-btn @click="filterBtnPressed" block>Filter</v-btn>
@@ -95,27 +101,12 @@ export default class FacetFilteringArea extends Vue {
   }
 
   async filterBtnPressed() {
-    // let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
-    //
-    // // Get current input values and tie them to their facet's IRI
-    // let facetParams = {
-    //   facetParams: []
-    // };
-    //
-    // for (let labelFacet of this.facets.labelType) {
-    //   let facetParam = {
-    //     facetIRI: labelFacet.facetIRI,
-    //     chosenLabels: labelFacet.selectedLabels
-    //   };
-    //
-    //   facetParams.facetParams.push(facetParam)
-    // }
-    //
-    // // Get IRIs of nodes that should be left visible in the current graph
-    // let nodesThatPassedFiltering = await this.remoteServer.filterByFacets(facetParams, currentNodesIRIs);
-    //
-    // let filteredNodesIRIs = nodesThatPassedFiltering.nodesIRIs;
-    //
+    let filteredNodes = Object.keys(this.graph.nodes);
+    // preiterovať facety
+    console.log(filteredNodes);
+
+
+    
     // // Apply filter
     // for (const nodeIRI in this.graph.nodes) {
     //   if (!filteredNodesIRIs.includes(nodeIRI)) {
@@ -161,7 +152,8 @@ export default class FacetFilteringArea extends Vue {
               displayLabels: [],
               selectedLabels: []
             },
-            index: new Map()
+            index: new Map(),
+            useForFiltering: false
           };
 
           for (const item of oldFacet.items) {
@@ -188,18 +180,19 @@ export default class FacetFilteringArea extends Vue {
               maxPossible: Number.NaN,
               selectedRange: [Number.NaN, Number.NaN]
             },
-            index: []
+            index: [],
+            useForFiltering: false
           };
 
           var localMin = Number.MAX_VALUE;
           var localMax = Number.MIN_VALUE;
 
           for (const item of oldFacet.items) {
-            if (item.value < localMin) {
+            if (Number(item.value) < localMin) {
               localMin = item.value;
             }
 
-            if (item.value > localMax) {
+            if (Number(item.value) > localMax) {
               localMax = item.value;
             }
           }
