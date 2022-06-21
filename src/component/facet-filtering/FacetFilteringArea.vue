@@ -88,14 +88,9 @@ import Configuration from "@/configurations/Configuration";
 export default class FacetFilteringArea extends Vue {
   @Prop() graph: Graph;
   @Prop() configuration: Configuration;
-  remoteServer: RemoteServer = null;
+  @Prop() remoteServer: RemoteServer;
 
   facets = [];
-
-  async created() {
-    this.remoteServer = new RemoteServer();
-    this.remoteServer.remoteUrl = ApplicationConfiguration.api;
-  }
 
   async loadFacets() {
     let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
@@ -170,9 +165,8 @@ export default class FacetFilteringArea extends Vue {
     }
   }
 
-  // Transforms facets received from the server so they
+  // Transforms facets received from the server so that they
   // can be displayed, also create indexes for filtering
-  // in future
   transformFacets(backendFacets) {
     let transformedFacets = []
 

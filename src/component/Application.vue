@@ -52,6 +52,7 @@
             <facet-filtering-area
                 :graph="graph"
                 :configuration="configuration"
+                :remoteServer="server"
             />
           </v-tab-item>
 
