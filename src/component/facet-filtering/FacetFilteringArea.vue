@@ -56,13 +56,6 @@
             </v-range-slider>
           </template>
 
-          <v-checkbox
-              dense
-              v-model="facet.useForFiltering"
-              :label="'Use for filtering'"
-              :value="facet.useForFiltering"
-          ></v-checkbox>
-
           <v-divider/>
 
         </v-list-item-content>
@@ -99,7 +92,6 @@ export default class FacetFilteringArea extends Vue {
   }
 
   // Filter currently loaded nodes based on facet values
-  // chosen by the user
   filterBtnPressed() {
     // Make all nodes visible first
     this.resetFiltering();
@@ -108,8 +100,13 @@ export default class FacetFilteringArea extends Vue {
     let filteringSets = [];
 
     for (const facet of this.facets) {
-      // Skip an unused facet
-      if (!facet.useForFiltering) {
+      // Skip an unused label facet
+      if (facet.type == "label" && facet.values.selectedLabels.length == 0) {
+        continue;
+      }
+
+      // Skip a numeric facet that wouldn't filter anything anyway
+      if (facet.type == "numeric" && (facet.values.selectedRange[0] == facet.values.minPossible && facet.values.selectedRange[1] == facet.values.maxPossible)) {
         continue;
       }
 
@@ -182,8 +179,7 @@ export default class FacetFilteringArea extends Vue {
               displayLabels: [],
               selectedLabels: []
             },
-            index: new Map(),
-            useForFiltering: false
+            index: new Map()
           };
 
           for (const item of oldFacet.items) {
@@ -210,8 +206,7 @@ export default class FacetFilteringArea extends Vue {
               maxPossible: Number.NaN,
               selectedRange: [Number.NaN, Number.NaN]
             },
-            index: [],
-            useForFiltering: false
+            index: []
           };
 
           var localMin = Number.MAX_VALUE;
