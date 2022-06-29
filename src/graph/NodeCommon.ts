@@ -35,6 +35,12 @@ export default abstract class NodeCommon implements ObjectSave {
     element: GraphElementNodeMixin | GraphElementNode | GraphElementNodeGroup;
 
     /**
+     * All incoming and outgoing edges.
+     * Used for faceted filtering in DynamicallyGeneratedFacets.vue.
+     */
+    connectedEdges: any[] = [];
+
+    /**
      * Safely removes the element from the graph.
      * This method should properly unregister everything about the node.
      */

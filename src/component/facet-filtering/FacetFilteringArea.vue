@@ -3,6 +3,7 @@
     <dynamically-generated-facets
         ref="dynamicallyGeneratedFacets"
         :facets="facets"
+        :graph="graph"
     />
 
     <v-list dense>
@@ -104,7 +105,6 @@ export default class FacetFilteringArea extends Vue {
     this.facets = this.transformFacets(response.facetsItems);
 
     this.dynamicallyGeneratedFacets.loadDynamicFacets();
-    // console.log(this.facets);
   }
 
   // Filter currently loaded nodes based on facet values
