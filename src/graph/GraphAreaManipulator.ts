@@ -11,7 +11,7 @@ import NodeCommon from "./NodeCommon";
  */
 export default class GraphAreaManipulator implements ObjectSave {
     animateOptions: AnimateOptions = {duration: 300};
-    manualZoomScale: number = 2;
+    manualZoomScale: number = 1.5;
 
     public layoutManager: LayoutManager | null = null;
 
