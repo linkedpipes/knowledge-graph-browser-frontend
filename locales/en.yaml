@@ -14,6 +14,8 @@ menu:
   language: Language
   settings: Settings
   project_website: Project website
+  card_menu: Menu
+  card_filtering: Filtering
 settings:
   title: Settings
   permanent:

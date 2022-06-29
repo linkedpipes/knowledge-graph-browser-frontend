@@ -43,19 +43,11 @@
         </v-list>
 
         <v-tabs v-model="navDrawerTab" grow>
-          <v-tab>Filtering</v-tab>
-          <v-tab>Options</v-tab>
+          <v-tab>{{ $t("menu.card_menu") }}</v-tab>
+          <v-tab>{{ $t("menu.card_filtering") }}</v-tab>
         </v-tabs>
 
         <v-tabs-items v-model="navDrawerTab">
-          <v-tab-item>
-            <facet-filtering-area
-                :graph="graph"
-                :configuration="configuration"
-                :remoteServer="server"
-            />
-          </v-tab-item>
-
           <v-tab-item>
             <v-list dense nav class="py-0">
               <v-list-item link @click="$refs.addNode.show()">
@@ -171,6 +163,14 @@
                 </v-list-item-content>
               </v-list-item>
             </v-list>
+          </v-tab-item>
+
+          <v-tab-item>
+            <facet-filtering-area
+                :graph="graph"
+                :configuration="configuration"
+                :remoteServer="server"
+            />
           </v-tab-item>
         </v-tabs-items>
       </v-navigation-drawer>
