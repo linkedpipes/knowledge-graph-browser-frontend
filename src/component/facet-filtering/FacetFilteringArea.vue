@@ -104,7 +104,7 @@ export default class FacetFilteringArea extends Vue {
     let response = await this.remoteServer.getFacetsItems(this.configuration.iri, currentNodesIRIs);
     this.facets = this.transformFacets(response.facetsItems);
 
-    this.dynamicallyGeneratedFacets.loadDynamicFacets();
+    // this.dynamicallyGeneratedFacets.loadDynamicFacets();
   }
 
   // Filter currently loaded nodes based on facet values

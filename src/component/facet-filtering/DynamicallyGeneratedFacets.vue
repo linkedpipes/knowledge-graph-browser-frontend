@@ -15,16 +15,15 @@ export default class DynamicallyGeneratedFacets extends Vue {
   loadDynamicFacets() {
     this.addEdgesToNodes();
 
-    console.log(this.graph);
+    let dynamicFacets = new Map();
 
-    console.log(this.facets);
+    for (const nodeIRI in this.graph.nodes) {
+      this.findFacets(dynamicFacets, this.graph.nodes[nodeIRI]);
+    }
 
-    let dynamicFacets = new Set();
-
-    const testNode = this.graph.nodes["http://www.wikidata.org/entity/Q937"];
-
-    this.findFacets(dynamicFacets, testNode);
-    console.log(dynamicFacets)
+    for (const facetPath of dynamicFacets.keys()) {
+      this.facets.push(dynamicFacets.get(facetPath));
+    }
   }
 
   addEdgesToNodes() {
@@ -35,14 +34,14 @@ export default class DynamicallyGeneratedFacets extends Vue {
       //  Add edge to the source node
       this.graph.nodes[edge.source.IRI].connectedEdges.push({
         otherNode: edge.target,
-        direction: "outgoing",
+        orientation: "outgoing",
         type: edge.type
       });
 
       //  Add edge to the target node
       this.graph.nodes[edge.target.IRI].connectedEdges.push({
         otherNode: edge.source,
-        direction: "incoming",
+        orientation: "incoming",
         type: edge.type
       });
     }
@@ -57,7 +56,7 @@ export default class DynamicallyGeneratedFacets extends Vue {
     stack.push({
       node: initialNode,
       depth: 0,
-      path: "",
+      path: [],
       parentNode: null
     });
 
@@ -77,11 +76,20 @@ export default class DynamicallyGeneratedFacets extends Vue {
           continue;
         }
 
+        let path = [];
+
+        // Copy the current path and add edge to it
+        currentNodeInfo.path.forEach(val => path.push(Object.assign({}, val)));
+
+        path.push({
+          label: edge.type.label,
+          orientation: edge.orientation
+        });
+
         stack.push({
           node: edge.otherNode,
           depth: currentNodeInfo.depth + 1,
-          // cesta by mala obsahovať aj šípky
-          path: currentNodeInfo.path + (currentNodeInfo.path == "" ? "" : "/") + edge.type.label,
+          path: path,
           parentNode: currentNodeInfo.node
         })
       }
@@ -92,13 +100,49 @@ export default class DynamicallyGeneratedFacets extends Vue {
         continue
       }
 
-      dynamicFacets.add({name: currentNodeInfo.node.currentView.preview.label, path: currentNodeInfo.path});
+      // Reconstruct path for hashing purposes
+      let facetPath = "";
 
+      for (const edge of currentNodeInfo.path) {
+        facetPath += (facetPath == "" ? "" : " / ") + edge.label + " (" + edge.orientation + ")";
+      }
 
+      const facet = dynamicFacets.get(facetPath);
 
+      // Check if the facet is newly found
+      if (facet == undefined) {
+        const newFacet = {
+          iri: "",
+          title: facetPath,
+          type: "label",
+          description: "This facet was found dynamically and has no human-defined description.",
+          values: {
+            displayLabels: [],
+            selectedLabels: []
+          },
+          index: new Map()
+        };
 
+        const currentNodeLabel = currentNodeInfo.node.currentView.preview.label;
+
+        newFacet.index.set(currentNodeLabel, [initialNode.IRI]);
+
+        newFacet.values.displayLabels.push(currentNodeLabel);
+
+        dynamicFacets.set(facetPath, newFacet);
+      } else {
+        // Update the facet's index
+        const currentNodeLabel = currentNodeInfo.node.currentView.preview.label;
+
+        if (facet.index.get(currentNodeLabel) == undefined) {
+          facet.index.set(currentNodeLabel, [initialNode.IRI]);
+
+          facet.values.displayLabels.push(currentNodeLabel);
+        } else {
+          facet.index.get(currentNodeLabel).push(initialNode.IRI);
+        }
+      }
     }
-
   }
 }
 </script>
