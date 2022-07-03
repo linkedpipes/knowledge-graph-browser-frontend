@@ -24,7 +24,7 @@
           ref="sidePanel"
           @width-changed="rightOffset = $event"
       />
-      <v-navigation-drawer width="300" absolute ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
+      <v-navigation-drawer width="300" absolute permanent ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
         <v-list dense nav class="py-0">
           <v-list-item two-line style="padding-left: 0;">
             <v-list-item-avatar>
@@ -43,19 +43,11 @@
         </v-list>
 
         <v-tabs v-model="navDrawerTab" grow>
-          <v-tab>Filtering</v-tab>
           <v-tab>Options</v-tab>
+          <v-tab>Filtering</v-tab>
         </v-tabs>
 
         <v-tabs-items v-model="navDrawerTab">
-          <v-tab-item>
-            <facet-filtering-area
-                :graph="graph"
-                :configuration="configuration"
-                :remoteServer="server"
-            />
-          </v-tab-item>
-
           <v-tab-item>
             <v-list dense nav class="py-0">
               <v-list-item link @click="$refs.addNode.show()">
@@ -171,6 +163,14 @@
                 </v-list-item-content>
               </v-list-item>
             </v-list>
+          </v-tab-item>
+
+          <v-tab-item>
+            <facet-filtering-area
+                :graph="graph"
+                :configuration="configuration"
+                :remoteServer="server"
+            />
           </v-tab-item>
         </v-tabs-items>
       </v-navigation-drawer>

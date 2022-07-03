@@ -6,6 +6,7 @@
         :graph="graph"
     />
 
+<!--    <v-navigation-drawer height="50vh" width="300">-->
     <v-list dense>
       <v-list-item v-for="(facet, index) in facets" :key="index">
         <v-list-item-content>
@@ -67,6 +68,7 @@
         </v-list-item-content>
       </v-list-item>
     </v-list>
+<!--    </v-navigation-drawer>-->
 
     <v-btn @click="loadFacets" block>Load facets</v-btn>
     <v-btn @click="filterBtnPressed" block>Filter</v-btn>
