@@ -33,7 +33,7 @@
         <v-divider/>
 
         <!--Nested navigation-drawer is for layout purposes-->
-        <v-navigation-drawer width="300" v-bind:height="navDrawerHeight" permanent ref="bar"
+        <v-navigation-drawer width="300" style="height: calc(100% - 122px);" permanent ref="bar"
                              @update:mini-variant="$refs.languageMenu.isActive = false">
 
           <v-tabs-items v-model="navDrawerTab">
@@ -165,19 +165,9 @@
           </v-tabs-items>
         </v-navigation-drawer>
 
-        <template v-if="navDrawerTab==1">
-          <v-divider/>
-          <v-row
-              align="center"
-              justify="space-around"
-              style="margin-top: 10px;"
-          >
-          <v-btn width="135" style="margin-left: 15px;" @click="$refs.facetFilteringArea.filterBtnPressed()">Filter</v-btn>
-          <v-btn width="135" style="margin-right: 15px" @click="$refs.facetFilteringArea.resetFiltering()">Reset</v-btn>
-          </v-row>
-        </template>
-        <template v-else>
-          <v-divider/>
+        <v-divider/>
+
+        <template v-if="navDrawerTab==0">
           <v-list dense nav class="py-0">
             <v-list-item two-line style="padding-left: 0;">
               <v-list-item-avatar>
@@ -193,6 +183,17 @@
               </v-list-item-content>
             </v-list-item>
           </v-list>
+        </template>
+
+        <template v-else>
+          <v-row
+              align="center"
+              justify="space-around"
+              style="margin-top: 19px;"
+          >
+            <v-btn width="135" height="35" style="margin-left: 15px;" @click="$refs.facetFilteringArea.filterBtnPressed()">Filter</v-btn>
+            <v-btn width="135" height="35" style="margin-right: 15px" @click="$refs.facetFilteringArea.resetFiltering()">Reset</v-btn>
+          </v-row>
         </template>
 
       </v-navigation-drawer>
@@ -348,10 +349,6 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
 })
 export default class Application extends Mixins(ApplicationLoadStoreMixin) {
   navDrawerTab = null;
-
-  get navDrawerHeight() {
-    return this.navDrawerTab == 0 ? "78vh" : "82vh";
-  }
 
   modeCompact: boolean = false;
 
