@@ -97,6 +97,10 @@ export default class FacetFilteringArea extends Vue {
 
   facets = [];
 
+  async mounted() {
+    await this.loadFacets();
+  }
+
   async loadFacets() {
     let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
     let response = await this.remoteServer.getFacetsItems(this.configuration.iri, currentNodesIRIs);

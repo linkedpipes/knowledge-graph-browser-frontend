@@ -48,16 +48,16 @@
                   </v-list-item-content>
                 </v-list-item>
 
-<!--                <v-list-item link @click="$refs.filterDialog.show()">-->
-<!--                  <v-list-item-icon>-->
-<!--                    <v-badge overlap :value="filter.active" :content="filter.active">-->
-<!--                      <v-icon>{{ icons.filter }}</v-icon>-->
-<!--                    </v-badge>-->
-<!--                  </v-list-item-icon>-->
-<!--                  <v-list-item-content>-->
-<!--                    <v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title>-->
-<!--                  </v-list-item-content>-->
-<!--                </v-list-item>-->
+                <!--                <v-list-item link @click="$refs.filterDialog.show()">-->
+                <!--                  <v-list-item-icon>-->
+                <!--                    <v-badge overlap :value="filter.active" :content="filter.active">-->
+                <!--                      <v-icon>{{ icons.filter }}</v-icon>-->
+                <!--                    </v-badge>-->
+                <!--                  </v-list-item-icon>-->
+                <!--                  <v-list-item-content>-->
+                <!--                    <v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title>-->
+                <!--                  </v-list-item-content>-->
+                <!--                </v-list-item>-->
 
                 <v-list-item link @click="$refs.viewOptionsDialog.show()">
                   <v-list-item-icon>
@@ -191,8 +191,25 @@
               justify="space-around"
               style="margin-top: 19px;"
           >
-            <v-btn width="135" height="35" style="margin-left: 15px;" @click="$refs.facetFilteringArea.filterBtnPressed()">Filter</v-btn>
-            <v-btn width="135" height="35" style="margin-right: 15px" @click="$refs.facetFilteringArea.resetFiltering()">Reset</v-btn>
+            <v-btn
+                width="135"
+                height="35"
+                style="margin-left: 15px;"
+                color="secondary"
+                @click="$refs.facetFilteringArea.filterBtnPressed()"
+            >
+              Filter
+            </v-btn>
+
+            <v-btn
+                width="135"
+                height="35"
+                style="margin-right: 15px;"
+                color="secondary"
+                @click="$refs.facetFilteringArea.resetFiltering()"
+            >
+              Reset
+            </v-btn>
           </v-row>
         </template>
 
@@ -279,7 +296,7 @@ import Component from "vue-class-component";
 import {LocaleMessage} from "vue-i18n";
 import {Mixins, Ref, Watch} from "vue-property-decorator";
 import {ResponseStylesheet} from "../remote-server/ResponseInterfaces";
-import FacetFilteringArea from './facet-filtering/FacetFilteringArea.vue';
+
 
 import {
   mdiCogs,
@@ -328,6 +345,7 @@ import Metaconfiguration from "../configurations/Metaconfiguration";
 import Configuration from "../configurations/Configuration";
 import ApplicationConfiguration from '../conf';
 import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChooserComponent.vue";
+import FacetFilteringArea from "@/component/facet-filtering/FacetFilteringArea.vue";
 
 @Component({
   components: {
