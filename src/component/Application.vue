@@ -24,155 +24,177 @@
           ref="sidePanel"
           @width-changed="rightOffset = $event"
       />
-      <v-navigation-drawer width="300" absolute permanent ref="bar" @update:mini-variant="$refs.languageMenu.isActive = false">
-        <v-list dense nav class="py-0">
-          <v-list-item two-line style="padding-left: 0;">
-            <v-list-item-avatar>
-              KG<br>VB
-            </v-list-item-avatar>
-
-            <v-list-item-content>
-              <v-list-item-title>KGVisualBrowser</v-list-item-title>
-              <v-list-item-subtitle><a href="https://kgbrowser.opendata.cz/" target="_blank"
-                                       class="grey--text text-decoration-none">{{ $t("menu.project_website") }}
-                <v-icon small color="grey">{{ icons.projectWebsite }}</v-icon>
-              </a></v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-          <v-divider></v-divider>
-        </v-list>
-
+      <v-navigation-drawer absolute permanent width="300">
         <v-tabs v-model="navDrawerTab" grow>
           <v-tab>Options</v-tab>
           <v-tab>Filtering</v-tab>
         </v-tabs>
 
-        <v-tabs-items v-model="navDrawerTab">
-          <v-tab-item>
-            <v-list dense nav class="py-0">
-              <v-list-item link @click="$refs.addNode.show()">
-                <v-list-item-icon>
-                  <v-icon>{{ icons.add }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>{{ $t("menu.add_nodes") }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
+        <v-divider/>
 
-              <v-list-item link @click="$refs.filterDialog.show()">
-                <v-list-item-icon>
-                  <v-badge overlap :value="filter.active" :content="filter.active">
-                    <v-icon>{{ icons.filter }}</v-icon>
-                  </v-badge>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
+        <!--Nested navigation-drawer is for layout purposes-->
+        <v-navigation-drawer width="300" v-bind:height="navDrawerHeight" permanent ref="bar"
+                             @update:mini-variant="$refs.languageMenu.isActive = false">
 
-              <v-list-item link @click="$refs.viewOptionsDialog.show()">
-                <v-list-item-icon>
-                  <v-badge dot :value="viewOptions.active">
-                    <v-icon>{{ icons.viewOptions }}</v-icon>
-                  </v-badge>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>{{ $t("menu.view_options") }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
+          <v-tabs-items v-model="navDrawerTab">
+            <v-tab-item>
+              <v-list dense nav class="py-0">
+                <v-list-item link @click="$refs.addNode.show()">
+                  <v-list-item-icon>
+                    <v-icon>{{ icons.add }}</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ $t("menu.add_nodes") }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
 
-              <v-list-item link @click="hiddenPanel = !hiddenPanel">
-                <v-list-item-icon>
-                  <v-badge dot :value="hiddenPanel">
-                    <v-icon>{{ icons.hidden }}</v-icon>
-                  </v-badge>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>{{ $t("menu.hidden_nodes") }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
+<!--                <v-list-item link @click="$refs.filterDialog.show()">-->
+<!--                  <v-list-item-icon>-->
+<!--                    <v-badge overlap :value="filter.active" :content="filter.active">-->
+<!--                      <v-icon>{{ icons.filter }}</v-icon>-->
+<!--                    </v-badge>-->
+<!--                  </v-list-item-icon>-->
+<!--                  <v-list-item-content>-->
+<!--                    <v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title>-->
+<!--                  </v-list-item-content>-->
+<!--                </v-list-item>-->
 
-              <v-list-item link @click="layoutDialog.show()">
-                <v-list-item-icon>
-                  <v-icon>{{ icons.layout }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>{{ $t("menu.layout") }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
+                <v-list-item link @click="$refs.viewOptionsDialog.show()">
+                  <v-list-item-icon>
+                    <v-badge dot :value="viewOptions.active">
+                      <v-icon>{{ icons.viewOptions }}</v-icon>
+                    </v-badge>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ $t("menu.view_options") }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
 
-              <v-divider></v-divider>
+                <v-list-item link @click="hiddenPanel = !hiddenPanel">
+                  <v-list-item-icon>
+                    <v-badge dot :value="hiddenPanel">
+                      <v-icon>{{ icons.hidden }}</v-icon>
+                    </v-badge>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ $t("menu.hidden_nodes") }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
 
-              <v-list-item link @click="askForSaveAndPerformAction(false, loadDialog.show)">
-                <v-list-item-icon>
-                  <v-icon>{{ icons.load }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>{{ $t("menu.load") }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
+                <v-list-item link @click="layoutDialog.show()">
+                  <v-list-item-icon>
+                    <v-icon>{{ icons.layout }}</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ $t("menu.layout") }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
 
-              <v-list-item link @click="saveToFile()">
-                <v-list-item-icon>
-                  <v-icon>{{ icons.save }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>{{ $t("menu.save") }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
+                <v-divider></v-divider>
 
-              <v-list-item link @click="newGraphClicked()">
-                <v-list-item-icon>
-                  <v-icon>{{ icons.add }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>{{ $t("menu.new_graph") }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
+                <v-list-item link @click="askForSaveAndPerformAction(false, loadDialog.show)">
+                  <v-list-item-icon>
+                    <v-icon>{{ icons.load }}</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ $t("menu.load") }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
 
-              <v-list-item link @click="changeConfigurationClicked()">
-                <v-list-item-icon>
-                  <v-icon>{{ icons.configuration }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
+                <v-list-item link @click="saveToFile()">
+                  <v-list-item-icon>
+                    <v-icon>{{ icons.save }}</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ $t("menu.save") }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
 
-              <v-divider></v-divider>
+                <v-list-item link @click="newGraphClicked()">
+                  <v-list-item-icon>
+                    <v-icon>{{ icons.add }}</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ $t("menu.new_graph") }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
 
-              <v-list-group :prepend-icon="icons.language" :color="null" ref="languageMenu">
-                <template v-slot:activator>
-                  <v-list-item-title>{{ $t("menu.language") }}</v-list-item-title>
-                </template>
+                <v-list-item link @click="changeConfigurationClicked()">
+                  <v-list-item-icon>
+                    <v-icon>{{ icons.configuration }}</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ $t("menu.configuration") }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
 
-                <v-list>
-                  <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code"
-                               @click="menuLanguageSelected(code)">
-                    <v-list-item-title>{{ messages['_lang_local'] }}</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-list-group>
+                <v-divider></v-divider>
 
-              <v-list-item link @click="$refs.settingsDialog.show()">
-                <v-list-item-icon>
-                  <v-icon>{{ icons.settings }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>{{ $t("menu.settings") }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
-          </v-tab-item>
+                <v-list-group :prepend-icon="icons.language" :color="null" ref="languageMenu">
+                  <template v-slot:activator>
+                    <v-list-item-title>{{ $t("menu.language") }}</v-list-item-title>
+                  </template>
 
-          <v-tab-item>
-            <facet-filtering-area
-                :graph="graph"
-                :configuration="configuration"
-                :remoteServer="server"
-            />
-          </v-tab-item>
-        </v-tabs-items>
+                  <v-list>
+                    <v-list-item v-for="(messages, code) in this.$root.$i18n.messages" :key="code"
+                                 @click="menuLanguageSelected(code)">
+                      <v-list-item-title>{{ messages['_lang_local'] }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-list-group>
+
+                <v-list-item link @click="$refs.settingsDialog.show()">
+                  <v-list-item-icon>
+                    <v-icon>{{ icons.settings }}</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ $t("menu.settings") }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list>
+            </v-tab-item>
+
+            <v-tab-item>
+              <facet-filtering-area
+                  ref="facetFilteringArea"
+                  :graph="graph"
+                  :configuration="configuration"
+                  :remoteServer="server"
+              />
+            </v-tab-item>
+          </v-tabs-items>
+        </v-navigation-drawer>
+
+        <template v-if="navDrawerTab==1">
+          <v-divider/>
+          <v-row
+              align="center"
+              justify="space-around"
+              style="margin-top: 10px;"
+          >
+          <v-btn width="135" style="margin-left: 15px;" @click="$refs.facetFilteringArea.filterBtnPressed()">Filter</v-btn>
+          <v-btn width="135" style="margin-right: 15px" @click="$refs.facetFilteringArea.resetFiltering()">Reset</v-btn>
+          </v-row>
+        </template>
+        <template v-else>
+          <v-divider/>
+          <v-list dense nav class="py-0">
+            <v-list-item two-line style="padding-left: 0;">
+              <v-list-item-avatar>
+                KG<br>VB
+              </v-list-item-avatar>
+
+              <v-list-item-content>
+                <v-list-item-title>KGVisualBrowser</v-list-item-title>
+                <v-list-item-subtitle><a href="https://kgbrowser.opendata.cz/" target="_blank"
+                                         class="grey--text text-decoration-none">{{ $t("menu.project_website") }}
+                  <v-icon small color="grey">{{ icons.projectWebsite }}</v-icon>
+                </a></v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </template>
+
       </v-navigation-drawer>
     </v-main>
 
@@ -326,6 +348,10 @@ import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChoos
 })
 export default class Application extends Mixins(ApplicationLoadStoreMixin) {
   navDrawerTab = null;
+
+  get navDrawerHeight() {
+    return this.navDrawerTab == 0 ? "78vh" : "82vh";
+  }
 
   modeCompact: boolean = false;
 
