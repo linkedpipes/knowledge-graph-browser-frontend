@@ -25,7 +25,23 @@
           @width-changed="rightOffset = $event"
       />
       <v-navigation-drawer absolute permanent width="300">
-        <v-tabs v-model="navDrawerTab" grow>
+        <v-list dense nav class="py-0">
+          <v-list-item two-line style="padding-left: 0;">
+            <v-list-item-avatar height="33px">
+              KG<br>VB
+            </v-list-item-avatar>
+
+            <v-list-item-content>
+              <v-list-item-title>KGVisualBrowser</v-list-item-title>
+              <v-list-item-subtitle><a href="https://kgbrowser.opendata.cz/" target="_blank"
+                                       class="grey--text text-decoration-none">{{ $t("menu.project_website") }}
+                <v-icon small color="grey">{{ icons.projectWebsite }}</v-icon>
+              </a></v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+
+        <v-tabs v-model="navDrawerTab" grow height="40px">
           <v-tab>Options</v-tab>
           <v-tab>Filtering</v-tab>
         </v-tabs>
@@ -33,7 +49,7 @@
         <v-divider/>
 
         <!--Nested navigation-drawer is for layout purposes-->
-        <v-navigation-drawer width="300" style="height: calc(100% - 122px);" permanent ref="bar"
+        <v-navigation-drawer width="300" style="height: calc(100% - 160px);" permanent ref="bar"
                              @update:mini-variant="$refs.languageMenu.isActive = false">
 
           <v-tabs-items v-model="navDrawerTab">
@@ -48,16 +64,16 @@
                   </v-list-item-content>
                 </v-list-item>
 
-                <!--                <v-list-item link @click="$refs.filterDialog.show()">-->
-                <!--                  <v-list-item-icon>-->
-                <!--                    <v-badge overlap :value="filter.active" :content="filter.active">-->
-                <!--                      <v-icon>{{ icons.filter }}</v-icon>-->
-                <!--                    </v-badge>-->
-                <!--                  </v-list-item-icon>-->
-                <!--                  <v-list-item-content>-->
-                <!--                    <v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title>-->
-                <!--                  </v-list-item-content>-->
-                <!--                </v-list-item>-->
+                <v-list-item link @click="$refs.filterDialog.show()">
+                  <v-list-item-icon>
+                    <v-badge overlap :value="filter.active" :content="filter.active">
+                      <v-icon>{{ icons.filter }}</v-icon>
+                    </v-badge>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
 
                 <v-list-item link @click="$refs.viewOptionsDialog.show()">
                   <v-list-item-icon>
@@ -168,28 +184,14 @@
         <v-divider/>
 
         <template v-if="navDrawerTab==0">
-          <v-list dense nav class="py-0">
-            <v-list-item two-line style="padding-left: 0;">
-              <v-list-item-avatar>
-                KG<br>VB
-              </v-list-item-avatar>
 
-              <v-list-item-content>
-                <v-list-item-title>KGVisualBrowser</v-list-item-title>
-                <v-list-item-subtitle><a href="https://kgbrowser.opendata.cz/" target="_blank"
-                                         class="grey--text text-decoration-none">{{ $t("menu.project_website") }}
-                  <v-icon small color="grey">{{ icons.projectWebsite }}</v-icon>
-                </a></v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
         </template>
 
         <template v-else>
           <v-row
               align="center"
               justify="space-around"
-              style="margin-top: 19px;"
+              style="margin-top: 9px;"
           >
             <v-btn
                 width="135"
