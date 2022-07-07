@@ -25,8 +25,8 @@
           @width-changed="rightOffset = $event"
       />
       <v-navigation-drawer absolute permanent width="300">
-        <v-list dense nav class="py-0">
-          <v-list-item two-line style="padding-left: 0;">
+        <v-list dense nav class="py-0" style="padding-left: 50px;">
+          <v-list-item two-line>
             <v-list-item-avatar height="33px">
               KG<br>VB
             </v-list-item-avatar>
@@ -41,15 +41,15 @@
           </v-list-item>
         </v-list>
 
-        <v-tabs v-model="navDrawerTab" grow height="40px">
-          <v-tab>Options</v-tab>
-          <v-tab>Filtering</v-tab>
-        </v-tabs>
-
         <v-divider/>
 
+        <v-tabs v-model="navDrawerTab" height="45px">
+          <v-tab style="width: 150px; font-size: 0.8em;">Menu</v-tab>
+          <v-tab style="width: 150px; font-size: 0.8em;">Filtering</v-tab>
+        </v-tabs>
+
         <!--Nested navigation-drawer is for layout purposes-->
-        <v-navigation-drawer width="300" style="height: calc(100% - 160px);" permanent ref="bar"
+        <v-navigation-drawer width="300" style="height: calc(100% - 161px);" permanent ref="bar"
                              @update:mini-variant="$refs.languageMenu.isActive = false">
 
           <v-tabs-items v-model="navDrawerTab">
@@ -181,8 +181,6 @@
           </v-tabs-items>
         </v-navigation-drawer>
 
-        <v-divider/>
-
         <template v-if="navDrawerTab==0">
 
         </template>
@@ -196,7 +194,7 @@
             <v-btn
                 width="135"
                 height="35"
-                style="margin-left: 15px;"
+                style="margin-left: 15px; font-size: 0.8em;"
                 color="secondary"
                 @click="$refs.facetFilteringArea.filterBtnPressed()"
             >
@@ -206,7 +204,7 @@
             <v-btn
                 width="135"
                 height="35"
-                style="margin-right: 15px;"
+                style="margin-right: 15px; font-size: 0.8em;"
                 color="secondary"
                 @click="$refs.facetFilteringArea.resetFiltering()"
             >
