@@ -1,6 +1,4 @@
-<template>
-  <v-btn @click="loadDynamicFacets" block>Load dynamic facets</v-btn>
-</template>
+<template/>
 
 <script lang="ts">
 import Component from 'vue-class-component';

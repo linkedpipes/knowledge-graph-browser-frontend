@@ -97,16 +97,29 @@ export default class FacetFilteringArea extends Vue {
 
   facets = [];
 
-  async mounted() {
-    await this.loadFacets();
-  }
-
   async loadFacets() {
     let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
     let response = await this.remoteServer.getFacetsItems(this.configuration.iri, currentNodesIRIs);
-    this.facets = this.transformFacets(response.facetsItems);
 
-    // this.dynamicallyGeneratedFacets.loadDynamicFacets();
+    const transformedFacets = this.transformFacets(response.facetsItems);
+
+    for (const facet of transformedFacets) {
+      this.facets.push(facet);
+    }
+
+    this.dynamicallyGeneratedFacets.loadDynamicFacets();
+  }
+
+  reloadFacets() {
+    // Remove edges from nodes in this.graph
+    for (const nodeIRI in this.graph.nodes) {
+      this.graph.nodes[nodeIRI].connectedEdges = [];
+    }
+
+    // Remove all facets
+    this.facets = [];
+
+    this.loadFacets();
   }
 
   // Filter currently loaded nodes based on facet values

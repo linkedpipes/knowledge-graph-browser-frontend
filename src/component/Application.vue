@@ -49,7 +49,7 @@
         </v-tabs>
 
         <!--Nested navigation-drawer is for layout purposes-->
-        <v-navigation-drawer width="300" style="height: calc(100% - 161px);" permanent ref="bar"
+        <v-navigation-drawer width="300" style="height: calc(100% - 200px);" permanent ref="bar"
                              @update:mini-variant="$refs.languageMenu.isActive = false">
 
           <v-tabs-items v-model="navDrawerTab">
@@ -211,6 +211,17 @@
               Reset
             </v-btn>
           </v-row>
+
+          <v-btn
+              @click="$refs.facetFilteringArea.reloadFacets()"
+              style="margin-top: 15px; margin-left: 15px; font-size: 0.8em;"
+              height="35"
+              width="269"
+              color="primary"
+
+          >
+            reload facets
+          </v-btn>
         </template>
 
       </v-navigation-drawer>
