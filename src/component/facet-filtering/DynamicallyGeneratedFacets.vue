@@ -16,7 +16,10 @@ export default class DynamicallyGeneratedFacets extends Vue {
     let dynamicFacets = new Map();
 
     for (const nodeIRI in this.graph.nodes) {
-      this.findFacets(dynamicFacets, this.graph.nodes[nodeIRI]);
+      const node = this.graph.nodes[nodeIRI];
+
+      this.findLabelFacets(dynamicFacets, node);
+      this.findCountEdgesFacets(dynamicFacets, node);
     }
 
     for (const facetPath of dynamicFacets.keys()) {
@@ -45,8 +48,8 @@ export default class DynamicallyGeneratedFacets extends Vue {
     }
   }
 
-  findFacets(dynamicFacets, initialNode) {
-    // Implement DFS
+  findLabelFacets(dynamicFacets, initialNode) {
+    // Implement DFS to find label type facets locally
     let stack = [];
 
     const maxDepth = 2;
@@ -80,8 +83,9 @@ export default class DynamicallyGeneratedFacets extends Vue {
         currentNodeInfo.path.forEach(val => path.push(Object.assign({}, val)));
 
         path.push({
-          label: edge.type.label,
-          orientation: edge.orientation
+          iri: edge.type.iri,
+          orientation: edge.orientation,
+          label: edge.type.label
         });
 
         stack.push({
@@ -102,16 +106,21 @@ export default class DynamicallyGeneratedFacets extends Vue {
       let facetPath = "";
 
       for (const edge of currentNodeInfo.path) {
-        facetPath += (facetPath == "" ? "" : " / ") + edge.label + " (" + edge.orientation + ")";
+        facetPath += (facetPath == "" ? "" : " / ") + edge.iri + " (" + edge.orientation + ")";
       }
 
       const facet = dynamicFacets.get(facetPath);
 
       // Check if the facet is newly found
       if (facet == undefined) {
+        let facetTitle = "";
+
+        for (const edge of currentNodeInfo.path) {
+          facetTitle += (facetTitle == "" ? "" : " / ") + edge.label + " (" + edge.orientation + ")";
+        }
+
         const newFacet = {
-          iri: "",
-          title: facetPath,
+          title: facetTitle,
           type: "label",
           description: "This facet was found dynamically and has no human-defined description.",
           values: {
@@ -139,6 +148,75 @@ export default class DynamicallyGeneratedFacets extends Vue {
         } else {
           facet.index.get(currentNodeLabel).push(initialNode.IRI);
         }
+      }
+    }
+  }
+
+  // Find numeric facets - number of edges of specific types
+  findCountEdgesFacets(dynamicFacets, node) {
+    let edgesCounts = new Map();
+
+    for (const edge of node.connectedEdges) {
+      const edgeID = "count " + edge.type.iri + " (" + edge.orientation +")";
+
+      const currentCount = edgesCounts.get(edgeID) == undefined ? 0 : edgesCounts.get(edgeID).count;
+
+      edgesCounts.set(
+          edgeID,
+          {
+            label: edge.type.label,
+            count: currentCount + 1,
+            orientation: edge.orientation
+          });
+    }
+
+    for (const facetID of edgesCounts.keys()) {
+      const count = edgesCounts.get(facetID).count;
+
+      //  Check if the facet is undefined
+      const facet = dynamicFacets.get(facetID);
+
+      if (facet == undefined) {
+        //  Create a new facet
+        const facetEdge = edgesCounts.get(facetID);
+
+        const newFacet = {
+          title: "count - " + facetEdge.label + " (" + facetEdge.orientation + ")",
+          type: "numeric",
+          description: "This facet was found dynamically and has no human-defined description.",
+          values: {
+            minPossible: count,
+            maxPossible: count,
+            selectedRange: [count, count]
+          },
+          index: []
+        };
+
+        newFacet.index.push(
+            {
+              nodeIRI: node.IRI,
+              value: count
+            });
+
+        dynamicFacets.set(facetID, newFacet);
+      } else {
+        // Update the facet's extrema
+        if (count < facet.values.minPossible) {
+          facet.values.minPossible = count;
+          facet.values.selectedRange[0] = count;
+        }
+
+        if (count > facet.values.maxPossible) {
+          facet.values.maxPossible = count;
+          facet.values.selectedRange[1] = count;
+        }
+
+        // Update the facet's index
+        facet.index.push(
+            {
+              nodeIRI: node.IRI,
+              value: count
+            });
       }
     }
   }

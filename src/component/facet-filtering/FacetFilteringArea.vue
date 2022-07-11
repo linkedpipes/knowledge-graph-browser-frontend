@@ -67,8 +67,6 @@
         </v-list-item-content>
       </v-list-item>
     </v-list>
-
-<!--    <v-btn @click="loadFacets" block>Load facets</v-btn>-->
   </div>
 </template>
 
@@ -117,7 +115,7 @@ export default class FacetFilteringArea extends Vue {
     }
 
     // Remove all facets
-    this.facets = [];
+    this.facets.splice(0);
 
     this.loadFacets();
   }
@@ -149,6 +147,7 @@ export default class FacetFilteringArea extends Vue {
           facet.index.get(label).forEach(nodeIRI => filteringSet.add(nodeIRI));
         }
       } else {
+        // Numeric type facet
         const min = facet.values.selectedRange[0];
         const max = facet.values.selectedRange[1];
 
@@ -202,7 +201,6 @@ export default class FacetFilteringArea extends Vue {
       switch (oldFacet.type) {
         case "label":
           var newLabelFacet = {
-            iri: oldFacet.iri,
             title: oldFacet.title,
             type: oldFacet.type,
             description: oldFacet.description,
@@ -228,7 +226,6 @@ export default class FacetFilteringArea extends Vue {
 
         case "numeric":
           const newNumericFacet = {
-            iri: oldFacet.iri,
             title: oldFacet.title,
             type: oldFacet.type,
             description: oldFacet.description,
