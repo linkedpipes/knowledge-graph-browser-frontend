@@ -18,8 +18,17 @@ export default class DynamicallyGeneratedFacets extends Vue {
     for (const nodeIRI in this.graph.nodes) {
       const node = this.graph.nodes[nodeIRI];
 
-      this.findLabelFacets(dynamicFacets, node);
-      this.findCountEdgesFacets(dynamicFacets, node);
+      this.findLabelFacets(node, dynamicFacets);
+
+      this.findCountEdgesFacets(node, dynamicFacets);
+    }
+
+    let allEdgesTypes = this.getAllEdgesTypes();
+
+    for (const nodeIRI in this.graph.nodes) {
+      const node = this.graph.nodes[nodeIRI];
+
+      this.addZeroValuesToCountEdgesFacets(node, dynamicFacets, allEdgesTypes);
     }
 
     for (const facetPath of dynamicFacets.keys()) {
@@ -48,7 +57,7 @@ export default class DynamicallyGeneratedFacets extends Vue {
     }
   }
 
-  findLabelFacets(dynamicFacets, initialNode) {
+  findLabelFacets(initialNode, dynamicFacets) {
     // Implement DFS to find label type facets locally
     let stack = [];
 
@@ -153,7 +162,8 @@ export default class DynamicallyGeneratedFacets extends Vue {
   }
 
   // Find numeric facets - number of edges of specific types
-  findCountEdgesFacets(dynamicFacets, node) {
+  findCountEdgesFacets(node, dynamicFacets) {
+    // Count occurrences of edge types for node
     let edgesCounts = new Map();
 
     for (const edge of node.connectedEdges) {
@@ -170,6 +180,7 @@ export default class DynamicallyGeneratedFacets extends Vue {
           });
     }
 
+    // Create facets or update their indexes
     for (const facetID of edgesCounts.keys()) {
       const count = edgesCounts.get(facetID).count;
 
@@ -218,6 +229,71 @@ export default class DynamicallyGeneratedFacets extends Vue {
               value: count
             });
       }
+    }
+  }
+
+  // Finds all types of edges in graph
+  getAllEdgesTypes() {
+    let edgesTypes = new Set<string>();
+
+    for (const edgeTripleString in this.graph.edges) {
+      const edge = this.graph.edges[edgeTripleString];
+      // Add both directions of edge
+      edgesTypes.add("count " + edge.type.iri + " (outgoing)");
+      edgesTypes.add("count " + edge.type.iri + " (incoming)");
+    }
+
+    return edgesTypes;
+  }
+
+  addZeroValuesToCountEdgesFacets(node, dynamicFacets, allEdgesTypes) {
+    // Add edges types that the node doesn't possess
+    // to the facet's index so that the node can have
+    // 0 edges and be filtered
+    // Count occurrences of edge types for node
+    let edgesCounts = new Map();
+
+    for (const edge of node.connectedEdges) {
+      const edgeID = "count " + edge.type.iri + " (" + edge.orientation +")";
+
+      const currentCount = edgesCounts.get(edgeID) == undefined ? 0 : edgesCounts.get(edgeID).count;
+
+      edgesCounts.set(
+          edgeID,
+          {
+            label: edge.type.label,
+            count: currentCount + 1,
+            orientation: edge.orientation
+          });
+    }
+
+    // Create a set from edgesCounts.keys
+    const nodePresentEdges = new Set();
+
+    for (const edgeID of edgesCounts.keys()) {
+      nodePresentEdges.add(edgeID);
+    }
+
+    // Difference between two sets: allEdgesTypes \ nodePresentEdges = nodeAbsentEdges
+    const nodeAbsentEdges = new Set([...allEdgesTypes].filter(edge => !nodePresentEdges.has(edge)));
+
+    // console.log(node)
+    // console.log(nodeAbsentEdges)
+    // console.log(dynamicFacets)
+    for (const absentEdge of nodeAbsentEdges.values()) {
+        // Check if the facet's minimum needs to be updated
+        if (0 < dynamicFacets.get(absentEdge).values.minPossible) {
+          dynamicFacets.get(absentEdge).values.minPossible = 0;
+          dynamicFacets.get(absentEdge).values.selectedRange[0] = 0;
+        }
+
+        // Update facet's index
+        dynamicFacets.get(absentEdge).index.push(
+            {
+              nodeIRI: node.IRI,
+              value: 0
+            }
+        );
     }
   }
 }
