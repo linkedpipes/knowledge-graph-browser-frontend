@@ -123,7 +123,7 @@ export default class FacetFilteringArea extends Vue {
   // Filter currently loaded nodes based on facet values
   filterBtnPressed() {
     // Make all nodes visible first
-    this.resetFiltering();
+    this.makeAllNodesVisible();
 
     // Sets of nodes' IRIs calculated by each facet
     let filteringSets = [];
@@ -185,11 +185,24 @@ export default class FacetFilteringArea extends Vue {
     }
   }
 
-  resetFiltering() {
+  makeAllNodesVisible() {
     // Set all nodes' visibility property to true
     for (const nodeIRI in this.graph.nodes) {
       this.graph.nodes[nodeIRI].visible = true;
     }
+  }
+
+  resetFiltering() {
+    // Uncheck checkboxes and reset sliders' selected ranges
+    for (const facet of this.facets) {
+      if (facet.type == "label") {
+        facet.values.selectedLabels.splice(0);
+      } else {
+        facet.values.selectedRange = [facet.values.minPossible, facet.values.maxPossible];
+      }
+    }
+
+    this.makeAllNodesVisible();
   }
 
   // Transforms facets received from the server so that they
