@@ -78,6 +78,7 @@ import {Graph} from "../../graph/Graph";
 import {RemoteServer} from "@/remote-server/RemoteServer";
 import Configuration from "@/configurations/Configuration";
 import DynamicallyGeneratedFacets from "@/component/facet-filtering/DynamicallyGeneratedFacets.vue";
+import GraphManipulator from "@/graph/GraphManipulator";
 
 @Component(
     {
@@ -90,6 +91,7 @@ export default class FacetFilteringArea extends Vue {
   @Prop() graph: Graph;
   @Prop() configuration: Configuration;
   @Prop() remoteServer: RemoteServer;
+  @Prop() manipulator: GraphManipulator;
 
   @Ref() readonly dynamicallyGeneratedFacets!: DynamicallyGeneratedFacets;
 
@@ -181,6 +183,10 @@ export default class FacetFilteringArea extends Vue {
     for (const nodeIRI in this.graph.nodes) {
       if (!filteringSets[filteringSets.length - 1].has(nodeIRI)) {
         this.graph.nodes[nodeIRI].visible = false;
+
+        if (this.graph.nodes[nodeIRI].belongsToGroup != null){
+          this.manipulator.deGroup(this.graph.nodes[nodeIRI].belongsToGroup);
+        }
       }
     }
   }

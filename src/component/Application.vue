@@ -176,6 +176,7 @@
                   :graph="graph"
                   :configuration="configuration"
                   :remoteServer="server"
+                  :manipulator="manipulator"
               />
             </v-tab-item>
           </v-tabs-items>
