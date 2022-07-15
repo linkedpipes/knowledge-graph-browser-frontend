@@ -185,7 +185,7 @@ export default class FacetFilteringArea extends Vue {
         this.graph.nodes[nodeIRI].visible = false;
 
         if (this.graph.nodes[nodeIRI].belongsToGroup != null){
-          this.manipulator.deGroup(this.graph.nodes[nodeIRI].belongsToGroup);
+          this.manipulator.leaveGroup([this.graph.nodes[nodeIRI]], this.graph.nodes[nodeIRI].belongsToGroup)
         }
       }
     }
