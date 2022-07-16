@@ -171,8 +171,8 @@
             </v-tab-item>
 
             <v-tab-item>
-              <facet-filtering-area
-                  ref="facetFilteringArea"
+              <faceted-filtering
+                  ref="facetedFiltering"
                   :graph="graph"
                   :configuration="configuration"
                   :remoteServer="server"
@@ -197,7 +197,7 @@
                 height="35"
                 style="margin-left: 15px; font-size: 0.8em;"
                 color="secondary"
-                @click="$refs.facetFilteringArea.filterBtnPressed()"
+                @click="$refs.facetedFiltering.filterBtnPressed()"
             >
               Filter
             </v-btn>
@@ -207,14 +207,14 @@
                 height="35"
                 style="margin-right: 15px; font-size: 0.8em;"
                 color="secondary"
-                @click="$refs.facetFilteringArea.resetFiltering()"
+                @click="$refs.facetedFiltering.resetFiltering()"
             >
               Reset
             </v-btn>
           </v-row>
 
           <v-btn
-              @click="$refs.facetFilteringArea.reloadFacets()"
+              @click="$refs.facetedFiltering.reloadFacets()"
               style="margin-top: 15px; margin-left: 15px; font-size: 0.8em;"
               height="35"
               width="269"
@@ -357,7 +357,7 @@ import Metaconfiguration from "../configurations/Metaconfiguration";
 import Configuration from "../configurations/Configuration";
 import ApplicationConfiguration from '../conf';
 import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChooserComponent.vue";
-import FacetFilteringArea from "@/component/facet-filtering/FacetFilteringArea.vue";
+import FacetedFiltering from "@/component/facet-filtering/FacetedFiltering.vue";
 
 @Component({
   components: {
@@ -374,7 +374,7 @@ import FacetFilteringArea from "@/component/facet-filtering/FacetFilteringArea.v
     SidePanel,
     SaveDialog,
     FilterDialog,
-    FacetFilteringArea
+    FacetedFiltering
   }
 })
 export default class Application extends Mixins(ApplicationLoadStoreMixin) {
