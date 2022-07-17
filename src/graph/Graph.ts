@@ -140,6 +140,13 @@ export class Graph implements ObjectSave {
      * @param node Node to be removed
      */
     _removeNode(node: Node) {
+        // Remove edges for connected nodes
+        for (const edge of node.connectedEdges) {
+            const otherNode = edge.otherNode;
+
+            otherNode.connectedEdges = otherNode.connectedEdges.filter(edge => edge.otherNode !== node);
+        }
+
         Vue.delete(this.nodes, node.IRI);
         for (let edge of node.edges) {
             this._removeEdge(edge);
@@ -163,6 +170,21 @@ export class Graph implements ObjectSave {
     createEdge(source: Node, target: Node, type: EdgeType): Edge {
         let edge = new Edge(source, target, type, this);
         Vue.set(this.edges, Graph.getEdgeIdentifier(edge), edge);
+
+        //  Add edge to the source node
+        source.connectedEdges.push({
+            otherNode: edge.target,
+            orientation: "outgoing",
+            type: edge.type
+        });
+
+        //  Add edge to the target node
+        target.connectedEdges.push({
+            otherNode: edge.source,
+            orientation: "incoming",
+            type: edge.type
+        });
+
         return edge;
     }
 

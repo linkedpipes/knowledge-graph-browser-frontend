@@ -36,7 +36,7 @@ export default abstract class NodeCommon implements ObjectSave {
 
     /**
      * All incoming and outgoing edges.
-     * Used for faceted filtering in DynamicallyGeneratedFacets.vue.
+     * Used for traversing the graph.
      */
     connectedEdges: any[] = [];
 
