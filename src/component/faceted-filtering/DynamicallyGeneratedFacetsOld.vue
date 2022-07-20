@@ -11,120 +11,93 @@ export default class DynamicallyGeneratedFacets extends Vue {
   @Prop() graph;
 
   loadDynamicFacets() {
-    console.log(this.graph)
+    let dynamicFacets = new Map();
 
-    // For each node add its edges to it, so
-    // it is easy to traverse the graph
-    // this.addEdgesToNodes();
-    //
-    // let dynamicFacets = new Map();
-    //
-    // // Create a facet for filtering by
-    // // types of nodes
-    // const typeFacet = {
-    //   title: "Type of node",
-    //   type: "label",
-    //   description: "Filters nodes by their types.",
-    //   values: {
-    //     displayLabels: [],
-    //     selectedLabels: []
-    //   },
-    //   index: new Map()
-    // };
-    //
-    // dynamicFacets.set("typeFacetID", typeFacet);
-    //
-    // // Create a facet to filter by number of edges
-    // const numOfEdgesFacet = {
-    //   title: "Number of edges",
-    //   type: "numeric",
-    //   description: "Facet to filter by number of edges of a node.",
-    //   values: {
-    //     minPossible: Number.MAX_VALUE,
-    //     maxPossible: Number.MIN_VALUE,
-    //     selectedRange: [Number.MIN_VALUE, Number.MAX_VALUE]
-    //   },
-    //   index: []
-    // };
-    //
-    // dynamicFacets.set("numOfEdgesFacetID", numOfEdgesFacet);
-    //
-    // // Create a facet to filter by number of incoming edges
-    // const numOfIncomingEdgesFacet = {
-    //   title: "Number of incoming edges",
-    //   type: "numeric",
-    //   description: "Facet to filter by number of incoming edges of a node.",
-    //   values: {
-    //     minPossible: Number.MAX_VALUE,
-    //     maxPossible: Number.MIN_VALUE,
-    //     selectedRange: [Number.MIN_VALUE, Number.MAX_VALUE]
-    //   },
-    //   index: []
-    // };
-    //
-    // dynamicFacets.set("numOfIncomingEdgesID", numOfIncomingEdgesFacet);
-    //
-    // // Create a facet to filter by number of outgoing edges
-    // const numOfOutgoingEdgesFacet = {
-    //   title: "Number of outgoing edges",
-    //   type: "numeric",
-    //   description: "Facet to filter by number of outgoing edges of a node.",
-    //   values: {
-    //     minPossible: Number.MAX_VALUE,
-    //     maxPossible: Number.MIN_VALUE,
-    //     selectedRange: [Number.MIN_VALUE, Number.MAX_VALUE]
-    //   },
-    //   index: []
-    // };
-    //
-    // dynamicFacets.set("numOfOutgoingEdgesID", numOfOutgoingEdgesFacet);
-    //
-    // // Find facets for nodes
-    // for (const nodeIRI in this.graph.nodes) {
-    //   const node = this.graph.nodes[nodeIRI];
-    //
-    //   this.updateTypeFacet(node, typeFacet);
-    //
-    //   this.updateNumOfEdgesFacet(node, numOfEdgesFacet);
-    //
-    //   this.findLabelFacets(node, dynamicFacets);
-    //
-    //   this.findNumericFacets(node, dynamicFacets);
-    // }
-    //
-    // // Update count edges facets so that nodes can have 0 edges
-    // // of a specific type and be filtered by that count
-    // let allEdgesTypes = this.getAllEdgesTypes();
-    //
-    // for (const nodeIRI in this.graph.nodes) {
-    //   const node = this.graph.nodes[nodeIRI];
-    //
-    //   this.addZeroValuesToCountEdgesFacets(node, dynamicFacets, allEdgesTypes);
-    // }
-    //
-    // for (const facetID of dynamicFacets.keys()) {
-    //   this.facets.push(dynamicFacets.get(facetID));
-    // }
-  }
+    // Create a facet for filtering by
+    // types of nodes
+    const typeFacet = {
+      title: "Type of node",
+      type: "label",
+      description: "Filters nodes by their types.",
+      values: {
+        displayLabels: [],
+        selectedLabels: []
+      },
+      index: new Map()
+    };
 
-  addEdgesToNodes() {
-    // Add edges to nodes so that I can use DFS on them later
-    for (const edgeTripleString in this.graph.edges) {
-      const edge = this.graph.edges[edgeTripleString];
+    dynamicFacets.set("typeFacetID", typeFacet);
 
-      //  Add edge to the source node
-      this.graph.nodes[edge.source.IRI].connectedEdges.push({
-        otherNode: edge.target,
-        orientation: "outgoing",
-        type: edge.type
-      });
+    // Create a facet to filter by number of edges
+    const numOfEdgesFacet = {
+      title: "Number of edges",
+      type: "numeric",
+      description: "Facet to filter by number of edges of a node.",
+      values: {
+        minPossible: Number.MAX_VALUE,
+        maxPossible: Number.MIN_VALUE,
+        selectedRange: [Number.MIN_VALUE, Number.MAX_VALUE]
+      },
+      index: []
+    };
 
-      //  Add edge to the target node
-      this.graph.nodes[edge.target.IRI].connectedEdges.push({
-        otherNode: edge.source,
-        orientation: "incoming",
-        type: edge.type
-      });
+    dynamicFacets.set("numOfEdgesFacetID", numOfEdgesFacet);
+
+    // Create a facet to filter by number of incoming edges
+    const numOfIncomingEdgesFacet = {
+      title: "Number of incoming edges",
+      type: "numeric",
+      description: "Facet to filter by number of incoming edges of a node.",
+      values: {
+        minPossible: Number.MAX_VALUE,
+        maxPossible: Number.MIN_VALUE,
+        selectedRange: [Number.MIN_VALUE, Number.MAX_VALUE]
+      },
+      index: []
+    };
+
+    dynamicFacets.set("numOfIncomingEdgesID", numOfIncomingEdgesFacet);
+
+    // Create a facet to filter by number of outgoing edges
+    const numOfOutgoingEdgesFacet = {
+      title: "Number of outgoing edges",
+      type: "numeric",
+      description: "Facet to filter by number of outgoing edges of a node.",
+      values: {
+        minPossible: Number.MAX_VALUE,
+        maxPossible: Number.MIN_VALUE,
+        selectedRange: [Number.MIN_VALUE, Number.MAX_VALUE]
+      },
+      index: []
+    };
+
+    dynamicFacets.set("numOfOutgoingEdgesID", numOfOutgoingEdgesFacet);
+
+    // Find facets for nodes
+    for (const nodeIRI in this.graph.nodes) {
+      const node = this.graph.nodes[nodeIRI];
+
+      this.updateTypeFacet(node, typeFacet);
+
+      this.updateNumOfEdgesFacet(node, numOfEdgesFacet);
+
+      this.findLabelFacets(node, dynamicFacets);
+
+      this.findNumericFacets(node, dynamicFacets);
+    }
+
+    // Update count edges facets so that nodes can have 0 edges
+    // of a specific type and be filtered by that count
+    let allEdgesTypes = this.getAllEdgesTypes();
+
+    for (const nodeIRI in this.graph.nodes) {
+      const node = this.graph.nodes[nodeIRI];
+
+      this.addZeroValuesToCountEdgesFacets(node, dynamicFacets, allEdgesTypes);
+    }
+
+    for (const facetID of dynamicFacets.keys()) {
+      this.facets.push(dynamicFacets.get(facetID));
     }
   }
 

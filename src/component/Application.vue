@@ -357,7 +357,7 @@ import Metaconfiguration from "../configurations/Metaconfiguration";
 import Configuration from "../configurations/Configuration";
 import ApplicationConfiguration from '../conf';
 import {ConfigurationChooserComponentModes} from "@/component/ConfigurationChooserComponent.vue";
-import FacetedFiltering from "@/component/facet-filtering/FacetedFiltering.vue";
+import FacetedFiltering from "@/component/faceted-filtering/FacetedFiltering.vue";
 
 @Component({
   components: {

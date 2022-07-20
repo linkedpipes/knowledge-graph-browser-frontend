@@ -1,11 +1,5 @@
 <template>
   <div id="rootElement">
-    <dynamically-generated-facets
-        ref="dynamicallyGeneratedFacets"
-        :facets="facets"
-        :graph="graph"
-    />
-
     <v-list dense>
       <v-list-item v-for="(facet, index) in facets" :key="index">
         <v-list-item-content>
@@ -71,29 +65,21 @@
 </template>
 
 <script lang="ts">
-import Component from 'vue-class-component';
 import Vue from 'vue';
-import {Prop, Ref} from "vue-property-decorator";
+import {Prop} from "vue-property-decorator";
 import {Graph} from "../../graph/Graph";
 import {RemoteServer} from "@/remote-server/RemoteServer";
 import Configuration from "@/configurations/Configuration";
-import DynamicallyGeneratedFacets from "@/component/facet-filtering/DynamicallyGeneratedFacets.vue";
 import GraphManipulator from "@/graph/GraphManipulator";
+import {DynamicallyGeneratedFacets} from "@/component/faceted-filtering/DynamicallyGeneratedFacets";
+import Component from "vue-class-component";
 
-@Component(
-    {
-      components: {
-        DynamicallyGeneratedFacets
-      }
-    }
-)
+@Component
 export default class FacetFilteringArea extends Vue {
   @Prop() graph: Graph;
   @Prop() configuration: Configuration;
   @Prop() remoteServer: RemoteServer;
   @Prop() manipulator: GraphManipulator;
-
-  @Ref() readonly dynamicallyGeneratedFacets!: DynamicallyGeneratedFacets;
 
   facets = [];
 
@@ -106,8 +92,9 @@ export default class FacetFilteringArea extends Vue {
     // for (const facet of transformedFacets) {
     //   this.facets.push(facet);
     // }
+    DynamicallyGeneratedFacets.hello(this.graph);
 
-    this.dynamicallyGeneratedFacets.loadDynamicFacets();
+    // this.dynamicallyGeneratedFacets.loadDynamicFacets();
   }
 
   reloadFacets() {
