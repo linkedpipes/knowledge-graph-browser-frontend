@@ -182,11 +182,7 @@
           </v-tabs-items>
         </v-navigation-drawer>
 
-        <template v-if="navDrawerTab==0">
-
-        </template>
-
-        <template v-else>
+        <template v-if="navDrawerTab==1">
           <v-row
               align="center"
               justify="space-around"
@@ -213,16 +209,16 @@
             </v-btn>
           </v-row>
 
-          <v-btn
-              @click="$refs.facetedFiltering.reloadFacets()"
-              style="margin-top: 15px; margin-left: 15px; font-size: 0.8em;"
-              height="35"
-              width="269"
-              color="primary"
+<!--          <v-btn-->
+<!--              @click="$refs.facetedFiltering.reloadFacets()"-->
+<!--              style="margin-top: 15px; margin-left: 15px; font-size: 0.8em;"-->
+<!--              height="35"-->
+<!--              width="269"-->
+<!--              color="primary"-->
 
-          >
-            reload facets
-          </v-btn>
+<!--          >-->
+<!--            reload facets-->
+<!--          </v-btn>-->
         </template>
 
       </v-navigation-drawer>

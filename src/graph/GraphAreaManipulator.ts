@@ -69,6 +69,8 @@ export default class GraphAreaManipulator implements ObjectSave {
     async expandNode(view: NodeView) {
         let expansion = await view.expand();
         this.layoutManager.currentLayout.onExpansion(expansion);
+
+        return expansion;
     }
 
     changeZoomByQuotient(quotient: number) {

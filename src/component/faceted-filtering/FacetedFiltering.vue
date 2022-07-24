@@ -83,6 +83,19 @@ export default class FacetFilteringArea extends Vue {
 
   facets = [];
 
+  mounted() {
+    // Add loading facets when mounted
+  }
+
+  // Decide what "nodes" should actually be - source and all added nodes?
+  static findOrUpdateAllFacetsAfterExpansion(nodes) {
+    this.loadFacetValuesFromConfiguration(nodes);
+  }
+
+  static loadFacetValuesFromConfiguration(nodes: string[]) {
+    console.log(nodes)
+  }
+
   async loadFacets() {
     // let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
     // let response = await this.remoteServer.getFacetsItems(this.configuration.iri, currentNodesIRIs);
@@ -92,7 +105,7 @@ export default class FacetFilteringArea extends Vue {
     // for (const facet of transformedFacets) {
     //   this.facets.push(facet);
     // }
-    DynamicallyGeneratedFacets.hello(this.graph);
+
 
     // this.dynamicallyGeneratedFacets.loadDynamicFacets();
   }
