@@ -75,7 +75,7 @@ import {DynamicallyGeneratedFacets} from "@/component/faceted-filtering/Dynamica
 import Component from "vue-class-component";
 
 @Component
-export default class FacetFilteringArea extends Vue {
+export default class FacetedFiltering extends Vue {
   @Prop() graph: Graph;
   @Prop() configuration: Configuration;
   @Prop() remoteServer: RemoteServer;
@@ -83,17 +83,30 @@ export default class FacetFilteringArea extends Vue {
 
   facets = [];
 
-  mounted() {
-    // Add loading facets when mounted
+  async mounted() {
+    // let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
+    // await this.loadFacetValuesFromConfiguration(currentNodesIRIs);
+
+    // Updateovanie facetov chcem robit iba ak je komponenta mountovana
+    this.$root.$on('eventing', data => {
+      console.log(data);
+    });
   }
 
-  // Decide what "nodes" should actually be - source and all added nodes?
-  static findOrUpdateAllFacetsAfterExpansion(nodes) {
-    this.loadFacetValuesFromConfiguration(nodes);
+   findOrUpdateAllFacetsAfterExpansion(sourceNode, addedNodes) {
+    // this.loadFacetValuesFromConfiguration(addedNodes);
+    console.log("expansion")
   }
 
-  static loadFacetValuesFromConfiguration(nodes: string[]) {
-    console.log(nodes)
+  async loadFacetValuesFromConfiguration(nodesIRIs: string[]) {
+    let response = await this.remoteServer.getFacetsItems(this.configuration.iri, nodesIRIs);
+    console.log(response)
+
+    const transformedFacets = this.transformFacets(response.facetsItems);
+
+    for (const facet of transformedFacets) {
+      this.facets.push(facet);
+    }
   }
 
   async loadFacets() {

@@ -154,7 +154,7 @@
     </panel-template>
 </template>
 <script lang="ts">
-import {Component, Mixins, Prop, Watch} from 'vue-property-decorator';
+import {Component, Mixins, Prop, Ref, Watch} from 'vue-property-decorator';
 import { Node } from '@/graph/Node';
 import { NodeViewSet } from '@/graph/NodeViewSet';
 import {DetailValue} from '@/graph/NodeView';
@@ -203,7 +203,8 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
     async expand(view) {
       let expansion = await this.areaManipulator.expandNode(view);
 
-      FacetedFiltering.findOrUpdateAllFacetsAfterExpansion(expansion.getNodes());
+      this.$root.$emit('eventing', "hello");
+      // this.facetedFiltering.findOrUpdateAllFacetsAfterExpansion(this.node, expansion.getNodes());
     }
 
     /**
