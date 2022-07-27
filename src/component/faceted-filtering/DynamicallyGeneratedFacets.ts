@@ -1,4 +1,10 @@
 export class DynamicallyGeneratedFacets {
+    static facets;
+
+    static findOrUpdateDynamicFacets(node, facets) {
+// DynamicallyGeneratedFacets.findOrUpdateCountEdgesTypesFacets(1,2)
+    }
+
     static findOrUpdateDFSLabelFacets(node, facets) {
 
     }
@@ -13,5 +19,10 @@ export class DynamicallyGeneratedFacets {
 
     static findOrUpdateTypeFacet(node, facets) {
 
+    }
+
+    static setFacets(facets) {
+        this.facets = facets;
+        // DynamicallyGeneratedFacets.facets = facets;
     }
 }

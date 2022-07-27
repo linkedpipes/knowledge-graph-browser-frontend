@@ -83,56 +83,49 @@ export default class FacetedFiltering extends Vue {
 
   facets = [];
 
-  async mounted() {
-    // let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
-    // await this.loadFacetValuesFromConfiguration(currentNodesIRIs);
+  facetsIndexes = new Map<String, number>();
 
-    // Updateovanie facetov chcem robit iba ak je komponenta mountovana
-    this.$root.$on('eventing', data => {
-      console.log(data);
+  async mounted() {
+    await this.loadAndFindInitialFacets();
+
+    this.$root.$on('expansion', data => {
+      this.findOrUpdateFacetsAfterExpansion(data[0], data[1]);
     });
   }
 
-   findOrUpdateAllFacetsAfterExpansion(sourceNode, addedNodes) {
-    // this.loadFacetValuesFromConfiguration(addedNodes);
-    console.log("expansion")
+  async loadAndFindInitialFacets() {
+    let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
+
+    await this.loadOrUpdateConfigurationFacets(currentNodesIRIs);
+
+    // DynamicallyGeneratedFacets.setFacets(this.facets);
+
+    for (const nodeIRI in this.graph.nodes) {
+      const node = this.graph.nodes[nodeIRI];
+
+      DynamicallyGeneratedFacets.findOrUpdateDynamicFacets(node, this.facets);
+    }
   }
 
-  async loadFacetValuesFromConfiguration(nodesIRIs: string[]) {
+  // zmenit signaturu na nodes
+  async loadOrUpdateConfigurationFacets(nodesIRIs: string[]) {
     let response = await this.remoteServer.getFacetsItems(this.configuration.iri, nodesIRIs);
-    console.log(response)
 
-    const transformedFacets = this.transformFacets(response.facetsItems);
+    const transformedFacets = this.transformConfigurationFacets(response.facetsItems);
 
     for (const facet of transformedFacets) {
       this.facets.push(facet);
     }
   }
 
-  async loadFacets() {
-    // let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
-    // let response = await this.remoteServer.getFacetsItems(this.configuration.iri, currentNodesIRIs);
+  findOrUpdateFacetsAfterExpansion(sourceNode, addedNodes) {
+    this.loadOrUpdateConfigurationFacets(addedNodes);
+
+    // DynamicallyGeneratedFacets.findOrUpdateDynamicFacets(sourceNode, this.facets);
     //
-    // const transformedFacets = this.transformFacets(response.facetsItems);
-    //
-    // for (const facet of transformedFacets) {
-    //   this.facets.push(facet);
+    // for (const addedNode of addedNodes) {
+    //   DynamicallyGeneratedFacets.findOrUpdateDynamicFacets(addedNode, this.facets);
     // }
-
-
-    // this.dynamicallyGeneratedFacets.loadDynamicFacets();
-  }
-
-  reloadFacets() {
-    // Remove edges from nodes in this.graph
-    // for (const nodeIRI in this.graph.nodes) {
-    //   this.graph.nodes[nodeIRI].connectedEdges = [];
-    // }
-    //
-    // // Remove all facets
-    // this.facets.splice(0);
-
-    this.loadFacets();
   }
 
   // Filter currently loaded nodes based on facet values
@@ -225,10 +218,11 @@ export default class FacetedFiltering extends Vue {
   }
 
   // Transforms facets received from the server so that they
-  // can be displayed, also create indexes for filtering
-  transformFacets(backendFacets) {
+  // can be displayed, and creates indexes for filtering
+  transformConfigurationFacets(backendFacets) {
     let transformedFacets = []
 
+    // skontrolovat ci uz facet existuje - podla iri
     for (const oldFacet of backendFacets) {
       switch (oldFacet.type) {
         case "label":

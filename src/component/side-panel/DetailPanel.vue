@@ -203,7 +203,7 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
     async expand(view) {
       let expansion = await this.areaManipulator.expandNode(view);
 
-      this.$root.$emit('eventing', "hello");
+      this.$root.$emit('expansion', [this.node, expansion.getNodes()]);
       // this.facetedFiltering.findOrUpdateAllFacetsAfterExpansion(this.node, expansion.getNodes());
     }
 
