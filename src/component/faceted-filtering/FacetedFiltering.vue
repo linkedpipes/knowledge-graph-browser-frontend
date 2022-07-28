@@ -73,6 +73,7 @@ import Configuration from "@/configurations/Configuration";
 import GraphManipulator from "@/graph/GraphManipulator";
 import {DynamicallyGeneratedFacets} from "@/component/faceted-filtering/DynamicallyGeneratedFacets";
 import Component from "vue-class-component";
+import {Node} from "@/graph/Node";
 
 @Component
 export default class FacetedFiltering extends Vue {
@@ -94,38 +95,105 @@ export default class FacetedFiltering extends Vue {
   }
 
   async loadAndFindInitialFacets() {
-    let currentNodesIRIs: string[] = Object.keys(this.graph.nodes);
-
-    await this.loadOrUpdateConfigurationFacets(currentNodesIRIs);
+    await this.loadOrUpdateConfigurationFacets(Object.keys(this.graph.nodes));
 
     // DynamicallyGeneratedFacets.setFacets(this.facets);
 
-    for (const nodeIRI in this.graph.nodes) {
-      const node = this.graph.nodes[nodeIRI];
-
-      DynamicallyGeneratedFacets.findOrUpdateDynamicFacets(node, this.facets);
-    }
+    DynamicallyGeneratedFacets.findOrUpdateInitialDynamicFacets(this.graph.nodes, this.facets);
   }
 
-  // zmenit signaturu na nodes
   async loadOrUpdateConfigurationFacets(nodesIRIs: string[]) {
+    console.log(nodesIRIs)
     let response = await this.remoteServer.getFacetsItems(this.configuration.iri, nodesIRIs);
 
-    const transformedFacets = this.transformConfigurationFacets(response.facetsItems);
+    for (const backendFacet of response.facetsItems) {
+      // Check whether the facet needs to be created
+      if (this.facetsIndexes.get(backendFacet.iri) === undefined) {
+        console.log("facet undefined")
+        // Create a new facet
+        switch (backendFacet.type) {
+          case "label":
+            var newLabelFacet = {
+              iri: backendFacet.iri,
+              title: backendFacet.title,
+              type: backendFacet.type,
+              description: backendFacet.description,
+              values: {
+                displayLabels: [],
+                selectedLabels: []
+              },
+              index: new Map()
+            };
 
-    for (const facet of transformedFacets) {
-      this.facets.push(facet);
+            for (const item of backendFacet.items) {
+              if (newLabelFacet.index.get(item.value) == undefined) {
+                newLabelFacet.index.set(item.value, [item.nodeIRI]);
+              } else {
+                newLabelFacet.index.get(item.value).push(item.nodeIRI);
+              }
+            }
+
+            newLabelFacet.values.displayLabels = Array.from(newLabelFacet.index.keys());
+
+            this.facetsIndexes.set(newLabelFacet.iri, this.facets.length);
+
+            this.facets.push(newLabelFacet);
+            break;
+
+          case "numeric":
+            const newNumericFacet = {
+              iri: backendFacet.iri,
+              title: backendFacet.title,
+              type: backendFacet.type,
+              description: backendFacet.description,
+              values: {
+                minPossible: Number.NaN,
+                maxPossible: Number.NaN,
+                selectedRange: [Number.NaN, Number.NaN]
+              },
+              index: []
+            };
+
+            var localMin = Number.MAX_VALUE;
+            var localMax = Number.MIN_VALUE;
+
+            for (const item of backendFacet.items) {
+              if (Number(item.value) < localMin) {
+                localMin = item.value;
+              }
+
+              if (Number(item.value) > localMax) {
+                localMax = item.value;
+              }
+            }
+
+            newNumericFacet.values.minPossible = localMin;
+            newNumericFacet.values.maxPossible = localMax;
+            newNumericFacet.values.selectedRange = [localMin, localMax];
+
+            newNumericFacet.index = backendFacet.items;
+
+            this.facetsIndexes.set(newNumericFacet.iri, this.facets.length);
+
+            this.facets.push(newNumericFacet);
+            break;
+        }
+      } else {
+        console.log("facet already defined")
+      }
     }
   }
 
   findOrUpdateFacetsAfterExpansion(sourceNode, addedNodes) {
-    this.loadOrUpdateConfigurationFacets(addedNodes);
+    let addedNodesIRIs = [];
 
-    // DynamicallyGeneratedFacets.findOrUpdateDynamicFacets(sourceNode, this.facets);
-    //
-    // for (const addedNode of addedNodes) {
-    //   DynamicallyGeneratedFacets.findOrUpdateDynamicFacets(addedNode, this.facets);
-    // }
+    for (const addedNode of addedNodes) {
+      addedNodesIRIs.push(addedNode.IRI);
+    }
+
+    this.loadOrUpdateConfigurationFacets(addedNodesIRIs);
+
+    DynamicallyGeneratedFacets.findOrUpdateDynamicFacetsAfterExpansion(sourceNode, addedNodes, this.facets);
   }
 
   // Filter currently loaded nodes based on facet values
@@ -222,14 +290,13 @@ export default class FacetedFiltering extends Vue {
   transformConfigurationFacets(backendFacets) {
     let transformedFacets = []
 
-    // skontrolovat ci uz facet existuje - podla iri
-    for (const oldFacet of backendFacets) {
-      switch (oldFacet.type) {
+    for (const backendFacet of backendFacets) {
+      switch (backendFacet.type) {
         case "label":
           var newLabelFacet = {
-            title: oldFacet.title,
-            type: oldFacet.type,
-            description: oldFacet.description,
+            title: backendFacet.title,
+            type: backendFacet.type,
+            description: backendFacet.description,
             values: {
               displayLabels: [],
               selectedLabels: []
@@ -237,7 +304,7 @@ export default class FacetedFiltering extends Vue {
             index: new Map()
           };
 
-          for (const item of oldFacet.items) {
+          for (const item of backendFacet.items) {
             if (newLabelFacet.index.get(item.value) == undefined) {
               newLabelFacet.index.set(item.value, [item.nodeIRI]);
             } else {
@@ -252,9 +319,9 @@ export default class FacetedFiltering extends Vue {
 
         case "numeric":
           const newNumericFacet = {
-            title: oldFacet.title,
-            type: oldFacet.type,
-            description: oldFacet.description,
+            title: backendFacet.title,
+            type: backendFacet.type,
+            description: backendFacet.description,
             values: {
               minPossible: Number.NaN,
               maxPossible: Number.NaN,
@@ -266,7 +333,7 @@ export default class FacetedFiltering extends Vue {
           var localMin = Number.MAX_VALUE;
           var localMax = Number.MIN_VALUE;
 
-          for (const item of oldFacet.items) {
+          for (const item of backendFacet.items) {
             if (Number(item.value) < localMin) {
               localMin = item.value;
             }
@@ -280,7 +347,7 @@ export default class FacetedFiltering extends Vue {
           newNumericFacet.values.maxPossible = localMax;
           newNumericFacet.values.selectedRange = [localMin, localMax];
 
-          newNumericFacet.index = oldFacet.items;
+          newNumericFacet.index = backendFacet.items;
 
           transformedFacets.push(newNumericFacet);
           break;

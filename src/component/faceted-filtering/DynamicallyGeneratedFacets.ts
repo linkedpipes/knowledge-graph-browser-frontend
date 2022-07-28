@@ -1,6 +1,14 @@
 export class DynamicallyGeneratedFacets {
     static facets;
 
+    static findOrUpdateInitialDynamicFacets(nodes, facets) {
+
+    }
+
+    static findOrUpdateDynamicFacetsAfterExpansion(sourceNode, addedNodes, facets) {
+
+    }
+
     static findOrUpdateDynamicFacets(node, facets) {
 // DynamicallyGeneratedFacets.findOrUpdateCountEdgesTypesFacets(1,2)
     }
