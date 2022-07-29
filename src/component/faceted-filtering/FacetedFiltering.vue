@@ -103,13 +103,11 @@ export default class FacetedFiltering extends Vue {
   }
 
   async loadOrUpdateConfigurationFacets(nodesIRIs: string[]) {
-    console.log(nodesIRIs)
     let response = await this.remoteServer.getFacetsItems(this.configuration.iri, nodesIRIs);
 
     for (const backendFacet of response.facetsItems) {
       // Check whether the facet needs to be created
       if (this.facetsIndexes.get(backendFacet.iri) === undefined) {
-        console.log("facet undefined")
         // Create a new facet
         switch (backendFacet.type) {
           case "label":
@@ -176,10 +174,40 @@ export default class FacetedFiltering extends Vue {
             this.facetsIndexes.set(newNumericFacet.iri, this.facets.length);
 
             this.facets.push(newNumericFacet);
-            break;
         }
       } else {
-        console.log("facet already defined")
+        // Update facet
+        let existingFacet = this.facets[this.facetsIndexes.get(backendFacet.iri)];
+
+        switch (existingFacet.type) {
+          case "label":
+            for (const item of backendFacet.items) {
+              if (existingFacet.index.get(item.value) === undefined) {
+                existingFacet.index.set(item.value, [item.nodeIRI]);
+
+                existingFacet.values.displayLabels.push(item.value);
+              } else {
+                existingFacet.index.get(item.value).push(item.nodeIRI);
+              }
+            }
+            break;
+
+          case "numeric":
+            for (const item of backendFacet.items) {
+              if (Number(item.value) < existingFacet.values.minPossible) {
+                existingFacet.values.minPossible = item.value;
+
+                Vue.set(existingFacet.values.selectedRange, 0, item.value);
+              }
+
+              if (Number(item.value) > existingFacet.values.maxPossible) {
+                existingFacet.values.maxPossible = item.value;
+
+                Vue.set(existingFacet.values.selectedRange, 1, item.value);
+              }
+              existingFacet.index.push(item);
+            }
+        }
       }
     }
   }
@@ -258,7 +286,7 @@ export default class FacetedFiltering extends Vue {
       if (!filteringSets[filteringSets.length - 1].has(nodeIRI)) {
         this.graph.nodes[nodeIRI].visible = false;
 
-        if (this.graph.nodes[nodeIRI].belongsToGroup != null){
+        if (this.graph.nodes[nodeIRI].belongsToGroup != null) {
           this.manipulator.leaveGroup([this.graph.nodes[nodeIRI]], this.graph.nodes[nodeIRI].belongsToGroup)
         }
       }
