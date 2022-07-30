@@ -9,6 +9,10 @@ export class DynamicallyGeneratedFacets {
 
     }
 
+    static updateDynamicFacetsUponDeletion(deletedNode, facets) {
+
+    }
+
     static findOrUpdateDynamicFacets(node, facets) {
 // DynamicallyGeneratedFacets.findOrUpdateCountEdgesTypesFacets(1,2)
     }

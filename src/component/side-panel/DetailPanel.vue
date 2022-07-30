@@ -110,7 +110,7 @@
 
         <template v-slot:actions>
             <panel-action-button
-                    @click="node.remove()"
+                    @click="removeNode"
                     danger
                     :icon="icons.remove"
                     :text="$tc('side_panel.remove', 1)"
@@ -200,13 +200,6 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
 
     currentViewIRI: string = null;
 
-    async expand(view) {
-      let expansion = await this.areaManipulator.expandNode(view);
-
-      this.$root.$emit('expansion', [this.node, expansion.getNodes()]);
-      // this.facetedFiltering.findOrUpdateAllFacetsAfterExpansion(this.node, expansion.getNodes());
-    }
-
     /**
      * Returns classes list with deterministic color based on name.
      *
@@ -243,6 +236,18 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
 
     mounted() {
         this.nodeChanged();
+    }
+
+  async expand(view) {
+    let expansion = await this.areaManipulator.expandNode(view);
+
+    this.$root.$emit('facetExpansion', [this.node, expansion.getNodes()]);
+  }
+
+    removeNode() {
+      this.$root.$emit('facetDeletion', this.node);
+
+      this.node.remove()
     }
 
     /**

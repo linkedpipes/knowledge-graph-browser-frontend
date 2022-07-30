@@ -89,8 +89,12 @@ export default class FacetedFiltering extends Vue {
   async mounted() {
     await this.loadAndFindInitialFacets();
 
-    this.$root.$on('expansion', data => {
+    this.$root.$on('facetExpansion', data => {
       this.findOrUpdateFacetsAfterExpansion(data[0], data[1]);
+    });
+
+    this.$root.$on('facetDeletion', deletedNode => {
+      this.updateFacetsUponDeletion(deletedNode);
     });
   }
 
@@ -102,10 +106,22 @@ export default class FacetedFiltering extends Vue {
     DynamicallyGeneratedFacets.findOrUpdateInitialDynamicFacets(this.graph.nodes, this.facets);
   }
 
-  async loadOrUpdateConfigurationFacets(nodesIRIs: string[]) {
-    let response = await this.remoteServer.getFacetsItems(this.configuration.iri, nodesIRIs);
+  findOrUpdateFacetsAfterExpansion(sourceNode, addedNodes) {
+    let addedNodesIRIs = [];
 
-    for (const backendFacet of response.facetsItems) {
+    for (const addedNode of addedNodes) {
+      addedNodesIRIs.push(addedNode.IRI);
+    }
+
+    this.loadOrUpdateConfigurationFacets(addedNodesIRIs);
+
+    DynamicallyGeneratedFacets.findOrUpdateDynamicFacetsAfterExpansion(sourceNode, addedNodes, this.facets);
+  }
+
+  async loadOrUpdateConfigurationFacets(nodesIRIs: string[]) {
+    let serverResponse = await this.remoteServer.getFacetsItems(this.configuration.iri, nodesIRIs);
+
+    for (const backendFacet of serverResponse.facetsItems) {
       // Check whether the facet needs to be created
       if (this.facetsIndexes.get(backendFacet.iri) === undefined) {
         // Create a new facet
@@ -212,16 +228,32 @@ export default class FacetedFiltering extends Vue {
     }
   }
 
-  findOrUpdateFacetsAfterExpansion(sourceNode, addedNodes) {
-    let addedNodesIRIs = [];
+  updateFacetsUponDeletion(deletedNode) {
+    for (const facet of this.facets) {
+      switch (facet.type) {
+        case "label":
+          for (const label of facet.index.keys()) {
+            const filteredIRIs = facet.index.get(label).filter(iri => iri != deletedNode.IRI);
 
-    for (const addedNode of addedNodes) {
-      addedNodesIRIs.push(addedNode.IRI);
+            facet.index.set(label, filteredIRIs);
+
+            if (filteredIRIs.length == 0) {
+              const filteredDisplayLabels = facet.values.displayLabels.filter(displayLabel => displayLabel != label);
+              facet.values.displayLabels = filteredDisplayLabels;
+
+              const filteredSelectedLabels = facet.values.selectedLabels.filter(selectedLabel => selectedLabel != label);
+              facet.values.selectedLabels = filteredSelectedLabels;
+            }
+          }
+
+          break;
+
+        case "numeric":
+
+      }
     }
 
-    this.loadOrUpdateConfigurationFacets(addedNodesIRIs);
-
-    DynamicallyGeneratedFacets.findOrUpdateDynamicFacetsAfterExpansion(sourceNode, addedNodes, this.facets);
+    DynamicallyGeneratedFacets.updateDynamicFacetsUponDeletion(deletedNode, this.facets);
   }
 
   // Filter currently loaded nodes based on facet values
@@ -311,77 +343,6 @@ export default class FacetedFiltering extends Vue {
     }
 
     this.makeAllNodesVisible();
-  }
-
-  // Transforms facets received from the server so that they
-  // can be displayed, and creates indexes for filtering
-  transformConfigurationFacets(backendFacets) {
-    let transformedFacets = []
-
-    for (const backendFacet of backendFacets) {
-      switch (backendFacet.type) {
-        case "label":
-          var newLabelFacet = {
-            title: backendFacet.title,
-            type: backendFacet.type,
-            description: backendFacet.description,
-            values: {
-              displayLabels: [],
-              selectedLabels: []
-            },
-            index: new Map()
-          };
-
-          for (const item of backendFacet.items) {
-            if (newLabelFacet.index.get(item.value) == undefined) {
-              newLabelFacet.index.set(item.value, [item.nodeIRI]);
-            } else {
-              newLabelFacet.index.get(item.value).push(item.nodeIRI);
-            }
-          }
-
-          newLabelFacet.values.displayLabels = Array.from(newLabelFacet.index.keys());
-
-          transformedFacets.push(newLabelFacet);
-          break;
-
-        case "numeric":
-          const newNumericFacet = {
-            title: backendFacet.title,
-            type: backendFacet.type,
-            description: backendFacet.description,
-            values: {
-              minPossible: Number.NaN,
-              maxPossible: Number.NaN,
-              selectedRange: [Number.NaN, Number.NaN]
-            },
-            index: []
-          };
-
-          var localMin = Number.MAX_VALUE;
-          var localMax = Number.MIN_VALUE;
-
-          for (const item of backendFacet.items) {
-            if (Number(item.value) < localMin) {
-              localMin = item.value;
-            }
-
-            if (Number(item.value) > localMax) {
-              localMax = item.value;
-            }
-          }
-
-          newNumericFacet.values.minPossible = localMin;
-          newNumericFacet.values.maxPossible = localMax;
-          newNumericFacet.values.selectedRange = [localMin, localMax];
-
-          newNumericFacet.index = backendFacet.items;
-
-          transformedFacets.push(newNumericFacet);
-          break;
-      }
-    }
-    return transformedFacets;
   }
 }
 </script>
