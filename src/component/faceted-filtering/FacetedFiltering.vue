@@ -249,7 +249,51 @@ export default class FacetedFiltering extends Vue {
           break;
 
         case "numeric":
+          const newIndexArray = [];
 
+          let deletedNodeValue = null;
+
+          for (const indexItem of facet.index) {
+            if (indexItem.nodeIRI != deletedNode.IRI) {
+              newIndexArray.push(indexItem);
+            } else {
+              deletedNodeValue = indexItem.value;
+            }
+          }
+
+          facet.index = newIndexArray;
+
+          if (deletedNodeValue == facet.values.minPossible) {
+            let newMin = Number.MAX_VALUE;
+
+            for (const indexItem of facet.index) {
+              if (indexItem.value < newMin) {
+                newMin = indexItem.value;
+              }
+            }
+
+            facet.values.minPossible = newMin;
+
+            if (facet.values.selectedRange[0] < newMin) {
+              Vue.set(facet.values.selectedRange, 0, newMin);
+            }
+          }
+
+          if (deletedNodeValue == facet.values.maxPossible) {
+            let newMax = Number.MIN_VALUE;
+
+            for (const indexItem of facet.index) {
+              if (indexItem.value > newMax) {
+                newMax = indexItem.value;
+              }
+            }
+
+            facet.values.maxPossible = newMax;
+
+            if (facet.values.selectedRange[1] > newMax) {
+              Vue.set(facet.values.selectedRange, 1, newMax)
+            }
+          }
       }
     }
 
