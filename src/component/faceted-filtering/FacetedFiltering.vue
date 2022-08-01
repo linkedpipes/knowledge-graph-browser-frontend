@@ -211,16 +211,25 @@ export default class FacetedFiltering extends Vue {
           case "numeric":
             for (const item of backendFacet.items) {
               if (Number(item.value) < existingFacet.values.minPossible) {
-                existingFacet.values.minPossible = item.value;
+                if (existingFacet.values.selectedRange[0] == existingFacet.values.minPossible) {
+                  existingFacet.values.minPossible = item.value;
 
-                Vue.set(existingFacet.values.selectedRange, 0, item.value);
+                  Vue.set(existingFacet.values.selectedRange, 0, item.value);
+                } else {
+                  existingFacet.values.minPossible = item.value;
+                }
               }
 
               if (Number(item.value) > existingFacet.values.maxPossible) {
-                existingFacet.values.maxPossible = item.value;
+                if (existingFacet.values.selectedRange[1] == existingFacet.values.maxPossible) {
+                  existingFacet.values.maxPossible = item.value;
 
-                Vue.set(existingFacet.values.selectedRange, 1, item.value);
+                  Vue.set(existingFacet.values.selectedRange, 1, item.value);
+                } else {
+                  existingFacet.values.maxPossible = item.value;
+                }
               }
+
               existingFacet.index.push(item);
             }
         }
