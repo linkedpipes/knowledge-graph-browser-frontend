@@ -128,7 +128,7 @@ export default class FacetedFiltering extends Vue {
         switch (backendFacet.type) {
           case "label":
             var newLabelFacet = {
-              iri: backendFacet.iri,
+              id: backendFacet.iri,
               title: backendFacet.title,
               type: backendFacet.type,
               description: backendFacet.description,
@@ -149,14 +149,14 @@ export default class FacetedFiltering extends Vue {
 
             newLabelFacet.values.displayLabels = Array.from(newLabelFacet.index.keys());
 
-            this.facetsIndexes.set(newLabelFacet.iri, this.facets.length);
+            this.facetsIndexes.set(newLabelFacet.id, this.facets.length);
 
             this.facets.push(newLabelFacet);
             break;
 
           case "numeric":
             const newNumericFacet = {
-              iri: backendFacet.iri,
+              id: backendFacet.iri,
               title: backendFacet.title,
               type: backendFacet.type,
               description: backendFacet.description,
@@ -187,7 +187,7 @@ export default class FacetedFiltering extends Vue {
 
             newNumericFacet.index = backendFacet.items;
 
-            this.facetsIndexes.set(newNumericFacet.iri, this.facets.length);
+            this.facetsIndexes.set(newNumericFacet.id, this.facets.length);
 
             this.facets.push(newNumericFacet);
         }
@@ -252,7 +252,15 @@ export default class FacetedFiltering extends Vue {
 
               const filteredSelectedLabels = facet.values.selectedLabels.filter(selectedLabel => selectedLabel != label);
               facet.values.selectedLabels = filteredSelectedLabels;
+
+              facet.index.delete(label);
             }
+          }
+
+          if (facet.index.size == 0) {
+            const filteredFacets = this.facets.filter(filteredFacet => filteredFacet.id != facet.id);
+
+            this.facets = filteredFacets;
           }
 
           break;
@@ -302,6 +310,12 @@ export default class FacetedFiltering extends Vue {
             if (facet.values.selectedRange[1] > newMax) {
               Vue.set(facet.values.selectedRange, 1, newMax)
             }
+          }
+
+          if (facet.index.length == 0) {
+            const filteredFacets = this.facets.filter(filteredFacet => filteredFacet.id != facet.id);
+
+            this.facets = filteredFacets;
           }
       }
     }
