@@ -208,6 +208,16 @@
               Reset
             </v-btn>
           </v-row>
+
+          <v-btn
+              @click="$refs.facetedFiltering.settingsClicked()"
+              style="margin-top: 15px; margin-left: 15px; font-size: 0.8em;"
+              height="35"
+              width="269"
+              color="primary"
+          >
+            settings
+          </v-btn>
         </template>
 
       </v-navigation-drawer>

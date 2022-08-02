@@ -392,6 +392,8 @@ export default class FacetedFiltering extends Vue {
     }
   }
 
+  settingsClicked() {}
+
   makeAllNodesVisible() {
     // Set all nodes' visibility property to true
     for (const nodeIRI in this.graph.nodes) {
