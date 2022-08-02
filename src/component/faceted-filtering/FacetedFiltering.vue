@@ -203,7 +203,9 @@ export default class FacetedFiltering extends Vue {
 
                 existingFacet.values.displayLabels.push(item.value);
               } else {
-                existingFacet.index.get(item.value).push(item.nodeIRI);
+                if (!existingFacet.index.get(item.value).includes(item.nodeIRI)) {
+                  existingFacet.index.get(item.value).push(item.nodeIRI);
+                }
               }
             }
             break;
@@ -230,7 +232,17 @@ export default class FacetedFiltering extends Vue {
                 }
               }
 
-              existingFacet.index.push(item);
+              var itemAlreadyPresent = false;
+
+              for (const indexItem of existingFacet.index) {
+                if (indexItem.nodeIRI == item.nodeIRI) {
+                  itemAlreadyPresent = true;
+                }
+              }
+
+              if (!itemAlreadyPresent) {
+                existingFacet.index.push(item);
+              }
             }
         }
       }
