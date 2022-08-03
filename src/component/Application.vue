@@ -64,17 +64,6 @@
                   </v-list-item-content>
                 </v-list-item>
 
-                <v-list-item link @click="$refs.filterDialog.show()">
-                  <v-list-item-icon>
-                    <v-badge overlap :value="filter.active" :content="filter.active">
-                      <v-icon>{{ icons.filter }}</v-icon>
-                    </v-badge>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{ $t("menu.filter") }}</v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-
                 <v-list-item link @click="$refs.viewOptionsDialog.show()">
                   <v-list-item-icon>
                     <v-badge dot :value="viewOptions.active">
@@ -237,11 +226,6 @@
         :graph="graph"
         :manipulator="manipulator"
         :graph-searcher="graphSearcher"
-    />
-    <filter-dialog
-        ref="filterDialog"
-        :graph="graph"
-        :filter="filter"
     />
     <save-dialog
         ref="saveDialog"

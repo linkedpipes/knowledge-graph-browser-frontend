@@ -2,7 +2,7 @@
   <div id="rootElement">
     <v-list dense>
       <v-list-item v-for="(facet, index) in facets" :key="index">
-        <v-list-item-content>
+        <v-list-item-content v-if="facet != undefined">
           <v-list-item-title class="facetTitle">
             {{ facet.title }}
           </v-list-item-title>
@@ -87,6 +87,10 @@ export default class FacetedFiltering extends Vue {
   facetsIndexes = new Map<String, number>();
 
   async mounted() {
+    DynamicallyGeneratedFacets.setFacets(this.facets);
+
+    DynamicallyGeneratedFacets.setFacetsIndexes(this.facetsIndexes);
+
     await this.loadAndFindInitialFacets();
 
     this.$root.$on('facetExpansion', data => {
@@ -101,9 +105,13 @@ export default class FacetedFiltering extends Vue {
   async loadAndFindInitialFacets() {
     await this.loadOrUpdateConfigurationFacets(Object.keys(this.graph.nodes));
 
-    // DynamicallyGeneratedFacets.setFacets(this.facets);
+    const nodesArray = [];
 
-    DynamicallyGeneratedFacets.findOrUpdateInitialDynamicFacets(this.graph.nodes, this.facets);
+    for (const nodeIRI in this.graph.nodes) {
+      nodesArray.push(this.graph.nodes[nodeIRI]);
+    }
+
+    DynamicallyGeneratedFacets.findOrUpdateInitialDynamicFacets(nodesArray);
   }
 
   findOrUpdateFacetsAfterExpansion(sourceNode, addedNodes) {
@@ -115,7 +123,7 @@ export default class FacetedFiltering extends Vue {
 
     this.loadOrUpdateConfigurationFacets(addedNodesIRIs);
 
-    DynamicallyGeneratedFacets.findOrUpdateDynamicFacetsAfterExpansion(sourceNode, addedNodes, this.facets);
+    DynamicallyGeneratedFacets.findOrUpdateDynamicFacetsAfterExpansion(sourceNode, addedNodes);
   }
 
   async loadOrUpdateConfigurationFacets(nodesIRIs: string[]) {
@@ -251,6 +259,11 @@ export default class FacetedFiltering extends Vue {
 
   updateFacetsUponDeletion(deletedNode) {
     for (const facet of this.facets) {
+      // Skip a facet which is marked as deleted
+      if (facet === undefined) {
+        continue;
+      }
+
       switch (facet.type) {
         case "label":
           for (const label of facet.index.keys()) {
@@ -270,9 +283,8 @@ export default class FacetedFiltering extends Vue {
           }
 
           if (facet.index.size == 0) {
-            const filteredFacets = this.facets.filter(filteredFacet => filteredFacet.id != facet.id);
-
-            this.facets = filteredFacets;
+            // Mark empty facet
+            this.facets[this.facetsIndexes.get(facet.id)] = undefined;
           }
 
           break;
@@ -325,14 +337,11 @@ export default class FacetedFiltering extends Vue {
           }
 
           if (facet.index.length == 0) {
-            const filteredFacets = this.facets.filter(filteredFacet => filteredFacet.id != facet.id);
-
-            this.facets = filteredFacets;
+            // Mark empty facet
+            this.facets[this.facetsIndexes.get(facet.id)] = undefined;
           }
       }
     }
-
-    DynamicallyGeneratedFacets.updateDynamicFacetsUponDeletion(deletedNode, this.facets);
   }
 
   // Filter currently loaded nodes based on facet values
@@ -344,6 +353,11 @@ export default class FacetedFiltering extends Vue {
     let filteringSets = [];
 
     for (const facet of this.facets) {
+      // Skip a facet which is marked as deleted
+      if (facet === undefined) {
+        continue;
+      }
+
       // Skip an unused label facet
       if (facet.type == "label" && facet.values.selectedLabels.length == 0) {
         continue;
@@ -416,6 +430,11 @@ export default class FacetedFiltering extends Vue {
   resetFiltering() {
     // Uncheck checkboxes and reset sliders' selected ranges
     for (const facet of this.facets) {
+      // Skip a facet which is marked as deleted
+      if (facet === undefined) {
+        continue;
+      }
+
       if (facet.type == "label") {
         facet.values.selectedLabels.splice(0);
       } else {

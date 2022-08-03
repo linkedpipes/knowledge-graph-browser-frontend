@@ -13,10 +13,10 @@ export default class DynamicallyGeneratedFacets extends Vue {
   loadDynamicFacets() {
     let dynamicFacets = new Map();
 
-    // Create a facet for filtering by
-    // types of nodes
+    // Create a facet for filtering by types of nodes
     const typeFacet = {
       title: "Type of node",
+
       type: "label",
       description: "Filters nodes by their types.",
       values: {
