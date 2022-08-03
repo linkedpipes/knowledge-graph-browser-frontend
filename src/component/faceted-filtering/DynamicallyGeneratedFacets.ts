@@ -6,21 +6,27 @@ export class DynamicallyGeneratedFacets {
 
     static findOrUpdateInitialDynamicFacets(nodes) {
         for (const node of nodes) {
-            DynamicallyGeneratedFacets.findOrUpdateDynamicFacets(node);
+            DynamicallyGeneratedFacets.createOrUpdateTypeFacet(node);
+
+            DynamicallyGeneratedFacets.findOrUpdateDFSLabelFacets(node);
+
+            DynamicallyGeneratedFacets.createOrUpdateTotalNumOfEdgesFacet(node);
         }
     }
 
     static findOrUpdateDynamicFacetsAfterExpansion(sourceNode, addedNodes) {
+        // DFS facety pre source a vsetkych jeho susedov - podla nastavenia do akej hlbky sa maju facety hladat
+
+        DynamicallyGeneratedFacets.createOrUpdateTotalNumOfEdgesFacet(sourceNode);
+
         for (const addedNode of addedNodes) {
-            DynamicallyGeneratedFacets.findOrUpdateDynamicFacets(addedNode);
+            DynamicallyGeneratedFacets.createOrUpdateTypeFacet(addedNode);
+
+            DynamicallyGeneratedFacets.createOrUpdateTotalNumOfEdgesFacet(addedNode);
         }
     }
 
-    static findOrUpdateDynamicFacets(node) {
-        DynamicallyGeneratedFacets.createOrUpdateTypeFacet(node);
-    }
-
-    static findOrUpdateDFSLabelFacets(node, facets) {
+    static findOrUpdateDFSLabelFacets(node) {
 
     }
 
@@ -28,7 +34,65 @@ export class DynamicallyGeneratedFacets {
 
     }
 
-    static findOrUpdateNumOfEdgesFacet(node, facets) {
+    // Creates or updates a facet to filter by number of edges
+    static createOrUpdateTotalNumOfEdgesFacet(node) {
+        if (this.facetsIndexes.get("totalNumOfEdgesFacetID") === undefined) {
+            const numOfEdgesFacet = {
+                id: "totalNumOfEdgesFacetID",
+                title: "Number of edges",
+                type: "numeric",
+                description: "Facet to filter by number of edges of a node.",
+                values: {
+                    minPossible: Number.MAX_VALUE,
+                    maxPossible: Number.MIN_VALUE,
+                    selectedRange: [Number.MIN_VALUE, Number.MAX_VALUE]
+                },
+                index: []
+            };
+
+            this.facetsIndexes.set(numOfEdgesFacet.id, this.facets.length);
+
+            this.facets.push(numOfEdgesFacet);
+        }
+
+        const numOfEdgesFacet = this.facets[this.facetsIndexes.get("totalNumOfEdgesFacetID")];
+
+        const numOfEdges = node.connectedEdges.length;
+
+        let itemFound = false;
+
+        for (let item of numOfEdgesFacet.index) {
+            if (item.nodeIRI === node.IRI) {
+                item.value = numOfEdges;
+
+                itemFound = true;
+                break;
+            }
+        }
+
+        if (!itemFound) {
+            numOfEdgesFacet.index.push({
+                nodeIRI: node.IRI,
+                value: numOfEdges
+            });
+        }
+
+        if (numOfEdges < numOfEdgesFacet.values.minPossible) {
+            numOfEdgesFacet.values.minPossible = numOfEdges;
+            numOfEdgesFacet.values.selectedRange[0] = numOfEdges;
+        }
+
+        if (numOfEdges > numOfEdgesFacet.values.maxPossible) {
+            numOfEdgesFacet.values.maxPossible = numOfEdges;
+            numOfEdgesFacet.values.selectedRange[1] = numOfEdges;
+        }
+    }
+
+    static findOrUpdateNumOfIncomingEdgesFacet(node) {
+
+    }
+
+    static findOrUpdateNumOfOutgoingEdgesFacet(node) {
 
     }
 
