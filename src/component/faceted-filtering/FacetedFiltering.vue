@@ -293,9 +293,13 @@ export default class FacetedFiltering extends Vue {
         case "numeric":
           const newIndexArray = [];
 
+          let deletedNodeValue = Number.NaN;
+
           for (const indexItem of facet.index) {
             if (indexItem.nodeIRI != deletedNode.IRI) {
               newIndexArray.push(indexItem);
+            } else {
+              deletedNodeValue = indexItem.value;
             }
           }
 
@@ -304,34 +308,37 @@ export default class FacetedFiltering extends Vue {
           DynamicallyGeneratedFacets.updateDynamicFacetsUponDeletion(deletedNode);
 
           // Find possibly new facet extrema
-          let newMin = Number.MAX_VALUE;
+          if (deletedNodeValue === facet.values.minPossible) {
+            let newMin = Number.MAX_VALUE;
 
-          for (const indexItem of facet.index) {
-            if (indexItem.value < newMin) {
-              newMin = indexItem.value;
+            for (const indexItem of facet.index) {
+              if (indexItem.value < newMin) {
+                newMin = indexItem.value;
+              }
+            }
+
+            facet.values.minPossible = newMin;
+
+            if (facet.values.selectedRange[0] < newMin) {
+              Vue.set(facet.values.selectedRange, 0, newMin);
             }
           }
 
-          facet.values.minPossible = newMin;
+          if (deletedNodeValue === facet.values.maxPossible) {
+            let newMax = Number.MIN_VALUE;
 
-          if (facet.values.selectedRange[0] < newMin) {
-            Vue.set(facet.values.selectedRange, 0, newMin);
-          }
+            for (const indexItem of facet.index) {
+              if (indexItem.value > newMax) {
+                newMax = indexItem.value;
+              }
+            }
 
-          let newMax = Number.MIN_VALUE;
+            facet.values.maxPossible = newMax;
 
-          for (const indexItem of facet.index) {
-            if (indexItem.value > newMax) {
-              newMax = indexItem.value;
+            if (facet.values.selectedRange[1] > newMax) {
+              Vue.set(facet.values.selectedRange, 1, newMax)
             }
           }
-
-          facet.values.maxPossible = newMax;
-
-          if (facet.values.selectedRange[1] > newMax) {
-            Vue.set(facet.values.selectedRange, 1, newMax)
-          }
-
 
           if (facet.index.length == 0) {
             // Mark empty facet
