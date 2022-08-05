@@ -313,10 +313,10 @@ export default class FacetedFiltering extends Vue {
           }
 
           facet.values.minPossible = newMin;
-          Vue.set(facet.values.selectedRange, 0, newMin);
-          // if (facet.values.selectedRange[0] < newMin) {
-          //   Vue.set(facet.values.selectedRange, 0, newMin);
-          // }
+
+          if (facet.values.selectedRange[0] < newMin) {
+            Vue.set(facet.values.selectedRange, 0, newMin);
+          }
 
           let newMax = Number.MIN_VALUE;
 
@@ -327,10 +327,10 @@ export default class FacetedFiltering extends Vue {
           }
 
           facet.values.maxPossible = newMax;
-          Vue.set(facet.values.selectedRange, 1, newMax)
-          // if (facet.values.selectedRange[1] > newMax) {
-          //   Vue.set(facet.values.selectedRange, 1, newMax)
-          // }
+
+          if (facet.values.selectedRange[1] > newMax) {
+            Vue.set(facet.values.selectedRange, 1, newMax)
+          }
 
 
           if (facet.index.length == 0) {
