@@ -1,3 +1,5 @@
+import Vue from 'vue'
+
 export class DynamicallyGeneratedFacets {
     static facets;
 
@@ -23,6 +25,15 @@ export class DynamicallyGeneratedFacets {
             DynamicallyGeneratedFacets.createOrUpdateTypeFacet(addedNode);
 
             DynamicallyGeneratedFacets.createOrUpdateTotalNumOfEdgesFacet(addedNode);
+        }
+    }
+
+    static updateDynamicFacetsUponDeletion(deletedNode) {
+        //  Update facet values for deleted node's neighbours
+        for (const edge of deletedNode.connectedEdges) {
+            const neighbour = edge.otherNode;
+
+            DynamicallyGeneratedFacets.createOrUpdateTotalNumOfEdgesFacet(neighbour);
         }
     }
 
@@ -79,12 +90,12 @@ export class DynamicallyGeneratedFacets {
 
         if (numOfEdges < numOfEdgesFacet.values.minPossible) {
             numOfEdgesFacet.values.minPossible = numOfEdges;
-            numOfEdgesFacet.values.selectedRange[0] = numOfEdges;
+            Vue.set(numOfEdgesFacet.values.selectedRange, 0, numOfEdges)
         }
 
         if (numOfEdges > numOfEdgesFacet.values.maxPossible) {
             numOfEdgesFacet.values.maxPossible = numOfEdges;
-            numOfEdgesFacet.values.selectedRange[1] = numOfEdges;
+            Vue.set(numOfEdgesFacet.values.selectedRange, 1, numOfEdges)
         }
     }
 

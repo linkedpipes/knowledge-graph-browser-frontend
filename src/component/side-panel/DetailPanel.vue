@@ -245,9 +245,9 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
   }
 
     removeNode() {
-      this.$root.$emit('facetDeletion', this.node);
-
       this.node.remove()
+
+      this.$root.$emit('facetDeletion', this.node);
     }
 
     /**

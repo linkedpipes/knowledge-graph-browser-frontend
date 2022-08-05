@@ -258,6 +258,7 @@ export default class FacetedFiltering extends Vue {
   }
 
   updateFacetsUponDeletion(deletedNode) {
+    // Remove deleted node from facets' indexes
     for (const facet of this.facets) {
       // Skip a facet which is marked as deleted
       if (facet === undefined) {
@@ -292,49 +293,45 @@ export default class FacetedFiltering extends Vue {
         case "numeric":
           const newIndexArray = [];
 
-          let deletedNodeValue = null;
-
           for (const indexItem of facet.index) {
             if (indexItem.nodeIRI != deletedNode.IRI) {
               newIndexArray.push(indexItem);
-            } else {
-              deletedNodeValue = indexItem.value;
             }
           }
 
           facet.index = newIndexArray;
 
-          if (deletedNodeValue == facet.values.minPossible) {
-            let newMin = Number.MAX_VALUE;
+          DynamicallyGeneratedFacets.updateDynamicFacetsUponDeletion(deletedNode);
 
-            for (const indexItem of facet.index) {
-              if (indexItem.value < newMin) {
-                newMin = indexItem.value;
-              }
-            }
+          // Find possibly new facet extrema
+          let newMin = Number.MAX_VALUE;
 
-            facet.values.minPossible = newMin;
-
-            if (facet.values.selectedRange[0] < newMin) {
-              Vue.set(facet.values.selectedRange, 0, newMin);
+          for (const indexItem of facet.index) {
+            if (indexItem.value < newMin) {
+              newMin = indexItem.value;
             }
           }
 
-          if (deletedNodeValue == facet.values.maxPossible) {
-            let newMax = Number.MIN_VALUE;
+          facet.values.minPossible = newMin;
+          Vue.set(facet.values.selectedRange, 0, newMin);
+          // if (facet.values.selectedRange[0] < newMin) {
+          //   Vue.set(facet.values.selectedRange, 0, newMin);
+          // }
 
-            for (const indexItem of facet.index) {
-              if (indexItem.value > newMax) {
-                newMax = indexItem.value;
-              }
-            }
+          let newMax = Number.MIN_VALUE;
 
-            facet.values.maxPossible = newMax;
-
-            if (facet.values.selectedRange[1] > newMax) {
-              Vue.set(facet.values.selectedRange, 1, newMax)
+          for (const indexItem of facet.index) {
+            if (indexItem.value > newMax) {
+              newMax = indexItem.value;
             }
           }
+
+          facet.values.maxPossible = newMax;
+          Vue.set(facet.values.selectedRange, 1, newMax)
+          // if (facet.values.selectedRange[1] > newMax) {
+          //   Vue.set(facet.values.selectedRange, 1, newMax)
+          // }
+
 
           if (facet.index.length == 0) {
             // Mark empty facet
