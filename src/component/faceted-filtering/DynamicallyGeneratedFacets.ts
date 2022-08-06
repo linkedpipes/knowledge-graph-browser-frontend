@@ -35,6 +35,40 @@ export class DynamicallyGeneratedFacets {
 
             DynamicallyGeneratedFacets.createOrUpdateTotalNumOfEdgesFacet(neighbour);
         }
+
+        DynamicallyGeneratedFacets.findNewExtremaForNumericFacets();
+    }
+
+    // Finds possibly new facet extrema
+    static findNewExtremaForNumericFacets() {
+        for (const facet of this.facets) {
+            if (facet.type == "numeric") {
+                let newMin = Number.MAX_VALUE;
+                let newMax = Number.MIN_VALUE;
+
+                for (const indexItem of facet.index) {
+                    if (indexItem.value < newMin) {
+                        newMin = indexItem.value;
+                    }
+
+                    if (indexItem.value > newMax) {
+                        newMax = indexItem.value;
+                    }
+                }
+
+                facet.values.minPossible = newMin;
+
+                if (facet.values.selectedRange[0] < newMin) {
+                    Vue.set(facet.values.selectedRange, 0, newMin);
+                }
+
+                facet.values.maxPossible = newMax;
+
+                if (facet.values.selectedRange[1] > newMax) {
+                    Vue.set(facet.values.selectedRange, 1, newMax)
+                }
+            }
+        }
     }
 
     static findOrUpdateDFSLabelFacets(node) {
