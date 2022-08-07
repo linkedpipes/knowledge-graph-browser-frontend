@@ -6,25 +6,25 @@ export class DynamicallyGeneratedFacets {
     static facetsIndexes;
 
 
-    static findOrUpdateInitialDynamicFacets(nodes) {
+    static updateInitialDynamicFacets(nodes) {
         for (const node of nodes) {
             DynamicallyGeneratedFacets.createOrUpdateTypeFacet(node);
 
-            DynamicallyGeneratedFacets.findOrUpdateDFSLabelFacets(node);
+            DynamicallyGeneratedFacets.updateDFSLabelFacets(node);
 
-            DynamicallyGeneratedFacets.createOrUpdateTotalNumOfEdgesFacet(node);
+            DynamicallyGeneratedFacets.updateEdgesFacets(node);
         }
     }
 
-    static findOrUpdateDynamicFacetsAfterExpansion(sourceNode, addedNodes) {
+    static updateDynamicFacetsAfterExpansion(sourceNode, addedNodes) {
         // DFS facety pre source a vsetkych jeho susedov - podla nastavenia do akej hlbky sa maju facety hladat
 
-        DynamicallyGeneratedFacets.createOrUpdateTotalNumOfEdgesFacet(sourceNode);
+        DynamicallyGeneratedFacets.updateEdgesFacets(sourceNode);
 
         for (const addedNode of addedNodes) {
             DynamicallyGeneratedFacets.createOrUpdateTypeFacet(addedNode);
 
-            DynamicallyGeneratedFacets.createOrUpdateTotalNumOfEdgesFacet(addedNode);
+            DynamicallyGeneratedFacets.updateEdgesFacets(addedNode);
         }
     }
 
@@ -33,13 +33,13 @@ export class DynamicallyGeneratedFacets {
         for (const edge of deletedNode.connectedEdges) {
             const neighbour = edge.otherNode;
 
-            DynamicallyGeneratedFacets.createOrUpdateTotalNumOfEdgesFacet(neighbour);
+            DynamicallyGeneratedFacets.updateEdgesFacets(neighbour);
         }
 
         DynamicallyGeneratedFacets.findNewExtremaForNumericFacets();
     }
 
-    // Finds possibly new facet extrema
+    // Finds possibly new numeric facet extrema
     static findNewExtremaForNumericFacets() {
         for (const facet of this.facets) {
             if (facet.type == "numeric") {
@@ -71,16 +71,197 @@ export class DynamicallyGeneratedFacets {
         }
     }
 
-    static findOrUpdateDFSLabelFacets(node) {
+    static updateDFSLabelFacets(node) {
 
     }
 
-    static findOrUpdateCountEdgesTypesFacets(node, facets) {
+    // Creates or updates those facets which are concerned with a node's edges.
+    static updateEdgesFacets(node) {
+        DynamicallyGeneratedFacets.updateTotalNumOfEdgesFacet(node);
 
+        if (this.facetsIndexes.get("numOfIncomingEdgesID") === undefined) {
+            // Create a facet to filter by number of incoming edges
+            const numOfIncomingEdgesFacet = {
+                id: "numOfIncomingEdgesID",
+                title: "Number of incoming edges",
+                type: "numeric",
+                description: "Facet to filter by number of incoming edges of a node.",
+                values: {
+                    minPossible: Number.MAX_VALUE,
+                    maxPossible: Number.MIN_VALUE,
+                    selectedRange: [Number.MIN_VALUE, Number.MAX_VALUE]
+                },
+                index: []
+            };
+
+            this.facetsIndexes.set(numOfIncomingEdgesFacet.id, this.facets.length);
+
+            this.facets.push(numOfIncomingEdgesFacet);
+        }
+
+        if (this.facetsIndexes.get("numOfOutgoingEdgesID") === undefined) {
+            // Create a facet to filter by number of outgoing edges
+            const numOfOutgoingEdgesFacet = {
+                id: "numOfOutgoingEdgesID",
+                title: "Number of outgoing edges",
+                type: "numeric",
+                description: "Facet to filter by number of outgoing edges of a node.",
+                values: {
+                    minPossible: Number.MAX_VALUE,
+                    maxPossible: Number.MIN_VALUE,
+                    selectedRange: [Number.MIN_VALUE, Number.MAX_VALUE]
+                },
+                index: []
+            };
+
+            this.facetsIndexes.set(numOfOutgoingEdgesFacet.id, this.facets.length);
+
+            this.facets.push(numOfOutgoingEdgesFacet);
+        }
+
+        // Number of edges of specific types facet
+        // Count occurrences of edge types for node
+        let edgesCounts = new Map();
+
+        let numOfIncomingEdges = 0;
+        let numOfOutgoingEdges = 0;
+
+        for (const edge of node.connectedEdges) {
+            const edgeID = "count " + edge.type.iri + " (" + edge.orientation + ")";
+
+            const currentCount = edgesCounts.get(edgeID) == undefined ? 0 : edgesCounts.get(edgeID).count;
+
+            edgesCounts.set(
+                edgeID,
+                {
+                    label: edge.type.label,
+                    count: currentCount + 1,
+                    orientation: edge.orientation
+                });
+
+            if (edge.orientation == "incoming") {
+                numOfIncomingEdges += 1;
+            } else {
+                numOfOutgoingEdges += 1;
+            }
+        }
+
+        // Create facets or update their indexes
+        // for (const facetID of edgesCounts.keys()) {
+        //     const count = edgesCounts.get(facetID).count;
+        //
+        //     //  Check if the facet is undefined
+        //     const facet = this.facets.get(facetID);
+        //
+        //     if (facet == undefined) {
+        //         //  Create a new facet
+        //         const facetEdge = edgesCounts.get(facetID);
+        //
+        //         const newFacet = {
+        //             title: "count - " + facetEdge.label + " (" + facetEdge.orientation + ")",
+        //             type: "numeric",
+        //             description: "This facet was found dynamically and has no human-defined description.",
+        //             values: {
+        //                 minPossible: count,
+        //                 maxPossible: count,
+        //                 selectedRange: [count, count]
+        //             },
+        //             index: []
+        //         };
+        //
+        //         newFacet.index.push(
+        //             {
+        //                 nodeIRI: node.IRI,
+        //                 value: count
+        //             });
+        //
+        //         this.facets.set(facetID, newFacet);
+        //     } else {
+        //         // Update the facet's extrema
+        //         if (count < facet.values.minPossible) {
+        //             facet.values.minPossible = count;
+        //             facet.values.selectedRange[0] = count;
+        //         }
+        //
+        //         if (count > facet.values.maxPossible) {
+        //             facet.values.maxPossible = count;
+        //             facet.values.selectedRange[1] = count;
+        //         }
+        //
+        //         // Update the facet's index
+        //         facet.index.push(
+        //             {
+        //                 nodeIRI: node.IRI,
+        //                 value: count
+        //             });
+        //     }
+        // }
+
+        // Number of incoming edges facet
+        const numOfIncomingEdgesFacet = this.facets[this.facetsIndexes.get("numOfIncomingEdgesID")];
+
+        let itemFound = false;
+
+        for (let item of numOfIncomingEdgesFacet.index) {
+            if (item.nodeIRI === node.IRI) {
+                item.value = numOfIncomingEdges;
+
+                itemFound = true;
+                break;
+            }
+        }
+
+        if (!itemFound) {
+            numOfIncomingEdgesFacet.index.push({
+                nodeIRI: node.IRI,
+                value: numOfIncomingEdges
+            });
+        }
+
+        if (numOfIncomingEdges < numOfIncomingEdgesFacet.values.minPossible) {
+            numOfIncomingEdgesFacet.values.minPossible = numOfIncomingEdges;
+            Vue.set(numOfIncomingEdgesFacet.values.selectedRange, 0, numOfIncomingEdges)
+        }
+
+        if (numOfIncomingEdges > numOfIncomingEdgesFacet.values.maxPossible) {
+            numOfIncomingEdgesFacet.values.maxPossible = numOfIncomingEdges;
+            Vue.set(numOfIncomingEdgesFacet.values.selectedRange, 1, numOfIncomingEdges)
+        }
+
+        // Number of outgoing edges facet
+        const numOfOutgoingEdgesFacet = this.facets[this.facetsIndexes.get("numOfOutgoingEdgesID")];
+
+        itemFound = false;
+
+        for (let item of numOfOutgoingEdgesFacet.index) {
+            if (item.nodeIRI === node.IRI) {
+                item.value = numOfOutgoingEdges;
+
+                itemFound = true;
+                break;
+            }
+        }
+
+        if (!itemFound) {
+            numOfOutgoingEdgesFacet.index.push({
+                nodeIRI: node.IRI,
+                value: numOfOutgoingEdges
+            });
+        }
+
+        if (numOfOutgoingEdges < numOfOutgoingEdgesFacet.values.minPossible) {
+            numOfOutgoingEdgesFacet.values.minPossible = numOfOutgoingEdges;
+            Vue.set(numOfOutgoingEdgesFacet.values.selectedRange, 0, numOfOutgoingEdges)
+        }
+
+        if (numOfOutgoingEdges > numOfOutgoingEdgesFacet.values.maxPossible) {
+            numOfOutgoingEdgesFacet.values.maxPossible = numOfOutgoingEdges;
+            Vue.set(numOfOutgoingEdgesFacet.values.selectedRange, 1, numOfOutgoingEdges)
+        }
     }
 
     // Creates or updates a facet to filter by number of edges
-    static createOrUpdateTotalNumOfEdgesFacet(node) {
+    static updateTotalNumOfEdgesFacet(node) {
         if (this.facetsIndexes.get("totalNumOfEdgesFacetID") === undefined) {
             const numOfEdgesFacet = {
                 id: "totalNumOfEdgesFacetID",
@@ -131,14 +312,6 @@ export class DynamicallyGeneratedFacets {
             numOfEdgesFacet.values.maxPossible = numOfEdges;
             Vue.set(numOfEdgesFacet.values.selectedRange, 1, numOfEdges)
         }
-    }
-
-    static findOrUpdateNumOfIncomingEdgesFacet(node) {
-
-    }
-
-    static findOrUpdateNumOfOutgoingEdgesFacet(node) {
-
     }
 
     // Creates or updates a facet for filtering by types of nodes

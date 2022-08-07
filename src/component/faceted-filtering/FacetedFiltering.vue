@@ -111,7 +111,7 @@ export default class FacetedFiltering extends Vue {
       nodesArray.push(this.graph.nodes[nodeIRI]);
     }
 
-    DynamicallyGeneratedFacets.findOrUpdateInitialDynamicFacets(nodesArray);
+    DynamicallyGeneratedFacets.updateInitialDynamicFacets(nodesArray);
   }
 
   findOrUpdateFacetsAfterExpansion(sourceNode, addedNodes) {
@@ -123,7 +123,7 @@ export default class FacetedFiltering extends Vue {
 
     this.loadOrUpdateConfigurationFacets(addedNodesIRIs);
 
-    DynamicallyGeneratedFacets.findOrUpdateDynamicFacetsAfterExpansion(sourceNode, addedNodes);
+    DynamicallyGeneratedFacets.updateDynamicFacetsAfterExpansion(sourceNode, addedNodes);
   }
 
   async loadOrUpdateConfigurationFacets(nodesIRIs: string[]) {
