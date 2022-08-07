@@ -147,55 +147,64 @@ export class DynamicallyGeneratedFacets {
         }
 
         // Create facets or update their indexes
-        // for (const facetID of edgesCounts.keys()) {
-        //     const count = edgesCounts.get(facetID).count;
-        //
-        //     //  Check if the facet is undefined
-        //     const facet = this.facets.get(facetID);
-        //
-        //     if (facet == undefined) {
-        //         //  Create a new facet
-        //         const facetEdge = edgesCounts.get(facetID);
-        //
-        //         const newFacet = {
-        //             title: "count - " + facetEdge.label + " (" + facetEdge.orientation + ")",
-        //             type: "numeric",
-        //             description: "This facet was found dynamically and has no human-defined description.",
-        //             values: {
-        //                 minPossible: count,
-        //                 maxPossible: count,
-        //                 selectedRange: [count, count]
-        //             },
-        //             index: []
-        //         };
-        //
-        //         newFacet.index.push(
-        //             {
-        //                 nodeIRI: node.IRI,
-        //                 value: count
-        //             });
-        //
-        //         this.facets.set(facetID, newFacet);
-        //     } else {
-        //         // Update the facet's extrema
-        //         if (count < facet.values.minPossible) {
-        //             facet.values.minPossible = count;
-        //             facet.values.selectedRange[0] = count;
-        //         }
-        //
-        //         if (count > facet.values.maxPossible) {
-        //             facet.values.maxPossible = count;
-        //             facet.values.selectedRange[1] = count;
-        //         }
-        //
-        //         // Update the facet's index
-        //         facet.index.push(
-        //             {
-        //                 nodeIRI: node.IRI,
-        //                 value: count
-        //             });
-        //     }
-        // }
+        for (const facetID of edgesCounts.keys()) {
+            const count = edgesCounts.get(facetID).count;
+
+            //  Check if the facet is undefined
+            if (this.facetsIndexes.get(facetID) == undefined) {
+                //  Create a new facet
+                const facetEdge = edgesCounts.get(facetID);
+
+                const newFacet = {
+                    id: facetID,
+                    title: "count - " + facetEdge.label + " (" + facetEdge.orientation + ")",
+                    type: "numeric",
+                    description: "This facet was found dynamically and has no human-defined description.",
+                    values: {
+                        minPossible: count,
+                        maxPossible: count,
+                        selectedRange: [count, count]
+                    },
+                    index: []
+                };
+
+                this.facetsIndexes.set(newFacet.id, this.facets.length);
+
+                this.facets.push(newFacet);
+            } else {
+                const existingFacet = this.facets[this.facetsIndexes.get(facetID)];
+
+                // Update the facet's index
+                let indexItemFound = false;
+
+                for (let item of existingFacet.index) {
+                    if (item.nodeIRI === node.IRI) {
+                        item.value = count;
+
+                        indexItemFound = true;
+                        break;
+                    }
+                }
+
+                if (!indexItemFound) {
+                    existingFacet.index.push({
+                        nodeIRI: node.IRI,
+                        value: count
+                    });
+                }
+
+                // Update the facet's extrema
+                if (count < existingFacet.values.minPossible) {
+                    existingFacet.values.minPossible = count;
+                    Vue.set(existingFacet.values.selectedRange, 0, count)
+                }
+
+                if (count > existingFacet.values.maxPossible) {
+                    existingFacet.values.maxPossible = count;
+                    Vue.set(existingFacet.values.selectedRange, 1, count)
+                }
+            }
+        }
 
         // Number of incoming edges facet
         const numOfIncomingEdgesFacet = this.facets[this.facetsIndexes.get("numOfIncomingEdgesID")];
