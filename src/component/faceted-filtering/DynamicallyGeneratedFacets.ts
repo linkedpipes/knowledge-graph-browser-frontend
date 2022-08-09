@@ -42,6 +42,10 @@ export class DynamicallyGeneratedFacets {
     // Finds possibly new numeric facet extrema
     static findNewExtremaForNumericFacets() {
         for (const facet of this.facets) {
+            if (facet == undefined) {
+                continue;
+            }
+
             if (facet.type == "numeric") {
                 let newMin = Number.MAX_VALUE;
                 let newMax = Number.MIN_VALUE;
@@ -157,7 +161,7 @@ export class DynamicallyGeneratedFacets {
 
                 const newFacet = {
                     id: facetID,
-                    title: "count - " + facetEdge.label + " (" + facetEdge.orientation + ")",
+                    title: "count - " + facetEdge.label + "(" + facetEdge.orientation + ")",
                     type: "numeric",
                     description: "This facet was found dynamically and has no human-defined description.",
                     values: {
@@ -171,38 +175,38 @@ export class DynamicallyGeneratedFacets {
                 this.facetsIndexes.set(newFacet.id, this.facets.length);
 
                 this.facets.push(newFacet);
-            } else {
-                const existingFacet = this.facets[this.facetsIndexes.get(facetID)];
+            }
 
-                // Update the facet's index
-                let indexItemFound = false;
+            const existingFacet = this.facets[this.facetsIndexes.get(facetID)];
 
-                for (let item of existingFacet.index) {
-                    if (item.nodeIRI === node.IRI) {
-                        item.value = count;
+            // Update the facet's index
+            let indexItemFound = false;
 
-                        indexItemFound = true;
-                        break;
-                    }
+            for (let item of existingFacet.index) {
+                if (item.nodeIRI === node.IRI) {
+                    item.value = count;
+
+                    indexItemFound = true;
+                    break;
                 }
+            }
 
-                if (!indexItemFound) {
-                    existingFacet.index.push({
-                        nodeIRI: node.IRI,
-                        value: count
-                    });
-                }
+            if (!indexItemFound) {
+                existingFacet.index.push({
+                    nodeIRI: node.IRI,
+                    value: count
+                });
+            }
 
-                // Update the facet's extrema
-                if (count < existingFacet.values.minPossible) {
-                    existingFacet.values.minPossible = count;
-                    Vue.set(existingFacet.values.selectedRange, 0, count)
-                }
+            // Update the facet's extrema
+            if (count < existingFacet.values.minPossible) {
+                existingFacet.values.minPossible = count;
+                Vue.set(existingFacet.values.selectedRange, 0, count)
+            }
 
-                if (count > existingFacet.values.maxPossible) {
-                    existingFacet.values.maxPossible = count;
-                    Vue.set(existingFacet.values.selectedRange, 1, count)
-                }
+            if (count > existingFacet.values.maxPossible) {
+                existingFacet.values.maxPossible = count;
+                Vue.set(existingFacet.values.selectedRange, 1, count)
             }
         }
 
