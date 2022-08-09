@@ -5,6 +5,17 @@
         <v-list-item-content v-if="facet != undefined">
           <v-list-item-title class="facetTitle">
             {{ facet.title }}
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <v-icon
+                    v-bind="attrs"
+                    v-on="on"
+                >
+                  {{ icons.info }}
+                </v-icon>
+              </template>
+              <span>{{ facet.description }}</span>
+            </v-tooltip>
           </v-list-item-title>
 
           <template v-if="facet.type === 'label'">
@@ -73,7 +84,9 @@ import Configuration from "@/configurations/Configuration";
 import GraphManipulator from "@/graph/GraphManipulator";
 import {DynamicallyGeneratedFacets} from "@/component/faceted-filtering/DynamicallyGeneratedFacets";
 import Component from "vue-class-component";
-import {Node} from "@/graph/Node";
+import {
+  mdiInformationOutline
+} from "@mdi/js";
 
 @Component
 export default class FacetedFiltering extends Vue {
@@ -81,6 +94,10 @@ export default class FacetedFiltering extends Vue {
   @Prop() configuration: Configuration;
   @Prop() remoteServer: RemoteServer;
   @Prop() manipulator: GraphManipulator;
+
+  icons = {
+    info: mdiInformationOutline
+  };
 
   facets = [];
 
@@ -385,7 +402,8 @@ export default class FacetedFiltering extends Vue {
     }
   }
 
-  settingsClicked() {}
+  settingsClicked() {
+  }
 
   makeAllNodesVisible() {
     // Set all nodes' visibility property to true
