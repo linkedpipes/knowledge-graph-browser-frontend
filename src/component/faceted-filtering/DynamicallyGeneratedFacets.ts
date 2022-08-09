@@ -8,11 +8,11 @@ export class DynamicallyGeneratedFacets {
 
     static updateInitialDynamicFacets(nodes) {
         for (const node of nodes) {
-            DynamicallyGeneratedFacets.createOrUpdateTypeFacet(node);
-
-            DynamicallyGeneratedFacets.updateDFSLabelFacets(node);
+            DynamicallyGeneratedFacets.updateTypeFacet(node);
 
             DynamicallyGeneratedFacets.updateEdgesFacets(node);
+
+            DynamicallyGeneratedFacets.updateDFSLabelFacets(node);
         }
     }
 
@@ -21,10 +21,14 @@ export class DynamicallyGeneratedFacets {
 
         DynamicallyGeneratedFacets.updateEdgesFacets(sourceNode);
 
+        DynamicallyGeneratedFacets.updateDFSLabelFacets(sourceNode);
+
         for (const addedNode of addedNodes) {
-            DynamicallyGeneratedFacets.createOrUpdateTypeFacet(addedNode);
+            DynamicallyGeneratedFacets.updateTypeFacet(addedNode);
 
             DynamicallyGeneratedFacets.updateEdgesFacets(addedNode);
+
+            DynamicallyGeneratedFacets.updateDFSLabelFacets(addedNode);
         }
     }
 
@@ -34,6 +38,8 @@ export class DynamicallyGeneratedFacets {
             const neighbour = edge.otherNode;
 
             DynamicallyGeneratedFacets.updateEdgesFacets(neighbour);
+
+            DynamicallyGeneratedFacets.updateDFSLabelFacets(neighbour);
         }
 
         DynamicallyGeneratedFacets.findNewExtremaForNumericFacets();
@@ -75,8 +81,108 @@ export class DynamicallyGeneratedFacets {
         }
     }
 
-    static updateDFSLabelFacets(node) {
+    static updateDFSLabelFacets(initialNode) {
+        // Implement DFS to find label type facets locally
+        let stack = [];
 
+        const maxDepth = 2;
+
+        stack.push({
+            node: initialNode,
+            depth: 0,
+            path: [],
+            parentNode: null
+        });
+
+        while (stack.length > 0) {
+            const currentNodeInfo = stack.pop();
+
+            //  Do not look for facets further from initialNode
+            //  than the specified depth
+            if (currentNodeInfo.depth > maxDepth) {
+                continue;
+            }
+
+            // Insert node's neighbours to the stack
+            for (const edge of currentNodeInfo.node.connectedEdges) {
+                // Skip the "parent" node
+                if (edge.otherNode == currentNodeInfo.parentNode) {
+                    continue;
+                }
+
+                let path = [];
+
+                // Copy the current path and add edge to it
+                currentNodeInfo.path.forEach(val => path.push(Object.assign({}, val)));
+
+                path.push({
+                    iri: edge.type.iri,
+                    orientation: edge.orientation,
+                    label: edge.type.label
+                });
+
+                stack.push({
+                    node: edge.otherNode,
+                    depth: currentNodeInfo.depth + 1,
+                    path: path,
+                    parentNode: currentNodeInfo.node
+                })
+            }
+
+            // Process the current node
+            // Skip the initial node
+            if (currentNodeInfo.depth == 0) {
+                continue
+            }
+
+            // Reconstruct path for hashing purposes
+            let facetPath = "";
+
+            for (const edge of currentNodeInfo.path) {
+                facetPath += (facetPath == "" ? "" : " / ") + edge.iri + " (" + edge.orientation + ")";
+            }
+
+            // Check if the facet is newly found
+            if (this.facetsIndexes.get(facetPath) == undefined) {
+                let facetTitle = "";
+
+                for (const edge of currentNodeInfo.path) {
+                    facetTitle += (facetTitle == "" ? "" : " / ") + edge.label + " (" + edge.orientation + ")";
+                }
+
+                const newFacet = {
+                    id: facetPath,
+                    title: facetTitle,
+                    type: "label",
+                    description: "This facet was found dynamically and has no human-defined description.",
+                    values: {
+                        displayLabels: [],
+                        selectedLabels: []
+                    },
+                    index: new Map()
+                };
+
+                this.facetsIndexes.set(newFacet.id, this.facets.length);
+
+                this.facets.push(newFacet);
+            }
+
+            // Update the facet's index
+            const pathFacet = this.facets[this.facetsIndexes.get(facetPath)];
+
+            const currentNodeLabel = currentNodeInfo.node.currentView.preview.label;
+
+            if (pathFacet.index.get(currentNodeLabel) == undefined) {
+                pathFacet.index.set(
+                    currentNodeLabel,
+                    [initialNode.IRI]
+                );
+
+                pathFacet.values.displayLabels.push(currentNodeLabel)
+            } else {
+                pathFacet.index.get(currentNodeLabel).push(initialNode.IRI);
+            }
+        }
     }
 
     // Creates or updates those facets which are concerned with a node's edges.
@@ -328,7 +434,7 @@ export class DynamicallyGeneratedFacets {
     }
 
     // Creates or updates a facet for filtering by types of nodes
-    static createOrUpdateTypeFacet(node) {
+    static updateTypeFacet(node) {
         if (this.facetsIndexes.get("typeFacetID") === undefined) {
             const typeFacet = {
                 id: "typeFacetID",
@@ -361,7 +467,6 @@ export class DynamicallyGeneratedFacets {
         } else {
             typeFacet.index.get(nodeLabel).push(node.IRI);
         }
-
     }
 
     static setFacets(facets) {
