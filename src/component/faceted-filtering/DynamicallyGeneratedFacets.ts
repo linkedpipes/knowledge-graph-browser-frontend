@@ -150,11 +150,15 @@ export class DynamicallyGeneratedFacets {
                     facetTitle += (facetTitle == "" ? "" : " / ") + edge.label + " (" + edge.orientation + ")";
                 }
 
+                let facetDescription = "Filters nodes from which leads this path: \n" +
+                    facetPath + ".\n" +
+                    "The path ends in nodes with chosen labels.";
+
                 const newFacet = {
                     id: facetPath,
-                    title: facetTitle,
+                    title: "Path: " + facetTitle,
                     type: "label",
-                    description: "This facet was found dynamically and has no human-defined description.",
+                    description: facetDescription,
                     values: {
                         displayLabels: [],
                         selectedLabels: []
@@ -267,9 +271,9 @@ export class DynamicallyGeneratedFacets {
 
                 const newFacet = {
                     id: facetID,
-                    title: "count - " + facetEdge.label + "(" + facetEdge.orientation + ")",
+                    title: "Count - " + facetEdge.label + " (" + facetEdge.orientation + ")",
                     type: "numeric",
-                    description: "This facet was found dynamically and has no human-defined description.",
+                    description: "Filters nodes by number of " + facetEdge.label + " (" + facetEdge.orientation + ") edges.",
                     values: {
                         minPossible: count,
                         maxPossible: count,

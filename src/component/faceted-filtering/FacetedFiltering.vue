@@ -4,7 +4,6 @@
       <v-list-item v-for="(facet, index) in facets" :key="index">
         <v-list-item-content v-if="facet != undefined">
           <v-list-item-title class="facetTitle">
-            {{ facet.title }}
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
                 <v-icon
@@ -16,6 +15,7 @@
               </template>
               <span>{{ facet.description }}</span>
             </v-tooltip>
+            {{ facet.title }}
           </v-list-item-title>
 
           <template v-if="facet.type === 'label'">
