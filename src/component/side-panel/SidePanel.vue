@@ -10,7 +10,7 @@
         />
         <detail-group-panel
                 v-if="panelMode === 4"
-                :node="detailNodeGroup"
+                :nodeGroup="detailNodeGroup"
 
                 :area-manipulator="areaManipulator"
                 :manipulator="manipulator"

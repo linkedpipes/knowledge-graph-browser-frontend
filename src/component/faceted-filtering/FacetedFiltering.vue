@@ -402,7 +402,7 @@ export default class FacetedFiltering extends Vue {
     }
   }
 
-  settingsClicked() {
+  reloadFacets() {
   }
 
   makeAllNodesVisible() {

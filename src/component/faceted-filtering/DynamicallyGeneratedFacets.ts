@@ -150,8 +150,8 @@ export class DynamicallyGeneratedFacets {
                     facetTitle += (facetTitle == "" ? "" : " / ") + edge.label + " (" + edge.orientation + ")";
                 }
 
-                let facetDescription = "Filters nodes from which leads this path: \n" +
-                    facetPath + ".\n" +
+                let facetDescription = "Filters nodes by this path: " +
+                    "source node / " + facetPath + " / end node." +
                     "The path ends in nodes with chosen labels.";
 
                 const newFacet = {

@@ -1,7 +1,7 @@
 <template>
     <panel-template>
         <div class="mb-5">
-            <h1 class="mb-5 d-inline">{{ $tc("side_panel.node_group.title", node.nodes.length) }}</h1>
+            <h1 class="mb-5 d-inline">{{ $tc("side_panel.node_group.title", nodeGroup.nodes.length) }}</h1>
             <v-chip label v-for="cls in previewClasses" :key="cls.label" :color="cls.color" style="vertical-align: super;" class="mx-2">{{cls.label}}</v-chip>
         </div>
 
@@ -9,37 +9,37 @@
 
         <template v-slot:actions>
             <panel-action-button
-                    @click="node.remove()"
+                    @click="removeNodes"
                     danger
                     :icon="icons.remove"
                     :text="$tc('side_panel.remove_group', 1)"
                     :help="$tc('side_panel.remove_group_desc', 1)"
             />
             <panel-action-button
-                    @click="manipulator.deGroup(node)"
+                    @click="manipulator.deGroup(nodeGroup)"
                     :icon="icons.break"
                     :text="$tc('side_panel.break_group', 1)"
                     :help="$tc('side_panel.break_group_desc', 1)"
             />
             <panel-action-button
-                    @click="areaManipulator.fit(node)"
-                    :disabled="!node.isVisible"
+                    @click="areaManipulator.fit(nodeGroup)"
+                    :disabled="!nodeGroup.isVisible"
                     :icon="icons.locate"
                     :text="$tc('side_panel.locate', 1)"
                     :help="$tc('side_panel.locate_desc', 1)"
             />
             <panel-action-button
-                    @click="node.visible = !node.visible"
-                    :icon="icons.visibility[node.visible ? 1 : 0]"
-                    :text="$tc('side_panel.' + (node.visible ? 'hide' : 'unhide'), 1)"
-                    :help="$tc('side_panel.' + (node.visible ? 'hide' : 'unhide') + '_desc', 1)"
+                    @click="nodeGroup.visible = !nodeGroup.visible"
+                    :icon="icons.visibility[nodeGroup.visible ? 1 : 0]"
+                    :text="$tc('side_panel.' + (nodeGroup.visible ? 'hide' : 'unhide'), 1)"
+                    :help="$tc('side_panel.' + (nodeGroup.visible ? 'hide' : 'unhide') + '_desc', 1)"
             />
             <panel-action-button
                     v-if="nodeLockingSupported"
-                    @click="areaManipulator.setLockedForLayouts([node], !node.lockedForLayouts)"
-                    :icon="icons.lockedForLayouts[node.lockedForLayouts ? 0 : 1]"
-                    :text="$tc('side_panel.' + (node.lockedForLayouts ? 'unlock' : 'lock') + '_for_layouts', 1)"
-                    :help="$tc('side_panel.' + (node.lockedForLayouts ? 'unlock' : 'lock') + '_for_layouts_desc', 1)"
+                    @click="areaManipulator.setLockedForLayouts([nodeGroup], !nodeGroup.lockedForLayouts)"
+                    :icon="icons.lockedForLayouts[nodeGroup.lockedForLayouts ? 0 : 1]"
+                    :text="$tc('side_panel.' + (nodeGroup.lockedForLayouts ? 'unlock' : 'lock') + '_for_layouts', 1)"
+                    :help="$tc('side_panel.' + (nodeGroup.lockedForLayouts ? 'unlock' : 'lock') + '_for_layouts_desc', 1)"
             />
         </template>
     </panel-template>
@@ -74,7 +74,7 @@ interface NodeTypeGroup {
     components: {PanelActionButton, PanelTemplate, NodeGroupedList}
 })
 export default class DetailGroupPanel extends Mixins(NodeCommonPanelMixin) {
-    @Prop() node: NodeGroup;
+    @Prop() nodeGroup: NodeGroup;
     @Prop(Object) areaManipulator !: GraphAreaManipulator;
     @Prop(Object) manipulator !: GraphManipulator;
     @Prop(Boolean) nodeLockingSupported !: boolean;
@@ -87,13 +87,23 @@ export default class DetailGroupPanel extends Mixins(NodeCommonPanelMixin) {
         locate: mdiCrosshairsGps,
     }
 
+    removeNodes() {
+      const groupNodes = this.nodeGroup.nodes;
+
+      this.nodeGroup.remove()
+
+      for (const node of groupNodes) {
+        this.$root.$emit('facetDeletion', node);
+      }
+    }
+
     get previewClasses(): {label: string; color: string}[] {
-        return this.getClassesColors(this.node.classes);
+        return this.getClassesColors(this.nodeGroup.classes);
     }
 
     get groupedNodes(): NodeTypeGroup[] {
         let map = new Map<string, NodeTypeGroup>();
-        for (let node of this.node.nodes) {
+        for (let node of this.nodeGroup.nodes) {
             let type = node.currentView?.preview?.type;
             let group: NodeTypeGroup;
             if (map.has(type?.iri)) {
