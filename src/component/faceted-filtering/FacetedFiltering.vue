@@ -103,6 +103,8 @@ export default class FacetedFiltering extends Vue {
 
   facetsIndexes = new Map<String, number>();
 
+  configurationFacetsIDs = new Set();
+
   async mounted() {
     DynamicallyGeneratedFacets.setFacets(this.facets);
 
@@ -216,6 +218,9 @@ export default class FacetedFiltering extends Vue {
 
             this.facets.push(newNumericFacet);
         }
+
+        this.configurationFacetsIDs.add(backendFacet.iri);
+
       } else {
         // Update facet
         let existingFacet = this.facets[this.facetsIndexes.get(backendFacet.iri)];
@@ -303,6 +308,8 @@ export default class FacetedFiltering extends Vue {
           if (facet.index.size == 0) {
             // Mark empty facet
             this.facets[this.facetsIndexes.get(facet.id)] = undefined;
+
+            this.facetsIndexes.delete(facet.id);
           }
 
           break;
@@ -321,6 +328,8 @@ export default class FacetedFiltering extends Vue {
           if (facet.index.length == 0) {
             // Mark empty facet
             this.facets[this.facetsIndexes.get(facet.id)] = undefined;
+
+            this.facetsIndexes.delete(facet.id);
           }
       }
     }
@@ -403,6 +412,26 @@ export default class FacetedFiltering extends Vue {
   }
 
   reloadFacets() {
+    // Skip configuration facets
+    const filteredFacets = this.facets.filter(facet => facet != undefined && this.configurationFacetsIDs.has(facet.id));
+
+    this.facets = filteredFacets;
+
+    DynamicallyGeneratedFacets.setFacets(filteredFacets);
+
+    this.facetsIndexes.clear();
+
+    for (let i = 0; i < this.facets.length; i++) {
+      this.facetsIndexes.set(this.facets[i].id, i);
+    }
+
+    const nodesArray = [];
+
+    for (const nodeIRI in this.graph.nodes) {
+      nodesArray.push(this.graph.nodes[nodeIRI]);
+    }
+
+    DynamicallyGeneratedFacets.updateInitialDynamicFacets(nodesArray);
   }
 
   makeAllNodesVisible() {
