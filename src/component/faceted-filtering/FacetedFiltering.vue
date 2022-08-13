@@ -2,7 +2,6 @@
   <div id="rootElement">
     <template v-if="!loadingFacets">
     <v-list dense>
-      {{loadingFacets}}
       <v-list-item v-for="(facet, index) in facets" :key="index">
         <v-list-item-content v-if="facet != undefined">
           <v-list-item-title class="facetTitle">
@@ -435,8 +434,7 @@ export default class FacetedFiltering extends Vue {
   }
 
   reloadFacets() {
-    // this.loadingFacets = true;
-    Vue.set(this, "loadingFacets", true);
+    this.loadingFacets = true;
 
     // Skip configuration facets
     const filteredFacets = this.facets.filter(facet => facet != undefined && this.configurationFacetsIDs.has(facet.id));
@@ -459,8 +457,7 @@ export default class FacetedFiltering extends Vue {
 
     DynamicallyGeneratedFacets.updateInitialDynamicFacets(nodesArray);
 
-    // this.loadingFacets = false;
-    Vue.set(this, "loadingFacets", false);
+    this.loadingFacets = false;
   }
 
   makeAllNodesVisible() {
