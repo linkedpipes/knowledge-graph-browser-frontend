@@ -1,6 +1,8 @@
 <template>
   <div id="rootElement">
+    <template v-if="!loadingFacets">
     <v-list dense>
+      {{loadingFacets}}
       <v-list-item v-for="(facet, index) in facets" :key="index">
         <v-list-item-content v-if="facet != undefined">
           <v-list-item-title class="facetTitle">
@@ -72,6 +74,13 @@
         </v-list-item-content>
       </v-list-item>
     </v-list>
+    </template>
+
+    <template v-else>
+    <div>
+      Loading...
+    </div>
+    </template>
   </div>
 </template>
 
@@ -103,6 +112,8 @@ export default class FacetedFiltering extends Vue {
 
   facetsIndexes = new Map<String, number>();
 
+  loadingFacets: boolean = false;
+
   configurationFacetsIDs = new Set();
 
   async mounted() {
@@ -110,14 +121,26 @@ export default class FacetedFiltering extends Vue {
 
     DynamicallyGeneratedFacets.setFacetsIndexes(this.facetsIndexes);
 
+    this.loadingFacets = true;
+
     await this.loadAndFindInitialFacets();
 
-    this.$root.$on('facetExpansion', data => {
-      this.findOrUpdateFacetsAfterExpansion(data[0], data[1]);
+    this.loadingFacets = false;
+
+    this.$root.$on('facetExpansion', async data => {
+      this.loadingFacets = true;
+
+      await this.findOrUpdateFacetsAfterExpansion(data[0], data[1]);
+
+      this.loadingFacets = false;
     });
 
     this.$root.$on('facetDeletion', deletedNode => {
+      this.loadingFacets = true;
+
       this.updateFacetsUponDeletion(deletedNode);
+
+      this.loadingFacets = false;
     });
   }
 
@@ -133,14 +156,14 @@ export default class FacetedFiltering extends Vue {
     DynamicallyGeneratedFacets.updateInitialDynamicFacets(nodesArray);
   }
 
-  findOrUpdateFacetsAfterExpansion(sourceNode, addedNodes) {
+  async findOrUpdateFacetsAfterExpansion(sourceNode, addedNodes) {
     let addedNodesIRIs = [];
 
     for (const addedNode of addedNodes) {
       addedNodesIRIs.push(addedNode.IRI);
     }
 
-    this.loadOrUpdateConfigurationFacets(addedNodesIRIs);
+    await this.loadOrUpdateConfigurationFacets(addedNodesIRIs);
 
     DynamicallyGeneratedFacets.updateDynamicFacetsAfterExpansion(sourceNode, addedNodes);
   }
@@ -412,6 +435,9 @@ export default class FacetedFiltering extends Vue {
   }
 
   reloadFacets() {
+    // this.loadingFacets = true;
+    Vue.set(this, "loadingFacets", true);
+
     // Skip configuration facets
     const filteredFacets = this.facets.filter(facet => facet != undefined && this.configurationFacetsIDs.has(facet.id));
 
@@ -432,6 +458,9 @@ export default class FacetedFiltering extends Vue {
     }
 
     DynamicallyGeneratedFacets.updateInitialDynamicFacets(nodesArray);
+
+    // this.loadingFacets = false;
+    Vue.set(this, "loadingFacets", false);
   }
 
   makeAllNodesVisible() {
