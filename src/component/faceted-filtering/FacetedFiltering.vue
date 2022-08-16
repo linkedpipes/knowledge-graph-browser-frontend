@@ -1,84 +1,84 @@
 <template>
   <div id="rootElement">
     <template v-if="!loadingFacets">
-    <v-list dense>
-      <v-list-item v-for="(facet, index) in facets" :key="index">
-        <v-list-item-content v-if="facet != undefined">
-          <v-list-item-title class="facetTitle">
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
-                <v-icon
-                    v-bind="attrs"
-                    v-on="on"
+      <v-list dense>
+        <v-list-item v-for="(facet, index) in facets" :key="index">
+          <v-list-item-content v-if="facet != undefined">
+            <v-list-item-title class="facetTitle">
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                      v-bind="attrs"
+                      v-on="on"
+                  >
+                    {{ icons.info }}
+                  </v-icon>
+                </template>
+                <span>{{ facet.description }}</span>
+              </v-tooltip>
+              {{ facet.title }}
+            </v-list-item-title>
+
+            <template v-if="facet.type === 'label'">
+              <v-list>
+                <v-list-item
+                    v-for="(label, index) in facet.values.displayLabels"
+                    :key="index"
                 >
-                  {{ icons.info }}
-                </v-icon>
-              </template>
-              <span>{{ facet.description }}</span>
-            </v-tooltip>
-            {{ facet.title }}
-          </v-list-item-title>
+                  <v-list-item-content>
+                    <v-checkbox
+                        dense
+                        v-model="facet.values.selectedLabels"
+                        :label="label"
+                        :value="label"
+                    ></v-checkbox>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list>
+            </template>
 
-          <template v-if="facet.type === 'label'">
-            <v-list>
-              <v-list-item
-                  v-for="(label, index) in facet.values.displayLabels"
-                  :key="index"
+            <template v-else>
+              <v-range-slider
+                  v-model="facet.values.selectedRange"
+                  :min="facet.values.minPossible"
+                  :max="facet.values.maxPossible"
               >
-                <v-list-item-content>
-                  <v-checkbox
-                      dense
-                      v-model="facet.values.selectedLabels"
-                      :label="label"
-                      :value="label"
-                  ></v-checkbox>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
-          </template>
 
-          <template v-else>
-            <v-range-slider
-                v-model="facet.values.selectedRange"
-                :min="facet.values.minPossible"
-                :max="facet.values.maxPossible"
-            >
+                <template v-slot:prepend>
+                  <v-layout class="sliderInput">
+                    <v-text-field
+                        :value="facet.values.selectedRange[0]"
+                        type="number"
+                        style="width: 60px"
+                        @change="$set(facet.values.selectedRange, 0, $event)"
+                    ></v-text-field>
+                  </v-layout>
+                </template>
 
-              <template v-slot:prepend>
-                <v-layout class="sliderInput">
-                  <v-text-field
-                      :value="facet.values.selectedRange[0]"
-                      type="number"
-                      style="width: 60px"
-                      @change="$set(facet.values.selectedRange, 0, $event)"
-                  ></v-text-field>
-                </v-layout>
-              </template>
+                <template v-slot:append>
+                  <v-layout class="sliderInput">
+                    <v-text-field
+                        :value="facet.values.selectedRange[1]"
+                        type="number"
+                        style="width: 60px"
+                        @change="$set(facet.values.selectedRange, 1, $event)"
+                    ></v-text-field>
+                  </v-layout>
+                </template>
+              </v-range-slider>
+            </template>
 
-              <template v-slot:append>
-                <v-layout class="sliderInput">
-                  <v-text-field
-                      :value="facet.values.selectedRange[1]"
-                      type="number"
-                      style="width: 60px"
-                      @change="$set(facet.values.selectedRange, 1, $event)"
-                  ></v-text-field>
-                </v-layout>
-              </template>
-            </v-range-slider>
-          </template>
+            <v-divider/>
 
-          <v-divider/>
-
-        </v-list-item-content>
-      </v-list-item>
-    </v-list>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
     </template>
 
     <template v-else>
-    <div>
-      Loading...
-    </div>
+      <div>
+        Loading...
+      </div>
     </template>
   </div>
 </template>
@@ -168,8 +168,41 @@ export default class FacetedFiltering extends Vue {
   }
 
   async loadOrUpdateConfigurationFacets(nodesIRIs: string[]) {
-    let serverResponse = await this.remoteServer.getFacetsItems(this.configuration.iri, nodesIRIs);
+    // Send multiple requests to the server with fewer IRIs in headers
+    let smallerIRIsArray = [];
 
+    const maxNumOfIRIs = 100;
+
+    let serverResponse = null;
+
+    let counter = 0;
+
+    for (const nodeIRI of nodesIRIs) {
+      if (counter == maxNumOfIRIs) {
+        // Send a request and process the response
+        serverResponse = await this.remoteServer.getFacetsItems(this.configuration.iri, smallerIRIsArray);
+
+        this.processConfigurationFacetsResponse(serverResponse);
+
+        smallerIRIsArray.splice(0);
+
+        smallerIRIsArray.push(nodeIRI);
+
+        counter = 1;
+      } else {
+        smallerIRIsArray.push(nodeIRI)
+
+        counter += 1;
+      }
+    }
+
+    // Send the rest of IRIs
+    serverResponse = await this.remoteServer.getFacetsItems(this.configuration.iri, smallerIRIsArray);
+
+    this.processConfigurationFacetsResponse(serverResponse);
+  }
+
+  processConfigurationFacetsResponse(serverResponse) {
     for (const backendFacet of serverResponse.facetsItems) {
       // Check whether the facet needs to be created
       if (this.facetsIndexes.get(backendFacet.iri) === undefined) {
