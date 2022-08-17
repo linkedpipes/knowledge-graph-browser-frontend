@@ -109,6 +109,8 @@ export default class AddNode extends Vue {
             this.error = false;
 
             if (await this.manipulator.locateOrTryFetchNode(this.IRI)) {
+                this.$root.$emit('addNode', [this.IRI]);
+
                 this.IRI = "";
                 this.dialog = false;
             } else {
@@ -128,6 +130,7 @@ export default class AddNode extends Vue {
             this.manipulator.blockAddFindMultipleNodes(iris, (node, success) => {
                 this.multipleActual++;
                 if (success) {
+                    this.$root.$emit('addNode', node);
                     iris = iris.filter((iri) => iri != node);
                     this.IRIs = iris.join('\n');
                 } else {

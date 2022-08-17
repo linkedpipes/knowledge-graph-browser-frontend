@@ -141,6 +141,22 @@ export default class FacetedFiltering extends Vue {
 
       this.loadingFacets = false;
     });
+
+    this.$root.$on('addNode', async nodesIRIs => {
+      this.loadingFacets = true;
+
+      await this.loadOrUpdateConfigurationFacets(nodesIRIs);
+
+      for (const nodeIRI of nodesIRIs) {
+        const node = this.graph.nodes[nodeIRI];
+
+        DynamicallyGeneratedFacets.updateTypeFacet(node);
+
+        DynamicallyGeneratedFacets.updateEdgesFacets(node);
+      }
+
+      this.loadingFacets = false;
+    });
   }
 
   async loadAndFindInitialFacets() {
