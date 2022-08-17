@@ -103,6 +103,10 @@ export class DynamicallyGeneratedFacets {
                 continue;
             }
 
+            if (currentNodeInfo.node.currentView == null || currentNodeInfo.node.currentView.preview == null) {
+                continue;
+            }
+
             // Insert node's neighbours to the stack
             for (const edge of currentNodeInfo.node.connectedEdges) {
                 // Skip the "parent" node
@@ -439,6 +443,10 @@ export class DynamicallyGeneratedFacets {
 
     // Creates or updates a facet for filtering by types of nodes
     static updateTypeFacet(node) {
+        if (node.currentView == null || node.currentView.preview == null) {
+            return;
+        }
+
         if (this.facetsIndexes.get("typeFacetID") === undefined) {
             const typeFacet = {
                 id: "typeFacetID",
