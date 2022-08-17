@@ -113,8 +113,6 @@ export default class FacetedFiltering extends Vue {
 
   loadingFacets: boolean = false;
 
-  configurationFacetsIDs = new Set();
-
   async mounted() {
     DynamicallyGeneratedFacets.setFacets(this.facets);
 
@@ -213,9 +211,13 @@ export default class FacetedFiltering extends Vue {
     }
 
     // Send the rest of IRIs
-    serverResponse = await this.remoteServer.getFacetsItems(this.configuration.iri, smallerIRIsArray);
+    if (smallerIRIsArray.length > 0) {
+      serverResponse = await this.remoteServer.getFacetsItems(this.configuration.iri, smallerIRIsArray);
+    }
 
-    this.processConfigurationFacetsResponse(serverResponse);
+    if (serverResponse != null) {
+      this.processConfigurationFacetsResponse(serverResponse);
+    }
   }
 
   processConfigurationFacetsResponse(serverResponse) {
@@ -289,8 +291,6 @@ export default class FacetedFiltering extends Vue {
 
             this.facets.push(newNumericFacet);
         }
-
-        this.configurationFacetsIDs.add(backendFacet.iri);
 
       } else {
         // Update facet
@@ -482,21 +482,10 @@ export default class FacetedFiltering extends Vue {
     }
   }
 
-  reloadFacets() {
+  async reloadFacets() {
     this.loadingFacets = true;
 
-    // Skip configuration facets
-    const filteredFacets = this.facets.filter(facet => facet != undefined && this.configurationFacetsIDs.has(facet.id));
-
-    this.facets = filteredFacets;
-
-    DynamicallyGeneratedFacets.setFacets(filteredFacets);
-
-    this.facetsIndexes.clear();
-
-    for (let i = 0; i < this.facets.length; i++) {
-      this.facetsIndexes.set(this.facets[i].id, i);
-    }
+    await this.loadOrUpdateConfigurationFacets(Object.keys(this.graph.nodes));
 
     const nodesArray = [];
 
