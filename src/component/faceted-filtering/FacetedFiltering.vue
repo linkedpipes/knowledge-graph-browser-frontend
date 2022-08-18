@@ -2,8 +2,8 @@
   <div id="rootElement">
     <template v-if="!loadingFacets">
       <v-list dense>
-        <v-list-item v-for="(facet, index) in facets" :key="index">
-          <v-list-item-content v-if="facet != undefined">
+        <v-list-item v-for="(facet, index) in facets" :key="index" v-if="facet != undefined">
+          <v-list-item-content>
             <v-list-item-title class="facetTitle">
               <v-tooltip bottom>
                 <template v-slot:activator="{ on, attrs }">
@@ -124,7 +124,7 @@ export default class FacetedFiltering extends Vue {
 
     this.loadingFacets = false;
 
-    this.$root.$on('facetExpansion', async data => {
+    this.$root.$on('expansion', async data => {
       this.loadingFacets = true;
 
       await this.findOrUpdateFacetsAfterExpansion(data[0], data[1]);
@@ -132,7 +132,7 @@ export default class FacetedFiltering extends Vue {
       this.loadingFacets = false;
     });
 
-    this.$root.$on('facetDeletion', deletedNode => {
+    this.$root.$on('deletion', deletedNode => {
       this.loadingFacets = true;
 
       this.updateFacetsUponDeletion(deletedNode);
@@ -484,6 +484,10 @@ export default class FacetedFiltering extends Vue {
 
   async reloadFacets() {
     this.loadingFacets = true;
+
+    this.facets.splice(0);
+
+    this.facetsIndexes.clear();
 
     await this.loadOrUpdateConfigurationFacets(Object.keys(this.graph.nodes));
 

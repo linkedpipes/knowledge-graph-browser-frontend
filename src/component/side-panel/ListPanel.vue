@@ -162,7 +162,7 @@ export default class ListPanel extends Vue {
       }
 
       for (const node of allGroupsNodes) {
-        this.$root.$emit('facetDeletion', node);
+        this.$root.$emit('deletion', node);
       }
     }
 }

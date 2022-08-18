@@ -241,13 +241,13 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
   async expand(view) {
     let expansion = await this.areaManipulator.expandNode(view);
 
-    this.$root.$emit('facetExpansion', [this.node, expansion.getNodes()]);
+    this.$root.$emit('expansion', [this.node, expansion.getNodes()]);
   }
 
     removeNode() {
       this.node.remove()
 
-      this.$root.$emit('facetDeletion', this.node);
+      this.$root.$emit('deletion', this.node);
     }
 
     /**

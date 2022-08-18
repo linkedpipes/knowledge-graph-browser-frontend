@@ -113,7 +113,7 @@
             }
 
           for (let node of this.nodes) {
-            this.$root.$emit('facetDeletion', node);
+            this.$root.$emit('deletion', node);
           }
         }
     }

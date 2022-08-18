@@ -93,7 +93,7 @@ export default class DetailGroupPanel extends Mixins(NodeCommonPanelMixin) {
       this.nodeGroup.remove()
 
       for (const node of groupNodes) {
-        this.$root.$emit('facetDeletion', node);
+        this.$root.$emit('deletion', node);
       }
     }
 
