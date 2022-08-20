@@ -111,6 +111,10 @@
             for (let node of this.nodes) {
                 node.remove();
             }
+
+          for (let node of this.nodes) {
+            this.$root.$emit('deletion', node);
+          }
         }
     }
 </script>

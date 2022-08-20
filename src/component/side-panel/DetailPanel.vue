@@ -73,7 +73,7 @@
                                     <v-list-item v-for="view in viewSet.views" :key="view.IRI" :value="view.IRI" @click="view.use()">
                                         <v-list-item-content>
                                             <v-list-item-title style="flex-basis: auto;" class="flex-grow-1">{{view.label}}</v-list-item-title>
-                                            <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="secondary" :loading="view.expansionInProgress" @click.stop="areaManipulator.expandNode(view)">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
+                                            <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="secondary" :loading="view.expansionInProgress" @click.stop="expand(view)">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
                                         </v-list-item-content>
                                     </v-list-item>
                                 </template>
@@ -110,7 +110,7 @@
 
         <template v-slot:actions>
             <panel-action-button
-                    @click="node.remove()"
+                    @click="removeNode"
                     danger
                     :icon="icons.remove"
                     :text="$tc('side_panel.remove', 1)"
@@ -154,7 +154,7 @@
     </panel-template>
 </template>
 <script lang="ts">
-import {Component, Mixins, Prop, Watch} from 'vue-property-decorator';
+import {Component, Mixins, Prop, Ref, Watch} from 'vue-property-decorator';
 import { Node } from '@/graph/Node';
 import { NodeViewSet } from '@/graph/NodeViewSet';
 import {DetailValue} from '@/graph/NodeView';
@@ -177,9 +177,10 @@ import PanelTemplate from "./components/PanelTemplate.vue";
 import PanelActionButton from "./components/PanelActionButton.vue";
 import GraphManipulator from "../../graph/GraphManipulator";
 import AnyDataValue from "@/component/helper/AnyDataValue.vue";
+import FacetedFiltering from "@/component/faceted-filtering/FacetedFiltering.vue";
 
 @Component({
-    components: {AnyDataValue, PanelActionButton, PanelTemplate, LinkComponent}
+    components: {AnyDataValue, PanelActionButton, PanelTemplate, LinkComponent, FacetedFiltering}
 })
 export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
     @Prop(Object) node !: Node;
@@ -235,6 +236,18 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
 
     mounted() {
         this.nodeChanged();
+    }
+
+  async expand(view) {
+    let expansion = await this.areaManipulator.expandNode(view);
+
+    this.$root.$emit('expansion', [this.node, expansion.getNodes()]);
+  }
+
+    removeNode() {
+      this.node.remove()
+
+      this.$root.$emit('deletion', this.node);
     }
 
     /**

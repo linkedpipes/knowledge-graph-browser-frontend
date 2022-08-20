@@ -35,6 +35,12 @@ export default abstract class NodeCommon implements ObjectSave {
     element: GraphElementNodeMixin | GraphElementNode | GraphElementNodeGroup;
 
     /**
+     * All incoming and outgoing edges.
+     * Used for traversing the graph.
+     */
+    connectedEdges: any[] = [];
+
+    /**
      * Safely removes the element from the graph.
      * This method should properly unregister everything about the node.
      */

@@ -145,9 +145,25 @@ export default class ListPanel extends Vue {
     }
 
     remove() {
-        for (let node of this.elements) {
-            node.remove();
+      let allGroupsNodes: Node[] = [];
+
+      for (const node of this.nodes) {
+        allGroupsNodes.push(node);
+      }
+
+      for (const nodeGroup of this.groups) {
+        for (const node of nodeGroup.nodes) {
+          allGroupsNodes.push(node)
         }
+      }
+
+      for (let node of this.elements) {
+          node.remove();
+      }
+
+      for (const node of allGroupsNodes) {
+        this.$root.$emit('deletion', node);
+      }
     }
 }
 </script>
