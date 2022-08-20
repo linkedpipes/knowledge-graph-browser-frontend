@@ -44,8 +44,8 @@
         <v-divider/>
 
         <v-tabs v-model="navDrawerTab" height="45px">
-          <v-tab style="width: 150px; font-size: 0.8em;">Menu</v-tab>
-          <v-tab style="width: 150px; font-size: 0.8em;">Filtering</v-tab>
+          <v-tab style="width: 150px; font-size: 0.8em;">{{ $t("menu.card_menu") }}</v-tab>
+          <v-tab style="width: 150px; font-size: 0.8em;">{{ $t("menu.card_filtering") }}</v-tab>
         </v-tabs>
 
         <!--Nested navigation-drawer is for layout purposes-->
@@ -208,7 +208,6 @@
             Reload facets
           </v-btn>
         </template>
-
       </v-navigation-drawer>
     </v-main>
 
