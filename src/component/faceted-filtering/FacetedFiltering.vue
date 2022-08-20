@@ -76,7 +76,7 @@
     </template>
 
     <template v-else>
-      <div>
+      <div class="loading">
         Loading...
       </div>
     </template>
@@ -621,5 +621,11 @@ export default class FacetedFiltering extends Vue {
 <style>
 .sliderInput {
   margin-top: -18px !important;
+}
+
+.loading {
+  margin-top: 80%;
+  margin-left: 115px;
+  font-size: 15pt;
 }
 </style>
