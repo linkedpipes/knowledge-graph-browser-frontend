@@ -113,6 +113,9 @@ export default class FacetedFiltering extends Vue {
 
   loadingFacets: boolean = false;
 
+  /**
+   * Loads facets for nodes and registers events that get triggered on actions which change facets' values.
+   */
   async mounted() {
     DynamicallyGeneratedFacets.setFacets(this.facets);
 
@@ -157,6 +160,9 @@ export default class FacetedFiltering extends Vue {
     });
   }
 
+  /**
+   * Loads facets from configuration and computes facets from current graph's state.
+   */
   async loadAndFindInitialFacets() {
     await this.loadOrUpdateConfigurationFacets(Object.keys(this.graph.nodes));
 
@@ -169,6 +175,10 @@ export default class FacetedFiltering extends Vue {
     DynamicallyGeneratedFacets.updateInitialDynamicFacets(nodesArray);
   }
 
+  /**
+   * Loads facets from configuration for added nodes and re-computes
+   * local graph facets for nodes affected by the expansion.
+   */
   async findOrUpdateFacetsAfterExpansion(sourceNode, addedNodes) {
     let addedNodesIRIs = [];
 
@@ -181,6 +191,10 @@ export default class FacetedFiltering extends Vue {
     DynamicallyGeneratedFacets.updateDynamicFacetsAfterExpansion(sourceNode, addedNodes);
   }
 
+  /**
+   * Sends requests to the server to get facet values for nodes and
+   * processes its responses.
+   */
   async loadOrUpdateConfigurationFacets(nodesIRIs: string[]) {
     // Send multiple requests to the server with fewer IRIs in headers
     let smallerIRIsArray = [];
@@ -220,6 +234,9 @@ export default class FacetedFiltering extends Vue {
     }
   }
 
+  /**
+   * Creates or updates facets loaded from configuration.
+   */
   processConfigurationFacetsResponse(serverResponse) {
     for (const backendFacet of serverResponse.facetsItems) {
       // Check whether the facet needs to be created
@@ -227,129 +244,160 @@ export default class FacetedFiltering extends Vue {
         // Create a new facet
         switch (backendFacet.type) {
           case "label":
-            var newLabelFacet = {
-              id: backendFacet.iri,
-              title: backendFacet.title,
-              type: backendFacet.type,
-              description: backendFacet.description,
-              values: {
-                displayLabels: [],
-                selectedLabels: []
-              },
-              index: new Map()
-            };
-
-            for (const item of backendFacet.items) {
-              if (newLabelFacet.index.get(item.value) == undefined) {
-                newLabelFacet.index.set(item.value, [item.nodeIRI]);
-              } else {
-                newLabelFacet.index.get(item.value).push(item.nodeIRI);
-              }
-            }
-
-            newLabelFacet.values.displayLabels = Array.from(newLabelFacet.index.keys());
-
-            this.facetsIndexes.set(newLabelFacet.id, this.facets.length);
-
-            this.facets.push(newLabelFacet);
+            this.createNewLabelFacet(backendFacet);
             break;
 
           case "numeric":
-            const newNumericFacet = {
-              id: backendFacet.iri,
-              title: backendFacet.title,
-              type: backendFacet.type,
-              description: backendFacet.description,
-              values: {
-                minPossible: Number.NaN,
-                maxPossible: Number.NaN,
-                selectedRange: [Number.NaN, Number.NaN]
-              },
-              index: []
-            };
-
-            var localMin = Number.MAX_VALUE;
-            var localMax = Number.MIN_VALUE;
-
-            for (const item of backendFacet.items) {
-              if (Number(item.value) < localMin) {
-                localMin = item.value;
-              }
-
-              if (Number(item.value) > localMax) {
-                localMax = item.value;
-              }
-            }
-
-            newNumericFacet.values.minPossible = localMin;
-            newNumericFacet.values.maxPossible = localMax;
-            newNumericFacet.values.selectedRange = [localMin, localMax];
-
-            newNumericFacet.index = backendFacet.items;
-
-            this.facetsIndexes.set(newNumericFacet.id, this.facets.length);
-
-            this.facets.push(newNumericFacet);
+            this.createNewNumericFacet(backendFacet);
         }
-
       } else {
         // Update facet
         let existingFacet = this.facets[this.facetsIndexes.get(backendFacet.iri)];
 
         switch (existingFacet.type) {
           case "label":
-            for (const item of backendFacet.items) {
-              if (existingFacet.index.get(item.value) === undefined) {
-                existingFacet.index.set(item.value, [item.nodeIRI]);
-
-                existingFacet.values.displayLabels.push(item.value);
-              } else {
-                if (!existingFacet.index.get(item.value).includes(item.nodeIRI)) {
-                  existingFacet.index.get(item.value).push(item.nodeIRI);
-                }
-              }
-            }
+            this.updateLabelFacet(existingFacet, backendFacet);
             break;
 
           case "numeric":
-            for (const item of backendFacet.items) {
-              if (Number(item.value) < existingFacet.values.minPossible) {
-                if (existingFacet.values.selectedRange[0] == existingFacet.values.minPossible) {
-                  existingFacet.values.minPossible = item.value;
-
-                  Vue.set(existingFacet.values.selectedRange, 0, item.value);
-                } else {
-                  existingFacet.values.minPossible = item.value;
-                }
-              }
-
-              if (Number(item.value) > existingFacet.values.maxPossible) {
-                if (existingFacet.values.selectedRange[1] == existingFacet.values.maxPossible) {
-                  existingFacet.values.maxPossible = item.value;
-
-                  Vue.set(existingFacet.values.selectedRange, 1, item.value);
-                } else {
-                  existingFacet.values.maxPossible = item.value;
-                }
-              }
-
-              var itemAlreadyPresent = false;
-
-              for (const indexItem of existingFacet.index) {
-                if (indexItem.nodeIRI == item.nodeIRI) {
-                  itemAlreadyPresent = true;
-                }
-              }
-
-              if (!itemAlreadyPresent) {
-                existingFacet.index.push(item);
-              }
-            }
+            this.updateNumericFacet(existingFacet, backendFacet);
         }
       }
     }
   }
 
+  /**
+   * Creates a new label facet with values returned by the server.
+   */
+  createNewLabelFacet(backendFacet) {
+    var newLabelFacet = {
+      id: backendFacet.iri,
+      title: backendFacet.title,
+      type: backendFacet.type,
+      description: backendFacet.description,
+      values: {
+        displayLabels: [],
+        selectedLabels: []
+      },
+      index: new Map()
+    };
+
+    for (const item of backendFacet.items) {
+      if (newLabelFacet.index.get(item.value) == undefined) {
+        newLabelFacet.index.set(item.value, [item.nodeIRI]);
+      } else {
+        newLabelFacet.index.get(item.value).push(item.nodeIRI);
+      }
+    }
+
+    newLabelFacet.values.displayLabels = Array.from(newLabelFacet.index.keys());
+
+    this.facetsIndexes.set(newLabelFacet.id, this.facets.length);
+
+    this.facets.push(newLabelFacet);
+  }
+
+  /**
+   * Creates a new numeric facet with values returned by the server.
+   */
+  createNewNumericFacet(backendFacet) {
+    const newNumericFacet = {
+      id: backendFacet.iri,
+      title: backendFacet.title,
+      type: backendFacet.type,
+      description: backendFacet.description,
+      values: {
+        minPossible: Number.NaN,
+        maxPossible: Number.NaN,
+        selectedRange: [Number.NaN, Number.NaN]
+      },
+      index: []
+    };
+
+    var localMin = Number.MAX_VALUE;
+    var localMax = Number.MIN_VALUE;
+
+    for (const item of backendFacet.items) {
+      if (Number(item.value) < localMin) {
+        localMin = item.value;
+      }
+
+      if (Number(item.value) > localMax) {
+        localMax = item.value;
+      }
+    }
+
+    newNumericFacet.values.minPossible = localMin;
+    newNumericFacet.values.maxPossible = localMax;
+    newNumericFacet.values.selectedRange = [localMin, localMax];
+
+    newNumericFacet.index = backendFacet.items;
+
+    this.facetsIndexes.set(newNumericFacet.id, this.facets.length);
+
+    this.facets.push(newNumericFacet);
+  }
+
+  /**
+   * Updates an existing label facet with a facet returned by the server.
+   */
+  updateLabelFacet(existingFacet, backendFacet) {
+    for (const item of backendFacet.items) {
+      if (existingFacet.index.get(item.value) === undefined) {
+        existingFacet.index.set(item.value, [item.nodeIRI]);
+
+        existingFacet.values.displayLabels.push(item.value);
+      } else {
+        if (!existingFacet.index.get(item.value).includes(item.nodeIRI)) {
+          existingFacet.index.get(item.value).push(item.nodeIRI);
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates an existing numeric facet with a facet returned by the server.
+   */
+  updateNumericFacet(existingFacet, backendFacet) {
+    for (const item of backendFacet.items) {
+      if (Number(item.value) < existingFacet.values.minPossible) {
+        if (existingFacet.values.selectedRange[0] == existingFacet.values.minPossible) {
+          existingFacet.values.minPossible = item.value;
+
+          Vue.set(existingFacet.values.selectedRange, 0, item.value);
+        } else {
+          existingFacet.values.minPossible = item.value;
+        }
+      }
+
+      if (Number(item.value) > existingFacet.values.maxPossible) {
+        if (existingFacet.values.selectedRange[1] == existingFacet.values.maxPossible) {
+          existingFacet.values.maxPossible = item.value;
+
+          Vue.set(existingFacet.values.selectedRange, 1, item.value);
+        } else {
+          existingFacet.values.maxPossible = item.value;
+        }
+      }
+
+      var itemAlreadyPresent = false;
+
+      for (const indexItem of existingFacet.index) {
+        if (indexItem.nodeIRI == item.nodeIRI) {
+          itemAlreadyPresent = true;
+        }
+      }
+
+      if (!itemAlreadyPresent) {
+        existingFacet.index.push(item);
+      }
+    }
+  }
+
+  /**
+   * Removes deleted node's IRI from facets' indexes and re-computes local graph
+   * based facets for affected nodes by the deletion.
+   */
   updateFacetsUponDeletion(deletedNode) {
     // Remove deleted node from facets' indexes
     for (const facet of this.facets) {
@@ -360,98 +408,97 @@ export default class FacetedFiltering extends Vue {
 
       switch (facet.type) {
         case "label":
-          for (const label of facet.index.keys()) {
-            const filteredIRIs = facet.index.get(label).filter(iri => iri != deletedNode.IRI);
-
-            facet.index.set(label, filteredIRIs);
-
-            if (filteredIRIs.length == 0) {
-              const filteredDisplayLabels = facet.values.displayLabels.filter(displayLabel => displayLabel != label);
-              facet.values.displayLabels = filteredDisplayLabels;
-
-              const filteredSelectedLabels = facet.values.selectedLabels.filter(selectedLabel => selectedLabel != label);
-              facet.values.selectedLabels = filteredSelectedLabels;
-
-              facet.index.delete(label);
-            }
-          }
-
-          if (facet.index.size == 0) {
-            // Mark empty facet
-            this.facets[this.facetsIndexes.get(facet.id)] = undefined;
-
-            this.facetsIndexes.delete(facet.id);
-          }
-
+          this.removeNodeFromLabelFacetIndex(deletedNode, facet);
           break;
 
         case "numeric":
-          const newIndexArray = [];
-
-          for (const indexItem of facet.index) {
-            if (indexItem.nodeIRI != deletedNode.IRI) {
-              newIndexArray.push(indexItem);
-            }
-          }
-
-          facet.index = newIndexArray;
-
-          if (facet.index.length == 0) {
-            // Mark empty facet
-            this.facets[this.facetsIndexes.get(facet.id)] = undefined;
-
-            this.facetsIndexes.delete(facet.id);
-          }
+          this.removeNodeFromNumericFacetIndex(deletedNode, facet);
       }
     }
 
     DynamicallyGeneratedFacets.updateDynamicFacetsUponDeletion(deletedNode);
   }
 
-  // Filter currently loaded nodes based on facet values
+  /**
+   * Removes all occurrences of deleted node's IRI from a label facet's index.
+   * Also marks the facet as undefined if the index becomes empty.
+   */
+  removeNodeFromLabelFacetIndex(deletedNode, facet) {
+    for (const label of facet.index.keys()) {
+      const filteredIRIs = facet.index.get(label).filter(iri => iri != deletedNode.IRI);
+
+      facet.index.set(label, filteredIRIs);
+
+      if (filteredIRIs.length == 0) {
+        const filteredDisplayLabels = facet.values.displayLabels.filter(displayLabel => displayLabel != label);
+        facet.values.displayLabels = filteredDisplayLabels;
+
+        const filteredSelectedLabels = facet.values.selectedLabels.filter(selectedLabel => selectedLabel != label);
+        facet.values.selectedLabels = filteredSelectedLabels;
+
+        facet.index.delete(label);
+      }
+    }
+
+    if (facet.index.size == 0) {
+      // Mark empty facet
+      this.facets[this.facetsIndexes.get(facet.id)] = undefined;
+
+      this.facetsIndexes.delete(facet.id);
+    }
+  }
+
+  /**
+   * Removes deleted node's IRI from a numeric facet's index.
+   * Also marks the facet as undefined if the index becomes empty.
+   */
+  removeNodeFromNumericFacetIndex(deletedNode, facet) {
+    const newIndexArray = [];
+
+    for (const indexItem of facet.index) {
+      if (indexItem.nodeIRI != deletedNode.IRI) {
+        newIndexArray.push(indexItem);
+      }
+    }
+
+    facet.index = newIndexArray;
+
+    if (facet.index.length == 0) {
+      // Mark empty facet
+      this.facets[this.facetsIndexes.get(facet.id)] = undefined;
+
+      this.facetsIndexes.delete(facet.id);
+    }
+  }
+
+  /**
+   * Filters currently loaded nodes based on chosen facet values.
+   */
   filterBtnPressed() {
     // Make all nodes visible first
     this.makeAllNodesVisible();
 
-    // Sets of nodes' IRIs calculated by each facet
-    let filteringSets = [];
+    const filteredNodesSet = this.getFilteredNodesSet();
 
-    for (const facet of this.facets) {
-      // Skip a facet which is marked as deleted
-      if (facet === undefined) {
-        continue;
-      }
+    // Apply filter
+    for (const nodeIRI in this.graph.nodes) {
+      if (!filteredNodesSet.has(nodeIRI)) {
+        this.graph.nodes[nodeIRI].visible = false;
 
-      // Skip an unused label facet
-      if (facet.type == "label" && facet.values.selectedLabels.length == 0) {
-        continue;
-      }
-
-      // Skip a numeric facet that wouldn't filter anything anyway
-      if (facet.type == "numeric" && (facet.values.selectedRange[0] == facet.values.minPossible && facet.values.selectedRange[1] == facet.values.maxPossible)) {
-        continue;
-      }
-
-      let filteringSet = new Set<string>();
-
-      if (facet.type == "label") {
-        // For each chosen label put contents of its mapped array in index to the filteringSet
-        for (const label of facet.values.selectedLabels) {
-          facet.index.get(label).forEach(nodeIRI => filteringSet.add(nodeIRI));
+        // Remove filtered node from its group if it is a member of one
+        if (this.graph.nodes[nodeIRI].belongsToGroup != null) {
+          this.manipulator.leaveGroup([this.graph.nodes[nodeIRI]], this.graph.nodes[nodeIRI].belongsToGroup)
         }
-      } else {
-        // Numeric type facet
-        const min = facet.values.selectedRange[0];
-        const max = facet.values.selectedRange[1];
-
-        const filteredItems = facet.index.filter(nodeItem => nodeItem.value >= min && nodeItem.value <= max);
-
-        // Add IRIs of filtered nodes to the filteringSet
-        filteredItems.forEach(item => filteringSet.add(item.nodeIRI));
       }
-
-      filteringSets.push(filteringSet);
     }
+  }
+
+  /**
+   * Does intersection of all filtering sets and returns
+   * the final filtering set
+   */
+  getFilteredNodesSet() {
+    let filteringSets = this.createFilteringSets();
 
     // If no facets are chosen to be used for filtering
     if (filteringSets.length == 0) {
@@ -470,45 +517,87 @@ export default class FacetedFiltering extends Vue {
       );
     }
 
-    // Apply filter
-    for (const nodeIRI in this.graph.nodes) {
-      if (!filteringSets[filteringSets.length - 1].has(nodeIRI)) {
-        this.graph.nodes[nodeIRI].visible = false;
-
-        if (this.graph.nodes[nodeIRI].belongsToGroup != null) {
-          this.manipulator.leaveGroup([this.graph.nodes[nodeIRI]], this.graph.nodes[nodeIRI].belongsToGroup)
-        }
-      }
-    }
+    return filteringSets[filteringSets.length - 1];
   }
 
+  /**
+   * For each facet create a filtering set with IRIs of nodes
+   * which passed selected filtering criteria
+   */
+  createFilteringSets() {
+    // Sets of nodes' IRIs calculated by each facet
+    let filteringSets = [];
+
+    for (const facet of this.facets) {
+      // Skip a facet which is marked as deleted
+      if (facet === undefined) {
+        continue;
+      }
+
+      // Skip an unused label facet
+      if (facet.type == "label" && facet.values.selectedLabels.length == 0) {
+        continue;
+      }
+
+      // Skip a numeric facet that has its extrema selected because
+      // it wouldn't filter anything
+      if (facet.type == "numeric" && (facet.values.selectedRange[0] == facet.values.minPossible && facet.values.selectedRange[1] == facet.values.maxPossible)) {
+        continue;
+      }
+
+      let filteringSet = new Set<string>();
+
+      if (facet.type == "label") {
+        // For each selected label put contents of its mapped array in index to the filteringSet
+        for (const label of facet.values.selectedLabels) {
+          facet.index.get(label).forEach(nodeIRI => filteringSet.add(nodeIRI));
+        }
+      } else {
+        // Numeric type facet
+        const selectedMin = facet.values.selectedRange[0];
+        const selectedMax = facet.values.selectedRange[1];
+
+        const filteredItems = facet.index.filter(nodeItem => nodeItem.value >= selectedMin && nodeItem.value <= selectedMax);
+
+        // Add IRIs of filtered nodes to the filteringSet
+        filteredItems.forEach(item => filteringSet.add(item.nodeIRI));
+      }
+
+      filteringSets.push(filteringSet);
+    }
+
+    return filteringSets;
+  }
+
+  /**
+   * Removes all facets and loads and computes them again.
+   */
   async reloadFacets() {
     this.loadingFacets = true;
 
+    // Remove all facets
     this.facets.splice(0);
 
     this.facetsIndexes.clear();
 
-    await this.loadOrUpdateConfigurationFacets(Object.keys(this.graph.nodes));
-
-    const nodesArray = [];
-
-    for (const nodeIRI in this.graph.nodes) {
-      nodesArray.push(this.graph.nodes[nodeIRI]);
-    }
-
-    DynamicallyGeneratedFacets.updateInitialDynamicFacets(nodesArray);
+    await this.loadAndFindInitialFacets()
 
     this.loadingFacets = false;
   }
 
+  /**
+   * Sets all nodes' visibility property to true.
+   */
   makeAllNodesVisible() {
-    // Set all nodes' visibility property to true
     for (const nodeIRI in this.graph.nodes) {
       this.graph.nodes[nodeIRI].visible = true;
     }
   }
 
+  /**
+   * Resets chosen facets values to their initial state
+   * and shows all hidden nodes.
+   */
   resetFiltering() {
     // Uncheck checkboxes and reset sliders' selected ranges
     for (const facet of this.facets) {
