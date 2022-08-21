@@ -314,13 +314,21 @@ export default class GraphAreaManipulator implements ObjectSave {
 	}
 
     zoomIn() {
-        if (this.isZoomingChecked) this.changeZoomByQuotient(this.manualZoomScale);
-        if (this.isClusteringChecked && !this.isZoomingChecked) this.clustering(true);
+        if (this.layoutManager.currentLayout.constraintRulesLoaded && this.layoutManager.currentLayout.supportsHierarchicalView) {
+            if (this.isZoomingChecked) this.changeZoomByQuotient(this.manualZoomScale);
+            if (this.isClusteringChecked && !this.isZoomingChecked) this.clustering(true);
+        } else {
+            this.changeZoomByQuotient(this.manualZoomScale);
+        }
     }
 
     zoomOut() {
-        if (this.isZoomingChecked) this.changeZoomByQuotient(1 / this.manualZoomScale);
-        if (this.isClusteringChecked && !this.isZoomingChecked) this.clustering(false);
+        if (this.layoutManager.currentLayout.constraintRulesLoaded && this.layoutManager.currentLayout.supportsHierarchicalView) {
+            if (this.isZoomingChecked) this.changeZoomByQuotient(1 / this.manualZoomScale);
+            if (this.isClusteringChecked && !this.isZoomingChecked) this.clustering(false);
+        } else {
+            this.changeZoomByQuotient(1 / this.manualZoomScale);
+        }
     }
 
     /**

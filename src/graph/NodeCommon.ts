@@ -44,19 +44,19 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     connectedEdges: any[] = [];
 
-     /**
+    /**
      * Node's parent
      */
-      parent: Node = null;
+    parent: Node = null;
 
-      /**
-       * Node's children
-       */
-      children: NodeCommon[] = [];
-  
-      hierarchyGroup: string;
-  
-      hierarchyLevel: number = 0;
+    /**
+     * Node's children
+     */
+    children: NodeCommon[] = [];
+
+    hierarchyGroup: string;
+
+    hierarchyLevel: number = 0;
 
     /**
      * Safely removes the element from the graph.
