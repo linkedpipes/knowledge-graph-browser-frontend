@@ -26,6 +26,7 @@ export class Edge extends EdgeCommon implements ObjectSave {
     classes: string[] = [];
 
     element: GraphElementEdge = null;
+    isEdgeFromChild: boolean = false;
 
     constructor (source: Node, target: Node, type: EdgeType, graph: Graph) {
         super();

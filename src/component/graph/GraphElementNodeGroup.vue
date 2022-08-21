@@ -38,15 +38,69 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
      */
     protected registerElement(): void {
         let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
+                
+        if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded)) {
+            this.setHierarchyInfo();
+        }
 
         // All parameters here must correspond to functions trigger by watchers
         // The objects are considered owned by Cytoscape therefore are copied to remove Vue observers
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
-            data: { label: this.label, id: this.node.id } as NodeDataDefinition,
+            data: { label: this.label, id: this.node.id, parent: this.node.parent?.IRI } as NodeDataDefinition,
             classes: this.classList as unknown as string,
             position,
         } as ElementDefinition);
+    }
+
+    protected setHierarchyInfo() {
+        let parent = this.node.parent;        
+
+        if (this.node.getChildren?.length > 0) {
+            this.node.hierarchyGroup = this.node.getChildren[0].hierarchyGroup;
+            this.node.hierarchyLevel = this.node.getChildren[0].hierarchyLevel - 1;
+        } else if (parent) {
+            if (!this.node.hierarchyGroup) this.node.hierarchyGroup = parent.hierarchyGroup;
+            this.node.hierarchyLevel = parent.hierarchyLevel + 1;
+        } else {
+            let hierarchyGroupsToCluster = this.areaManipulator.constraintRules.constraints.filter(constraint => constraint.type === "hierarchy-groups-to-cluster")
+            if (hierarchyGroupsToCluster.length > 0) {
+                for (let hierarchyGroupToCluster of hierarchyGroupsToCluster) {
+                    let nodeClass = hierarchyGroupToCluster.properties["classesToApplyConstraint"][0].slice(1);
+                    if (this.node.classes.includes(nodeClass)) {
+                        this.node.hierarchyGroup = nodeClass;
+                    }
+                }
+            }
+            else {
+                this.node.hierarchyGroup = null;
+            }
+        }
+
+        let visualGroups = this.areaManipulator.constraintRules.constraints.filter(constraint => constraint.type === "visual-groups");
+        
+        if (visualGroups.length > 0) {
+            for (let visualGroup of visualGroups) {
+                let nodeClass = visualGroup.properties["classesToApplyConstraint"][0].slice(1);
+                if (!parent && this.node.hierarchyGroup && this.node.classes.includes(nodeClass)) {
+                    let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchyGroup);
+                    if (!pseudoParent) {
+                        pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.hierarchyGroup);
+                        pseudoParent.hierarchyLevel = this.node.hierarchyLevel - 1;
+                        pseudoParent.mounted = true;
+                    }
+                    if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
+                        pseudoParent.children.push(this.node);
+                    }
+                    this.node.parent = pseudoParent;
+                }
+            }
+        }
+
+        if ((this.areaManipulator.globalHierarchyDepth < this.node.hierarchyLevel) && this.areaManipulator.hierarchyGroupsToCluster.find(hierarchyGroupToCluster => hierarchyGroupToCluster === this.node.hierarchyGroup)) {
+            this.areaManipulator.globalHierarchyDepth = this.node.hierarchyLevel;
+        }
+
     }
 
     /**
@@ -63,7 +117,7 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
     }
 
     private get label(): string {
-        return <string>this.$tc('graph.groupNode', this.node.nodes.length);
+        return <string>this.$tc('graph.groupNode', 0, {count: this.node.nodes.length} );
     }
 
     @Watch('label')

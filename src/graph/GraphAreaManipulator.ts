@@ -5,13 +5,20 @@ import {LayoutManager} from "../layout/LayoutManager";
 import {NodeView} from "./NodeView";
 import GraphArea from "../component/graph/GraphArea.vue";
 import NodeCommon from "./NodeCommon";
+import { Node } from "./Node";
+import { ResponseConstraints } from "../remote-server/ResponseInterfaces"
+import { Expansion } from "./Expansion";
+import NodeGroup from "./NodeGroup";
+import KMeans from "../cluster/clusters/KMeans/KMeans"
+import { Edge } from "./Edge";
+import Vue from "vue";
 
 /**
  * This class performs basic operations with graph area like zooming, animations etc.
  */
 export default class GraphAreaManipulator implements ObjectSave {
     animateOptions: AnimateOptions = {duration: 300};
-    manualZoomScale: number = 1.5;
+    manualZoomScale: number = 1.2;
 
     public layoutManager: LayoutManager | null = null;
 
@@ -27,6 +34,24 @@ export default class GraphAreaManipulator implements ObjectSave {
 
     graph: Graph;
 
+    // Constraint rules to layout nodes
+    constraintRules: ResponseConstraints = { constraints: [] };
+
+    // Global map for classes and last level of hierarchy for such class
+    // groupHierarchyDepth: { [classID: string]: number; } = {};
+
+    globalHierarchyDepth: number = 0;
+
+    zoomingCounter: number = 0;
+    kClustering: KMeans = new KMeans();
+
+	isZoomingChecked: boolean = true; // by default true
+	isClusteringChecked: boolean = false;
+
+	// implement in Application fetcher that will fetch classes to Cluster from server (they must be predefined in configuration)
+	hierarchyGroupsToCluster: any = [];
+	classesToClusterTogether: string[][] = [];
+    
     /**
      * How much of the graph area is covered by panels.
      */
@@ -50,15 +75,252 @@ export default class GraphAreaManipulator implements ObjectSave {
             }
             isBeingDragged = false;
         });
+        let oldValue = 0
+        let newValue = 0
+        cy.on('zoom', () => {
+            newValue = cy.zoom();
+
+            if (this.isClusteringChecked) {
+                if (1.8 * oldValue < newValue) {
+                    this.clustering(true);
+                    oldValue = newValue;
+                } else if (oldValue > 1.3 * newValue) {
+                    this.clustering(false);
+                    oldValue = newValue;
+                }
+                
+            }
+        })
     }
 
-    zoomIn() {
-        this.changeZoomByQuotient(this.manualZoomScale);
+    private clustering(zoomIn: boolean | undefined) {
+		let nodesToClusterByHierarchyGroup: NodeCommon[] = [];
+		let nodesToClusterByClass: NodeCommon[] = [];
+		let nodesToClusterByLevel: NodeCommon[] = [];
+		let nodesToClusterByParent: NodeCommon[] = [];
+		let groupOrNodeIsOnlyChild: NodeCommon[] = [];
+		let parent: NodeCommon;
+		
+        if (!zoomIn) {
+            this.kClustering.manipulator = this.graphArea.manipulator;
 
+            for (let hierarchyGroupToCluster of this.hierarchyGroupsToCluster) {
+
+                this.graph.nocache_nodesVisual.forEach(node => {
+                    if (node.mounted) {
+                        if (node.getHierarchyGroup === hierarchyGroupToCluster) {
+                            nodesToClusterByHierarchyGroup.push(node);
+                        }
+                    }
+                    
+                })
+                nodesToClusterByHierarchyGroup.forEach(node => {
+                    if (node.getHierarchyLevel === this.globalHierarchyDepth) {
+                        nodesToClusterByLevel.push(node);
+                    }
+                })
+                nodesToClusterByHierarchyGroup = [];
+            }
+
+            let numberOfNodesPerLevel = nodesToClusterByLevel.length;
+            while (nodesToClusterByLevel.length > 0) {
+                parent = null;
+                nodesToClusterByLevel.forEach(node => {
+                    if (!parent) {
+                        parent = node.getParent;
+                    }
+                })
+                
+                if (parent) {
+                    parent.getChildren.forEach(child => { 
+                            nodesToClusterByParent.push(child); 
+                            nodesToClusterByLevel.splice(
+                                nodesToClusterByLevel.indexOf(child), 1
+                            );
+                        });
+                }
+                else {
+                    nodesToClusterByParent = nodesToClusterByLevel;
+                    nodesToClusterByLevel = [];
+                }
+                let classesToClusterTogetherID = 0;
+                while (nodesToClusterByParent.length > 0) {
+                    let nodeClass = "";
+
+                    if ((this.classesToClusterTogether.length === 0) && (this.constraintRules.constraints.length > 0)) {
+                        let classesToApplyConstraint = [];
+                        for (let constraint of this.constraintRules.constraints) {
+                            if (constraint.type === "classes-to-cluster-together" && Array.isArray(constraint.properties["classesToApplyConstraint"])) {
+                                constraint.properties["classesToApplyConstraint"].forEach((classToApplyConstraint) => { 
+                                    classesToApplyConstraint.push(classToApplyConstraint.slice(1));
+                                })
+                                this.classesToClusterTogether.push(classesToApplyConstraint)
+                            }
+                        }
+                    }
+
+                    if (this.classesToClusterTogether.length > 0) {
+                        while (nodesToClusterByClass.length === 0 && classesToClusterTogetherID < this.classesToClusterTogether.length) {
+                            nodesToClusterByParent.forEach(node => {
+                                if (this.classesToClusterTogether[classesToClusterTogetherID].find(cl => node.classes.includes(cl))) {
+                                    nodesToClusterByClass.push(node);
+                                }
+                            });									
+                            classesToClusterTogetherID++;
+                        }
+                    }
+                
+
+                    if (nodesToClusterByClass.length === 0) {
+                        nodesToClusterByParent.forEach(node => {
+                            if (!nodeClass) {
+                                if (node.classes.length > 1) {
+                                    for (let nodeAnotherClass of node.classes) {
+                                        if (nodeAnotherClass !== node.hierarchyGroup) {
+                                            nodeClass = nodeAnotherClass;
+                                        }
+                                    }
+                                }
+                                else {
+                                    nodeClass = node.classes[0];
+                                }
+                            }
+                        })
+
+                        if (nodeClass) {
+                            nodesToClusterByParent.forEach(node => { 
+                                if (node.classes.includes(nodeClass)) {
+                                    nodesToClusterByClass.push(node);
+                                }
+                            });
+                        }
+                    }
+
+
+                    nodesToClusterByClass.forEach(child => {
+                        nodesToClusterByParent.splice(
+                            nodesToClusterByParent.indexOf(child), 1
+                        );
+                    }); 
+
+                    if (nodesToClusterByClass.length > 1) {
+                        this.kClustering.kClustering("kmedoids", nodesToClusterByClass);
+                    } else if (nodesToClusterByClass.length === 1 && nodesToClusterByClass[0].getParent) {
+                        if (nodesToClusterByClass[0].getParent.identifier.startsWith('pseudo_parent_')) {
+                            numberOfNodesPerLevel = numberOfNodesPerLevel - 1;
+                        }
+                        else {
+                            groupOrNodeIsOnlyChild.push(nodesToClusterByClass[0]);
+                        }
+                    }
+
+                    nodesToClusterByClass = [];
+                }
+                
+            }
+
+            if (numberOfNodesPerLevel === groupOrNodeIsOnlyChild.length){
+                groupOrNodeIsOnlyChild.forEach(node => {
+                    this.globalHierarchyDepth = node.hierarchyLevel - 1;
+                    node.mounted = false;
+                    node.isMountedInHierarchy = false;
+                    let nodeEdgesIn: Edge[] = [];
+                    let nodeEdgesOut: Edge[] = [];
+                    let newEdge: Edge;
+                    if (node instanceof NodeGroup) {
+                        for (let nodeInGroup of node.nodes) {
+                            nodeInGroup.edges.forEach(edge => {
+                                if (nodeInGroup.identifier === edge.source.identifier) nodeEdgesOut.push(edge);
+                                else if (nodeInGroup.identifier === edge.target.identifier) nodeEdgesIn.push(edge);
+                            })
+                        }
+                    } else if (node instanceof Node){
+                        node.edges.forEach(edge => {
+                            if (node.identifier === edge.source.identifier) nodeEdgesOut.push(edge);
+                            else if (node.identifier === edge.target.identifier) nodeEdgesIn.push(edge);
+                        })
+                    }
+
+                    for (let nodeEdge of nodeEdgesOut) {
+                        if (!(node.getParent === nodeEdge.target) && !(node.getParent.edges.find(parentEdge => parentEdge.target === nodeEdge.target))) {
+                            newEdge = this.graph.createEdge(node.getParent, nodeEdge.target, nodeEdge.type); 
+                            newEdge.isEdgeFromChild = true;
+                            newEdge.classes = nodeEdge.classes;
+                        }
+                    }
+
+                    for (let nodeEdge of nodeEdgesIn) {
+                        if (!(node.getParent === nodeEdge.source) && !(node.getParent.edges.find(parentEdge => parentEdge.source === nodeEdge.source))) {
+                            newEdge = this.graph.createEdge(nodeEdge.source, node.getParent, nodeEdge.type);
+                            newEdge.isEdgeFromChild = true;
+                            newEdge.classes = nodeEdge.classes;
+                        }
+                    }
+                });
+            }
+
+            groupOrNodeIsOnlyChild = [];
+            nodesToClusterByClass = [];
+            nodesToClusterByLevel = [];
+            nodesToClusterByParent = [];
+            nodesToClusterByHierarchyGroup = [];
+            numberOfNodesPerLevel = 0;
+                
+        } else {
+            let mountedGroups = this.graph.groups.filter(group => group.mounted && (group.hierarchyLevel === this.globalHierarchyDepth));
+            if (mountedGroups.length > 0) {
+                let randomGroups = new Array(Math.floor(Math.sqrt(mountedGroups.length))); // changeable parameter
+                let i = 0;
+
+                const wasChosen = nextGroup => randomGroups.some( (group) => nextGroup == group);
+                
+                if (randomGroups.length > mountedGroups.length) {
+                    randomGroups = mountedGroups;
+                }
+                else {
+                    while (i !== randomGroups.length) {
+                        let group = mountedGroups[Math.floor( Math.random() * mountedGroups.length )];
+                        if (!wasChosen(group)) {
+                            group.nodes.forEach(node => node.isMountedInHierarchy = true);
+                            randomGroups[i++] = group;
+                        }
+                    }
+                }
+
+                randomGroups.forEach(group => { 
+                    this.graphArea.manipulator.deGroup(group);
+                });
+            } else {
+                let unmountedNodesInHierarchy: NodeCommon[] = this.graph.nocache_nodesUnmounted.filter(node => node.getParent?.isMountedInHierarchy && (node.hierarchyLevel === this.globalHierarchyDepth + 1));
+                if (unmountedNodesInHierarchy.length > 0) {
+                    let parentNode: Node;
+                    for (let unmountedNode of unmountedNodesInHierarchy) {
+                        if (!unmountedNode.isMountedInHierarchy) {
+                            unmountedNode.mounted = true;
+                            unmountedNode.isMountedInHierarchy = true;
+                            this.globalHierarchyDepth = unmountedNode.getHierarchyLevel;
+                            parentNode = unmountedNode.getParent;
+                            let edgesToRemove = parentNode.edges.filter(edge => edge.isEdgeFromChild);
+                            if (edgesToRemove.length > 0) {
+                                for (let edgeToRemove of edgesToRemove) this.graph._removeEdge(edgeToRemove);
+                            }
+                        }
+                        
+                    }
+                    Vue.nextTick(() => this.layoutManager.currentLayout.run());
+                }
+            }
+        }
+	}
+
+    zoomIn() {
+        if (this.isZoomingChecked) this.changeZoomByQuotient(this.manualZoomScale);
+        if (this.isClusteringChecked && !this.isZoomingChecked) this.clustering(true);
     }
 
     zoomOut() {
-        this.changeZoomByQuotient(1 / this.manualZoomScale);
+        if (this.isZoomingChecked) this.changeZoomByQuotient(1 / this.manualZoomScale);
+        if (this.isClusteringChecked && !this.isZoomingChecked) this.clustering(false);
     }
 
     /**
@@ -67,7 +329,13 @@ export default class GraphAreaManipulator implements ObjectSave {
      * @param view
      */
     async expandNode(view: NodeView) {
-        let expansion = await view.expand();
+        let expansion: Expansion;
+        if (this.layoutManager.currentLayout.constraintRulesLoaded && this.layoutManager.currentLayout.supportsHierarchicalView) {
+            expansion = await view.expand(this.constraintRules);
+        }
+        else {
+            expansion = await view.expand();
+        }
         this.layoutManager.currentLayout.onExpansion(expansion);
 
         return expansion;

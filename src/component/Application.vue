@@ -483,6 +483,39 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
     }
   }
 
+  /**
+   * When the constraint IRI is changed, this function downloads new constraint rules.
+   * */
+  private async loadConstraints() {
+      if (this.configuration?.constraints?.length > 0) {
+          let constraintRules = await this.graph.server.getConstraints(this.configuration.constraints[0]);
+          if (constraintRules === false) {
+              console.error("Error occurred while fetching constraint rules.\nCheck the correctness of IRI, URL of remote server or the internet connection.\nStyles will be emptied.");
+              this.areaManipulator.constraintRules.constraints = [];
+              this.viewOptions.isHierarchyView = false;
+              this.layouts.currentLayout.constraintRulesLoaded = false;
+          } else {
+              this.areaManipulator.constraintRules = constraintRules;
+              this.viewOptions.isHierarchyView = true;
+              this.layouts.currentLayout.constraintRulesLoaded = true;
+          }
+      } else {
+          this.areaManipulator.constraintRules.constraints = [];
+          this.viewOptions.isHierarchyView = false;
+          this.layouts.currentLayout.constraintRulesLoaded = false;
+      }
+
+      if ((this.areaManipulator.hierarchyGroupsToCluster.length === 0) && this.layouts.currentLayout.constraintRulesLoaded) {
+          for (let constraint of this.areaManipulator.constraintRules.constraints) {
+              if (constraint.type === "hierarchy-groups-to-cluster" && Array.isArray(constraint.properties["classesToApplyConstraint"])) {
+                  constraint.properties["classesToApplyConstraint"].forEach((classToApplyConstraint) => { 
+                          this.areaManipulator.hierarchyGroupsToCluster.push(classToApplyConstraint.slice(1))
+                          })
+              }
+          }
+      }
+  }
+
   //#endregion Visual Style sheet variable and update logic
 
   //#region References to components used in Application
@@ -569,6 +602,9 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
       this.graph.configuration = data.configuration;
 
       this.loadStylesheet();
+
+      if (this.layouts.currentLayout.supportsHierarchicalView) this.loadConstraints();
+
       this.updateGraphSearcher();
     }
   }
@@ -588,6 +624,9 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
     this.areaManipulator.graph = this.graph;
     this.areaManipulator.layoutManager = this.layouts;
     this.layouts.graphChanged(this.graph);
+
+    if (this.layouts.currentLayout.supportsHierarchicalView) this.loadConstraints();
+    
     this.layouts.graphAreaManipulatorChanged(this.areaManipulator);
 
     this.manipulator = new GraphManipulator(this.graph, this.areaManipulator, this.layouts);

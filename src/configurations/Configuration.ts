@@ -19,6 +19,7 @@ export default class Configuration implements ObjectSave {
     public title: {[language: string]: string} = {};
     public description: {[language: string]: string} = {};
     public stylesheet: string[] = [];
+    public constraints: string[] = [];
     public startingNode: string[] = [];
     public autocomplete: string[] = [];
     public resourcePattern: string = null;
@@ -46,6 +47,7 @@ export default class Configuration implements ObjectSave {
             this.title = {};
             this.description = {};
             this.stylesheet = [];
+            this.constraints = [];
             this.startingNode = [];
             this.autocomplete = [];
             this.resourcePattern = null;
@@ -88,6 +90,7 @@ export default class Configuration implements ObjectSave {
         this.title = {...serverData.title, ...this.title};
         this.description = {...serverData.description, ...this.description};
         this.stylesheet = [...new Set([...this.stylesheet, ...serverData.stylesheet])];
+        this.constraints = [...new Set([...this.constraints, ...serverData.constraints])];
         this.startingNode = [...new Set([...this.startingNode, ...serverData.starting_node])];
         this.autocomplete = [...new Set([...this.autocomplete, ...serverData.autocomplete])];
         this.resourcePattern = serverData.resource_pattern ?? this.resourcePattern;

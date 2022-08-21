@@ -36,20 +36,71 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
      */
     protected registerElement(): void {
         let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
-
+        if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded)) {
+            this.setHierarchyInfo();
+        }
         // All parameters here must correspond to functions trigger by watchers
         // The objects are considered owned by Cytoscape therefore are copied to remove Vue observers
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
             // label: Fixes Cytoscape bug when there is no clickable bounding box when node has [width: label] and previous label was empty
-            data: { label: "-", ...clone(this.node.lastPreview), id: this.node.IRI } as NodeDataDefinition,
+            data: { label: "-", ...clone(this.node.lastPreview), id: this.node.IRI, parent: this.node.parent?.IRI } as NodeDataDefinition,
             classes: this.classList as unknown as string,
             position,
         } as ElementDefinition);
 
         this.lockedForLayoutsChangedPopper();
     }
+    
+    protected setHierarchyInfo() {
+            let parent = this.node.parent;
+            
+            if (this.node.children.length > 0) {
+                this.node.hierarchyGroup = this.node.children[0].hierarchyGroup;
+                this.node.hierarchyLevel = this.node.children[0].hierarchyLevel - 1;
+            } else if (parent) {
+                if (!this.node.hierarchyGroup) this.node.hierarchyGroup = parent.hierarchyGroup;
+                this.node.hierarchyLevel = parent.hierarchyLevel + 1;
+            } else {
+                let hierarchyGroupsToCluster = this.areaManipulator.constraintRules.constraints.filter(constraint => constraint.type === "hierarchy-groups-to-cluster")
+                if (hierarchyGroupsToCluster.length > 0) {
+                    for (let hierarchyGroupToCluster of hierarchyGroupsToCluster) {
+                        let nodeClass = hierarchyGroupToCluster.properties["classesToApplyConstraint"][0].slice(1);
+                        if (this.node.classes.includes(nodeClass)) {
+                            this.node.hierarchyGroup = nodeClass;
+                        }
+                    }
+                }
+                else {
+                    this.node.hierarchyGroup = null;
+                }
+            }
 
+            let visualGroups = this.areaManipulator.constraintRules.constraints.filter(constraint => constraint.type === "visual-groups");
+            
+            if (visualGroups.length > 0) {
+                    for (let visualGroup of visualGroups) {
+                        let nodeClass = visualGroup.properties["classesToApplyConstraint"][0].slice(1);
+                        if (!parent && this.node.hierarchyGroup && this.node.classes.includes(nodeClass)) {
+                            let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchyGroup);
+                            if (!pseudoParent) {
+                                pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.hierarchyGroup);
+                                pseudoParent.hierarchyLevel = this.node.hierarchyLevel - 1;
+                                pseudoParent.mounted = true;
+                            }
+                            if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
+                                pseudoParent.children.push(this.node);
+                            }
+                            this.node.parent = pseudoParent;
+                        }
+                    }
+            }
+
+            if ((this.areaManipulator.globalHierarchyDepth < this.node.hierarchyLevel) && this.areaManipulator.hierarchyGroupsToCluster.find(hierarchyGroupToCluster => hierarchyGroupToCluster === this.node.hierarchyGroup)) {
+                this.areaManipulator.globalHierarchyDepth = this.node.hierarchyLevel;
+            }
+        }
+        
     //#region Methods for Popper manipulation and lock icon
     protected popperIsActive: boolean;
     @Ref() protected readonly iconsWrapper !: HTMLDivElement;
@@ -68,7 +119,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
     async onDoubleClicked() {
         let view: NodeView;
 
-        if (!this.node?.currentView.IRI) {
+        if (!this.node?.currentView?.IRI) {
             // Currently nodes obtained by expansion have view, but it does not contain IRI
             view = await this.node.getDefaultView();
         } else {

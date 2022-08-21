@@ -34,20 +34,20 @@ export default class GraphElementEdge extends Vue {
     mounted() {
         // @ts-ignore
         this.cy = this.$parent.cy;
-
-        this.element = <Cytoscape.EdgeSingular>this.cy.add({
-            // @ts-ignore bad types
-            group: 'edges',
-            // @ts-ignore bad types
-            data: {
-                source: this.edge.source.identifier,
-                target: this.edge.target.identifier,
-                label: this.edge.type.label
-            } as EdgeDataDefinition,
-            // @ts-ignore bad types
-            classes: this.getClassList(),
-        });
-
+        if (!(this.edge.target.getParent?.identifier === this.edge.source.identifier) && !(this.edge.source.getParent?.identifier === this.edge.target.identifier)) {
+            this.element = <Cytoscape.EdgeSingular>this.cy.add({
+                // @ts-ignore bad types
+                group: 'edges',
+                // @ts-ignore bad types
+                data: {
+                    source: this.edge.source.identifier,
+                    target: this.edge.target.identifier,
+                    label: this.edge.type.label
+                } as EdgeDataDefinition,
+                // @ts-ignore bad types
+                classes: this.getClassList(),
+            });
+        }
         this.edge.element = this;
     };
 
@@ -119,7 +119,9 @@ export default class GraphElementEdge extends Vue {
      * Remove the edge from graph when the object is being removed
      */
     beforeDestroy() {
-        this.cy.remove(this.element);
+        if (this.element){
+            this.cy.remove(this.element);
+        }
     };
 
     // noinspection JSUnusedGlobalSymbols

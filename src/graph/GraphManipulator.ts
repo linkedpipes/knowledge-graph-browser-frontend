@@ -102,6 +102,7 @@ export default class GraphManipulator {
         let nodeGroup = this.graph.createGroup();
         let position_add = {x: 0, y: 0};
         let position_count = 0;
+        let parentExists: boolean = false;
 
         for (let node of nodes) {
             // Average position
@@ -121,8 +122,28 @@ export default class GraphManipulator {
                 nodeGroup.addNode(node);
             }
 
+            if (node.getParent) {
+                node.getParent.children.splice(
+                    node.getParent.children.indexOf(node), 1
+                );
+                parentExists = true;
+            }
+
+            if (!nodeGroup.hierarchyGroup) {
+                nodeGroup.hierarchyGroup = node.hierarchyGroup;
+            }
+
             node.selected = false;
         }
+        // assuming that we are grouping nodes with same parent
+        if (parentExists){
+            nodeGroup.parent = nodes[0].getParent;
+            if (!nodeGroup.parent.children.find(child => child.identifier === nodeGroup.identifier)) {
+                nodeGroup.parent.children.push(nodeGroup)
+            }
+        }
+        
+        nodeGroup.hierarchyLevel = nodeGroup.nodes[0].hierarchyLevel;
         nodeGroup.onMountPosition = [position_add.x / position_count, position_add.y / position_count];
         nodeGroup.mounted = true;
         nodeGroup.selected = true;
@@ -138,7 +159,18 @@ export default class GraphManipulator {
     deGroup(group: NodeGroup) {
         for (let node of group.nodes) {
             node.belongsToGroup = null;
+            if (group.parent) {
+                node.parent = group.parent;
+                node.parent.getChildren.push(node);
+            }
+            node.hierarchyLevel = group.hierarchyLevel;
+            node.hierarchyGroup = group.hierarchyGroup;
             node.mounted = true;
+        }
+        if (group.parent) {
+            group.parent.getChildren.splice(
+                group.parent.getChildren.indexOf(group), 1
+            );
         }
         this.graph.removeGroupIgnoreNodes(group);
         this.area.layoutManager.currentLayout.onGroupBroken(group.nodes, group);
@@ -152,6 +184,13 @@ export default class GraphManipulator {
         }
         group.nodes = group.nodes.filter(node => !nodes.includes(node));
 
+        if (group.parent) {
+            group.parent.getChildren.push(newGroup);   
+            newGroup.parent = group.parent;
+            newGroup.hierarchyLevel = group.hierarchyLevel;
+            newGroup.hierarchyGroup = group.hierarchyGroup;
+        }
+
         newGroup.onMountPosition = [group.element?.element?.position().x, group.element?.element?.position().y];
         newGroup.mounted = true;
 
@@ -164,6 +203,12 @@ export default class GraphManipulator {
     leaveGroup(nodes: Node[], group: NodeGroup) {
         for (let node of nodes) {
             node.belongsToGroup = null;
+            if (group.parent) {
+                node.parent = group.parent;
+                group.parent.getChildren.push(node);
+            }
+            node.hierarchyLevel = group.hierarchyLevel;
+            node.hierarchyGroup = group.hierarchyGroup;
         }
         group.nodes = group.nodes.filter(node => !nodes.includes(node));
         group.checkForNodes();

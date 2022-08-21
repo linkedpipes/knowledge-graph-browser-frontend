@@ -21,6 +21,7 @@
                         <h1 class="mb-2 d-inline">{{node.lastPreview.label}}</h1>
                         <v-chip label v-for="cls in previewClasses" :key="cls.label" :color="cls.color" style="vertical-align: super;" class="mx-2">{{cls.label}}</v-chip>
                     </div>
+                    <h1 v-else-if="node.IRI.startsWith('pseudo_parent')">Visual group "{{ node.children[0].hierarchyGroup }}"</h1>
                     <h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
                 </div>
 
@@ -42,7 +43,7 @@
                 </v-alert>
 
                 <!-- DETAIL -->
-                <v-card outlined :disabled="!node.isDetailActual" :loading="!node.isDetailActual" class="mb-5 detail">
+                <v-card v-if="!node.IRI.startsWith('pseudo_parent')" outlined :disabled="!node.isDetailActual" :loading="!node.isDetailActual" class="mb-5 detail">
                     <v-card-title>{{ $t("side_panel.detail_panel.detail") }}</v-card-title>
                     <v-card-text v-if="!node.currentView">{{ $t("side_panel.detail_panel.please_select_view") }}</v-card-text>
                     <v-card-text v-else-if="!node.lastDetail">{{ $t("side_panel.detail_panel.fetching_detail") }}</v-card-text>
@@ -63,7 +64,7 @@
                 </v-card>
 
                 <!-- EXPANSIONS AND VIEWS -->
-                <v-card outlined :loading="viewSets === null" class="mb-5">
+                <v-card v-if="!node.IRI.startsWith('pseudo_parent')" outlined :loading="viewSets === null" class="mb-5">
                     <v-card-title>{{ $t("side_panel.detail_panel.views") }}</v-card-title>
                     <template v-if="viewSets !== null">
                         <v-list v-if="viewSets.length">
@@ -73,7 +74,7 @@
                                     <v-list-item v-for="view in viewSet.views" :key="view.IRI" :value="view.IRI" @click="view.use()">
                                         <v-list-item-content>
                                             <v-list-item-title style="flex-basis: auto;" class="flex-grow-1">{{view.label}}</v-list-item-title>
-                                            <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="secondary" :loading="view.expansionInProgress" @click.stop="expand(view)">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
+                                            <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="secondary" :loading="view.expansionInProgress" @click.stop="areaManipulator.expandNode(view)">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
                                         </v-list-item-content>
                                     </v-list-item>
                                 </template>
@@ -91,7 +92,7 @@
                 </v-card>
 
                 <!-- TYPE OF THE NODE -->
-                <v-card outlined class="mb-5">
+                <v-card v-if="!node.IRI.startsWith('pseudo_parent')" outlined class="mb-5">
                     <v-card-text>
                         <a :href="node.IRI" target="_blank" class="text--primary" style="text-decoration: none;">{{node.IRI}}</a>
                     </v-card-text>
@@ -108,7 +109,7 @@
                     </v-card-text>
                 </v-card>
 
-        <template v-slot:actions>
+        <template v-if="!node.IRI.startsWith('pseudo_parent')" v-slot:actions>
             <panel-action-button
                     @click="removeNode"
                     danger

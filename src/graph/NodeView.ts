@@ -1,6 +1,6 @@
 import { Node } from "./Node";
 import { Expansion } from "./Expansion";
-import { ResponseElementType } from "../remote-server/ResponseInterfaces";
+import { ResponseConstraints, ResponseElementType } from "../remote-server/ResponseInterfaces";
 import { NodeType } from "./Node";
 import { NodeViewSet } from "./NodeViewSet";
 import ObjectSave from "../file-save/ObjectSave";
@@ -133,7 +133,7 @@ export class NodeView implements ObjectSave {
     /**
      * Fetches expansion of the Node and returns it.
      */
-    async expand(): Promise<Expansion> {
+     async expand(constraintRules?: ResponseConstraints | undefined): Promise<Expansion> {
         this.expansionInProgress = true;
 
         // Get the expansion
@@ -156,16 +156,47 @@ export class NodeView implements ObjectSave {
                         type: types.get(expansionNode.type)
                     };
                     node.currentView = view;
+                    node.hierarchyLevel = this.node.hierarchyLevel;
                 }
 
                 this.expansion.nodes.push(node);
             }
+
+            let constraints = constraintRules?.constraints?.filter(constraint => constraint.type === "child-parent-relation");
 
             // Create edges
             for (let expansionEdge of result.edges) {
                 let edge = this.node.graph.createEdge(
                     this.node.graph.getNodeByIRI(expansionEdge.source),
                     this.node.graph.getNodeByIRI(expansionEdge.target), types.get(expansionEdge.type));
+                    if (constraints) {
+                        let found = false;
+                        let source = this.node.graph.getNodeByIRI(expansionEdge.source);
+                        let target = this.node.graph.getNodeByIRI(expansionEdge.target);
+                        for (let constraint of constraints) {
+                            let childSelector = Array.isArray(constraint.properties["childSelector"]) ? constraint.properties["childSelector"][0] : constraint.properties["childSelector"];
+                            let edgeSelector = Array.isArray(constraint.properties["edgeSelector"]) ? constraint.properties["edgeSelector"][0] : constraint.properties["edgeSelector"];
+                            if (source.classes.includes(childSelector.slice(1))) {
+                                found = expansionEdge.classes.includes(edgeSelector.slice(1));
+                            }
+                        }
+                        if (found) {
+                            let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchyGroup);
+                            if (pseudoParent && source.parent === pseudoParent) {
+                                pseudoParent.children.splice(
+                                    pseudoParent.children.indexOf(source), 1
+                                );
+                                target.parent = pseudoParent;
+                                if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
+                                    pseudoParent.children.push(this.node);
+                                }
+                            }
+                            source.parent = target;
+                            if (!target.children.find(child => child.identifier === expansionEdge.source)) {
+                                target.children.push(source);
+                            }
+                        }
+                    }
                 edge.classes = expansionEdge.classes;
             }
         }

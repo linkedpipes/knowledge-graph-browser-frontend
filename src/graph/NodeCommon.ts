@@ -1,8 +1,10 @@
 import ObjectSave from "../file-save/ObjectSave";
 import {Graph} from "./Graph";
+import { Node } from "./Node";
 import GraphElementNodeMixin from "../component/graph/GraphElementNodeMixin";
 import GraphElementNode from "../component/graph/GraphElementNode.vue";
 import GraphElementNodeGroup from "../component/graph/GraphElementNodeGroup.vue";
+import { NodeView } from "./NodeView";
 
 export default abstract class NodeCommon implements ObjectSave {
     /**
@@ -28,6 +30,8 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     onMountPosition: [number, number] | null = null;
 
+    isMountedInHierarchy: boolean = true;
+
     /**
      * Vue component responsible for registering the node in the Cytoscape instance.
      * GraphElementNodeMixin is a common ancestor for both GraphElementNode and GraphElementNodeGroup.
@@ -40,11 +44,25 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     connectedEdges: any[] = [];
 
+     /**
+     * Node's parent
+     */
+      parent: Node = null;
+
+      /**
+       * Node's children
+       */
+      children: NodeCommon[] = [];
+  
+      hierarchyGroup: string;
+  
+      hierarchyLevel: number = 0;
+
     /**
      * Safely removes the element from the graph.
      * This method should properly unregister everything about the node.
      */
-    public abstract remove(): void;
+    public abstract remove(fromGroup: boolean | undefined): void;
 
     /**
      * Unique identifier for both Node and NodeGroup.
@@ -58,6 +76,18 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     abstract get selfOrGroup(): NodeCommon;
 
+    abstract get getParent(): Node;
+
+    abstract get getChildren(): NodeCommon[];
+
+    abstract get getCurrentView(): NodeView;
+
+    abstract get classes(): string[];
+
+    abstract get getHierarchyLevel(): number;
+
+    abstract get getHierarchyGroup(): string;
+    
     /**
      * Whether the node is selected on the board.
      */

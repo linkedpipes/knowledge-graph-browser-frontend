@@ -39,6 +39,7 @@ export interface ColaLayoutOptions extends LayoutsCommonGroupSettings {
 export default class ColaLayout extends Layout {
     public readonly supportsNodeLocking = true;
     public readonly supportsCompactMode = true;
+    public readonly supportsHierarchicalView: boolean = true;
 
     private layoutAnimation: Layouts;
     private isActive: boolean = false;
@@ -69,7 +70,7 @@ export default class ColaLayout extends Layout {
     }
 
     onDrag(isStartNotEnd: boolean) {
-        if (this.options.doLayoutAfterReposition && (!isStartNotEnd || this.options.animate)) {
+        if (this.options.doLayoutAfterReposition && (!isStartNotEnd || (this.options.animate && !this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded))) {
             this.executeLayout(this.getCollectionToAnimate());
         }
     };
@@ -113,6 +114,7 @@ export default class ColaLayout extends Layout {
         let notMountedNodes = expansion.nodes.filter(node => !node.mounted);
         let currentPosition = expansion.parentNode.selfOrGroup.element.element.position();
         let group: NodeGroup = null;
+        let groupParent: Node = null;
 
         // Decides whether the nodes should be grouped
         if (notMountedNodes.length >= this.options.expansionGroupLimit && this.options.groupExpansion) {
@@ -120,7 +122,25 @@ export default class ColaLayout extends Layout {
             for (let node of notMountedNodes) {
                 node.mounted = true;
                 group.addNode(node);
+                if (node.parent) {
+                    if (!groupParent) {
+                        groupParent = node.parent;
+                    }
+                    node.parent.getChildren.splice(
+                        node.parent.getChildren.indexOf(node), 1
+                    );
+                }
             }
+            
+            if (groupParent) {
+                group.parent = groupParent;
+                if (!groupParent.children.find(child => child.identifier === group.identifier)) {
+                    group.parent.getChildren.push(group);
+                }
+            }
+            group.hierarchyLevel = group.nodes[0].hierarchyLevel;
+            group.hierarchyGroup = group.nodes[0].hierarchyGroup;
+            
             // By subtracting -1 we broke the possible line of nodes, allowing cola layout to work.
             group.onMountPosition = [currentPosition.x + 100, currentPosition.y - 1];
             group.mounted = true;

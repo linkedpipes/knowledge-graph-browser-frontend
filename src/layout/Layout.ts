@@ -18,6 +18,8 @@ export default abstract class Layout implements ObjectSave {
     public areaManipulator: GraphAreaManipulator;
     public graph: Graph;
 
+    public readonly supportsHierarchicalView: boolean = false;
+    public constraintRulesLoaded: boolean;
 
     /**
      * This is a way how layout can tell that it supports or don't node locking. Node locking means, that if user moves

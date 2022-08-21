@@ -36,11 +36,14 @@ export class LayoutManager implements ObjectSave {
      * @param name New layout name
      */
     switchToLayout(name: string) {
+        let constraintRulesLoaded: boolean = false;
         this.currentLayoutData?.layout.deactivate();
+        if (this.currentLayout?.constraintRulesLoaded) constraintRulesLoaded = true;
         this.currentLayoutData = this.list.find(data => data.name === name);
         this.currentLayoutData?.layout.activate();
 
         this.currentLayout = this.currentLayoutData?.layout ?? null;
+        if (constraintRulesLoaded) this.currentLayout.constraintRulesLoaded = true;
     }
 
     /**

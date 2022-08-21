@@ -7,6 +7,7 @@ import ObjectSave from "../file-save/ObjectSave";
 import GraphElementNodeGroup from "../component/graph/GraphElementNodeGroup.vue";
 import GroupEdge from "./GroupEdge";
 import NodeGroupVuex from "./component/NodeGroupVuex";
+import {NodeView} from "./NodeView"
 
 export default class NodeGroup extends NodeCommon implements ObjectSave {
     public vuexComponent: NodeGroupVuex;
@@ -64,8 +65,18 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      * Completely removes NodeGroup with all Nodes from the graph.
      * Safe to call anytime.
      */
-    public remove() {
-        this.nodes.forEach(node => node.remove());
+     public remove() {
+        this.nodes.forEach(node => node.remove(true));
+        
+        this.parent?.children.splice(
+            this.parent?.children.indexOf(this), 1
+        );
+
+        if (this.parent && this.parent.identifier.startsWith('pseudo_parent') && this.parent.getChildren.length === 0) {
+            this.parent.graph._removeNode(this.parent);
+        }
+
+        this.selected = false;
         this.graph.removeGroupIgnoreNodes(this);
     }
 
@@ -112,6 +123,29 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         in_group: {[identifier: string]: GroupEdge},
     };
 
+    public get getParent(): Node {
+        return this.parent;
+    }
+
+    /**
+     * Group node cannot have children in hierarchy
+     */
+    public get getChildren(): NodeCommon[] {
+        return null;
+    }
+
+    public get getCurrentView(): NodeView {
+        return null;
+    }
+
+    public get getHierarchyLevel(): number {
+        return this.hierarchyLevel;
+    }
+
+    public get getHierarchyGroup(): string {
+        return this.hierarchyGroup;
+    }
+
     /**
      * This function returns array of graph-unique GroupEdges which connects this NodeGroup, but does not point from
      * other NodeGroup (to avoid duplicity from other NodeGroup). We need to keep in mind that there could be multiple
@@ -122,15 +156,15 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      *     - the edge type ------------>  -- |       |
      *         - final groupEdge --------->   -------
      */
-        private getGroupEdgesInDirection(outNotIn: boolean, exclusivelyTargetIsGroup: boolean = false): GroupEdge[] {
-            // Initialize cache
-            if (!this.groupEdgesCache) {
-                this.groupEdgesCache = {
-                    in_group: {},
-                    in: {},
-                    out: {},
-                }
+    private getGroupEdgesInDirection(outNotIn: boolean, exclusivelyTargetIsGroup: boolean = false): GroupEdge[] {
+        // Initialize cache
+        if (!this.groupEdgesCache) {
+            this.groupEdgesCache = {
+                in_group: {},
+                in: {},
+                out: {},
             }
+        }
 
         let targetTypeGroupEdge: Map<string, Map<string, {
             groupEdge: GroupEdge,

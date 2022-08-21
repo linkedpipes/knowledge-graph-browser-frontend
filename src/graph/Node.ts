@@ -42,6 +42,23 @@ export class Node extends NodeCommon implements ObjectSave {
     /**
      * @inheritDoc
      */
+     public get getParent(): Node {
+        return this.parent;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public get getChildren(): NodeCommon[] {
+        return this.children;
+    }
+
+    public get getCurrentView(): NodeView {
+        return this.currentView;
+    }
+    /**
+     * @inheritDoc
+     */
     public get selfOrGroup(): NodeCommon {
         return this.belongsToGroup ?? this;
     }
@@ -53,6 +70,14 @@ export class Node extends NodeCommon implements ObjectSave {
 
     get classes(): string[] {
         return this.currentView?.preview?.classes ?? [];
+    }
+
+    get getHierarchyLevel(): number {
+        return this.hierarchyLevel;
+    }
+
+    get getHierarchyGroup(): string {
+        return this.hierarchyGroup;
     }
 
     /**
@@ -182,12 +207,40 @@ export class Node extends NodeCommon implements ObjectSave {
         return this.nodeVuexComponent?.neighbourSelected ?? this.nocache_neighbourSelected;
     }
 
-    remove() {
-        if (this.belongsToGroup) {
-            this.belongsToGroup.nodes = this.belongsToGroup.nodes.filter(node => node !== this);
-            this.belongsToGroup.checkForNodes();
+    remove(fromGroup: boolean = false) {
+        
+        const removeChildrenRecursively = node => {
+            
+            if (node.getChildren && node.getChildren?.length > 0) {
+                while (node.getChildren?.length !== 0) {
+                    let child = node.getChildren[0];
+                    removeChildrenRecursively(child);
+                }
+            }
+            
+            if ((node instanceof Node) && node.belongsToGroup) {
+                node.belongsToGroup.nodes = node.belongsToGroup.nodes.filter(group_node => group_node !== node);
+                node.belongsToGroup.checkForNodes();
+            }
+    
+            node.selected = false;
+            
+            if (!fromGroup) {
+                node.parent?.children.splice(
+                    node.parent?.children.indexOf(node), 1
+                );
+            }
+
+            if (node instanceof Node) {
+                node.graph._removeNode(node);
+            }
+            else if (node instanceof NodeGroup) {
+                node.remove();
+            }
         }
-        this.graph._removeNode(this);
+
+
+        removeChildrenRecursively(this);
     }
 
     createViewSet(IRI: string): NodeViewSet {

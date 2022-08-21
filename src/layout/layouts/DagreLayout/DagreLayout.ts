@@ -18,6 +18,7 @@ export interface DagreLayoutOptions extends LayoutsCommonGroupSettings {
 
 export default class DagreLayout extends Layout {
     public readonly supportsCompactMode = true;
+    public readonly supportsHierarchicalView: boolean = true;
 
     public constructor() {
         super();
