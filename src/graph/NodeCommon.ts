@@ -30,6 +30,7 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     onMountPosition: [number, number] | null = null;
 
+    // Node might be hidden for hierarchy purposes. For example when zooming out and switching to higher level of hierarchy depth
     isMountedInHierarchy: boolean = true;
 
     /**
@@ -54,6 +55,7 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     children: NodeCommon[] = [];
 
+    // Node must belong only to one hierarchy group
     hierarchyGroup: string;
 
     hierarchyLevel: number = 0;

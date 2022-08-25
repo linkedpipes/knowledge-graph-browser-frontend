@@ -7,15 +7,29 @@ import NodeGroup from "../../../graph/NodeGroup";
 import { Node } from "../../../graph/Node";
 import NodeCommon from "../../../graph/NodeCommon";
 
+
+/**
+ * Clustering of nodes. Actually supported only KMeans and KMedoids clustering techniques.
+ * wiki: 
+ *      - https://en.wikipedia.org/wiki/K-means_clustering
+ *      - https://en.wikipedia.org/wiki/K-medoids
+ */
 export default class KMeans extends Vue {
         
     @Prop() manipulator: GraphManipulator;
 
+    // Number of clusters to return in one call
     private k: number;
 
+    /**
+     * range of "method" argument - 'kmeans' or 'kmedoids'
+     * nodesToCluster - array of nodes to be clustered
+     * @param method 
+     * @param nodesToCluster 
+     */
     kClustering(method: string, nodesToCluster: any[]) {
         let nodes = [];
-        let numIterations = 10;
+        let numIterations = 10; // maximum number of iterations of the clustering algorithm to run
         let clusters = [];
 
         let currentCost;
@@ -23,10 +37,12 @@ export default class KMeans extends Vue {
         this.k = nodesToCluster.length;
         let changedCost = new Array(this.k + 1);
 
+        // Nodes are clustered based on the attribute values. Must be numeric.
         const attributes = node => {
             return { 0: node.element.element.position()['x'], 1: node.element.element.position()['y'] }
         }
 
+        // Number of cluster to return; might be a constant or some decreasing value
         this.k = (Math.floor(this.k / 2) <= 0) ? 1 : Math.floor(this.k / 2);
         
         if (nodesToCluster.length != 0) {
@@ -52,7 +68,6 @@ export default class KMeans extends Vue {
             while (!isConverged && iterations < numIterations) {
                 // Assign nodes to the nearest cluster
                 for (let node of nodesToCluster) {
-                    // node = this.graph.getNodeByIRI(IRI);
                     let asset_id = (node instanceof NodeGroup) ? node.id : node.IRI;
                     assignments[asset_id] = this.classify(node, centroids, attributes, method);
                 }
@@ -80,6 +95,7 @@ export default class KMeans extends Vue {
                     if (clusters[centroidID] === undefined) { continue; }
 
                     if (method === "kmedoids") {
+                        // Update centroids, select nodes with the lowest cost as a new centroid 
                         changedCost[centroidID] = this.getCost(centroids[centroidID], clusters[centroidID], attributes);
 
                         for (let nodeID; nodeID < clusters[centroidID].length; nodeID++) {
@@ -124,6 +140,7 @@ export default class KMeans extends Vue {
         }
     }
 
+    // Assigning node to nearest cluster
     private classify(node: NodeCommon, centroids: any[], attributes: any, method: string): number {
         let minimum = Infinity;
         let adjustedCentroidID;
@@ -146,6 +163,7 @@ export default class KMeans extends Vue {
         return adjustedCentroidID;
     }
     
+    // Choose medoids for kMedoids method
     private getMedoids(nodes: NodeCommon[], nDimensions: number): NodeCommon[] { 
         let medoids = new Array(this.k);
         let i = 0;
@@ -162,6 +180,7 @@ export default class KMeans extends Vue {
         return medoids;
     }
 
+    // Generate random centroids for kMeans method
     private getRandomCentroids(nodes: NodeCommon[], nDimensions: number): number[] {
 
         let minimum = new Array(nDimensions);

@@ -31,6 +31,9 @@ export interface ResponseStylesheet {
     }[];
 }
 
+/**
+ * Interface for response from /layout-constraints
+ */
 export interface ResponseConstraints {
     constraints: {
         type: string;

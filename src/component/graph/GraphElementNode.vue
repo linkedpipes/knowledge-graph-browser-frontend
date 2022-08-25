@@ -51,7 +51,8 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
 
         this.lockedForLayoutsChangedPopper();
     }
-    
+
+    // Set up hierarchy data
     protected setHierarchyInfo() {
             let parent = this.node.parent;
             

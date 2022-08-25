@@ -53,6 +53,7 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
         } as ElementDefinition);
     }
 
+    // Set up hierarchy data
     protected setHierarchyInfo() {
         let parent = this.node.parent;        
 

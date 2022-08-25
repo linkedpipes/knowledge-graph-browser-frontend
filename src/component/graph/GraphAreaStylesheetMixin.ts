@@ -96,7 +96,8 @@ export default class GraphAreaStylesheetMixin extends Vue {
                 });
                 break;
         }
-
+        
+        // Place parent name to the top and center of node if it has opened children
         if (this.viewOptions.isHierarchyView) {
             viewOptionsStyles.push({selector: "node:parent",
                     style: {
@@ -178,7 +179,7 @@ export default class GraphAreaStylesheetMixin extends Vue {
                     "min-width": 50,
                     "min-height": 50,
                     "padding": 50,
-                    "shape": "cut-rectangle",
+                    "shape": "cut-rectangle", //change shape of parent's node
                 }
             },
             ...this.viewOptionsStyles,

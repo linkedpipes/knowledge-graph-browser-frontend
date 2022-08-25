@@ -37,18 +37,25 @@ export default class GraphAreaManipulator implements ObjectSave {
     // Constraint rules to layout nodes
     constraintRules: ResponseConstraints = { constraints: [] };
 
-    // Global map for classes and last level of hierarchy for such class
-    // groupHierarchyDepth: { [classID: string]: number; } = {};
-
+    /**
+     * This attribute sets up global hierarchy depth to see at 
+     * what level of hierarchy nodes of the graph must be clustered
+     */
     globalHierarchyDepth: number = 0;
 
-    zoomingCounter: number = 0;
     kClustering: KMeans = new KMeans();
 
+    /** 
+    * Those attributes are used in checkbox to understand what should be performed: 
+    * - clustering
+    * - zooming
+    * - both
+    * - or neither one of them
+    */
 	isZoomingChecked: boolean = true; // by default true
 	isClusteringChecked: boolean = false;
 
-	// implement in Application fetcher that will fetch classes to Cluster from server (they must be predefined in configuration)
+	// implemented in Application fetcher that will fetch classes to Cluster from server (they must be predefined in configuration)
 	hierarchyGroupsToCluster: any = [];
 	classesToClusterTogether: string[][] = [];
     
@@ -93,6 +100,10 @@ export default class GraphAreaManipulator implements ObjectSave {
         })
     }
 
+    /**
+     * Main clustering function
+     * @param zoomIn 
+     */ 
     private clustering(zoomIn: boolean | undefined) {
 		let nodesToClusterByHierarchyGroup: NodeCommon[] = [];
 		let nodesToClusterByClass: NodeCommon[] = [];
@@ -100,12 +111,12 @@ export default class GraphAreaManipulator implements ObjectSave {
 		let nodesToClusterByParent: NodeCommon[] = [];
 		let groupOrNodeIsOnlyChild: NodeCommon[] = [];
 		let parent: NodeCommon;
-		
+        
+        // Zooming out
         if (!zoomIn) {
             this.kClustering.manipulator = this.graphArea.manipulator;
 
             for (let hierarchyGroupToCluster of this.hierarchyGroupsToCluster) {
-
                 this.graph.nocache_nodesVisual.forEach(node => {
                     if (node.mounted) {
                         if (node.getHierarchyGroup === hierarchyGroupToCluster) {
@@ -113,12 +124,14 @@ export default class GraphAreaManipulator implements ObjectSave {
                         }
                     }
                     
-                })
+                });
+
                 nodesToClusterByHierarchyGroup.forEach(node => {
                     if (node.getHierarchyLevel === this.globalHierarchyDepth) {
                         nodesToClusterByLevel.push(node);
                     }
-                })
+                });
+
                 nodesToClusterByHierarchyGroup = [];
             }
 
@@ -219,6 +232,8 @@ export default class GraphAreaManipulator implements ObjectSave {
                 
             }
 
+            /** In case parent has children that cannot be clustered together. 
+             * In this case we just need to hide children nodes and leave only parent node */ 
             if (numberOfNodesPerLevel === groupOrNodeIsOnlyChild.length){
                 groupOrNodeIsOnlyChild.forEach(node => {
                     this.globalHierarchyDepth = node.hierarchyLevel - 1;
@@ -267,6 +282,7 @@ export default class GraphAreaManipulator implements ObjectSave {
             numberOfNodesPerLevel = 0;
                 
         } else {
+            // Zooming in
             let mountedGroups = this.graph.groups.filter(group => group.mounted && (group.hierarchyLevel === this.globalHierarchyDepth));
             if (mountedGroups.length > 0) {
                 let randomGroups = new Array(Math.floor(Math.sqrt(mountedGroups.length))); // changeable parameter
@@ -291,6 +307,7 @@ export default class GraphAreaManipulator implements ObjectSave {
                     this.graphArea.manipulator.deGroup(group);
                 });
             } else {
+                // Show hidden children nodes
                 let unmountedNodesInHierarchy: NodeCommon[] = this.graph.nocache_nodesUnmounted.filter(node => node.getParent?.isMountedInHierarchy && (node.hierarchyLevel === this.globalHierarchyDepth + 1));
                 if (unmountedNodesInHierarchy.length > 0) {
                     let parentNode: Node;

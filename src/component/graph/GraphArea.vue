@@ -224,6 +224,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	}
 	//#endregion Cytoscape batch optimisation
 
+	// #region Tracking of chosen boxes of clustering checkbox
 	public zoomingEvent() {
 		
 		if (this.areaManipulator.isZoomingChecked) {
@@ -247,8 +248,9 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		}	
 
 	}
+	// #endregion
 
-@Watch('modeCompact')
+	@Watch('modeCompact')
 	modeCompactChanged() {
 		this.cy.userPanningEnabled(!this.modeCompact);
 		this.cy.userZoomingEnabled(!this.modeCompact);

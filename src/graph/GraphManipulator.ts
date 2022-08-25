@@ -122,6 +122,7 @@ export default class GraphManipulator {
                 nodeGroup.addNode(node);
             }
 
+            // find parent for group node
             if (node.getParent) {
                 node.getParent.children.splice(
                     node.getParent.children.indexOf(node), 1
@@ -135,6 +136,7 @@ export default class GraphManipulator {
 
             node.selected = false;
         }
+        
         // assuming that we are grouping nodes with same parent
         if (parentExists){
             nodeGroup.parent = nodes[0].getParent;

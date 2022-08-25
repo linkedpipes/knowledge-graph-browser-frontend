@@ -47,6 +47,7 @@ export default class GraphElementNodeMixin extends Vue {
         }
     }
 
+    // Set up parent for all children in case expanded node is a parent node
     private setParent(): void {
         let parentNode = this.node;
         let cy = this.areaManipulator.cy;

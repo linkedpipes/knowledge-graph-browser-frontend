@@ -484,7 +484,7 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
   }
 
   /**
-   * When the constraint IRI is changed, this function downloads new constraint rules.
+   * When new configuration or layout is loaded, this function downloads new constraint rules.
    * */
   private async loadConstraints() {
       if (this.configuration?.constraints?.length > 0) {

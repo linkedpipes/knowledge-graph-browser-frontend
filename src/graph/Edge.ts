@@ -26,6 +26,8 @@ export class Edge extends EdgeCommon implements ObjectSave {
     classes: string[] = [];
 
     element: GraphElementEdge = null;
+
+    // Attribute is used to move edges from child to parent when child gets hidden
     isEdgeFromChild: boolean = false;
 
     constructor (source: Node, target: Node, type: EdgeType, graph: Graph) {
