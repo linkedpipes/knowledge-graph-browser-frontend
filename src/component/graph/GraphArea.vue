@@ -5,7 +5,22 @@
 		<v-toolbar flat dense floating class="ma-3 toolbar" :style="leftStyle">
 			<search-component :graph-searcher="graphSearcher" @searched="manipulator.locateOrTryFetchNode($event)"></search-component>
 		</v-toolbar>
-
+		<v-main v-if="layoutManager.currentLayout.constraintRulesLoaded && layoutManager.currentLayout.supportsHierarchicalView" title='Hint: Check both to cluster and zoom at the same time' class="checkbox" :disabled="modeCompact" :style="rightStyle">
+			<v-container>
+				<p>Scaling options</p>
+				<v-checkbox
+					class="ma-0 pa-0"
+					label="Grouping of clusters"
+					@click = "groupingOfClustersEvent()"
+				></v-checkbox>
+				<v-checkbox
+					class="ma-0 pa-0"
+					label="Zoom"
+					:input-value="true"
+					@click = "zoomingEvent()"
+				></v-checkbox>
+			</v-container>
+		</v-main>
 		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
 			<div class="my-2">
 				<v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact" @click="areaManipulator.zoomIn()">
@@ -111,7 +126,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	@Prop() rightOffset: number;
 	@Prop() viewOptions: ViewOptions;
 	@Prop() private graphSearcher: GraphSearcher;
-	@Prop() private manipulator: GraphManipulator;
+	@Prop() manipulator: GraphManipulator;
 	@Prop(Object) private areaManipulator: GraphAreaManipulator;
 	@Prop(Object) private layoutManager: LayoutManager;
 
@@ -208,6 +223,41 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		}
 	}
 	//#endregion Cytoscape batch optimisation
+
+	// #region Tracking of chosen options of clustering checkbox
+	
+	/** 
+	 * Handles zooming event \
+	 * For more information see https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/user_documentation.md#checkbox-1 
+	 */
+	public zoomingEvent() {
+		
+		if (this.areaManipulator.isZoomingChecked) {
+			this.areaManipulator.isZoomingChecked = false;
+			this.cy.zoomingEnabled(false);
+		}
+		else {
+			this.areaManipulator.isZoomingChecked = true;
+			this.cy.zoomingEnabled(true);
+		}	
+
+	}
+
+	/** 
+	 * Handles grouping of clusters event \
+	 * For more information see https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/user_documentation.md#checkbox-1 
+	 */
+	public groupingOfClustersEvent() {
+		
+		if (this.areaManipulator.isGroupingOfClustersChecked) {
+			this.areaManipulator.isGroupingOfClustersChecked = false;
+		}
+		else {
+			this.areaManipulator.isGroupingOfClustersChecked = true;
+		}	
+
+	}
+	// #endregion
 
 	@Watch('modeCompact')
 	modeCompactChanged() {
@@ -328,6 +378,11 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 }
 .toolbar.toolbar-move {
 	left: 256px;
+}
+
+.checkbox {
+	position: absolute;
+	right: 80px;
 }
 
 .buttons {

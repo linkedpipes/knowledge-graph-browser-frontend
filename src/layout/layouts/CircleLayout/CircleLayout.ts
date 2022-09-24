@@ -15,6 +15,9 @@ export interface CircleLayoutOptions extends LayoutsCommonGroupSettings {
 }
 
 export default class CircleLayout extends Layout {
+    
+    public readonly supportsHierarchicalView: boolean = true;
+    
     /**
      * Options for this layout which can be modified by a user
      */

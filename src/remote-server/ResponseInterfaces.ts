@@ -32,6 +32,19 @@ export interface ResponseStylesheet {
 }
 
 /**
+ * Interface for response from /layout-constraints
+ */
+export interface ResponseConstraints {
+    constraints: {
+        type: string;
+        id: string;
+        properties: {
+            [property: string]: string | string[];
+        }
+    }[];
+}
+
+/**
  * Interface for response from /preview
  */
 export interface ResponsePreview {
@@ -109,6 +122,7 @@ export interface ResponseMetaConfiguration extends ResponseMetaConfigurationBase
 export interface ResponseConfiguration {
     iri: string,
     stylesheet: string[],
+    constraints: string[],
     title: {[language: string]: string},
     description: {[language: string]: string},
     autocomplete: string[],

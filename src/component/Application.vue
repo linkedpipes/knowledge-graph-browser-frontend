@@ -483,6 +483,65 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
     }
   }
 
+  /** When a new configuration or layout is loaded, this function downloads and sets up new constraint rules, namely: \ 
+   * - Hierarchical groups to cluster \
+   *    For more information, see github documentation: https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#hierarchicalgroupstoclusterlayoutconstraint-class
+   * - Visual groups \
+   *    For more information, see github documentation: https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#visualgrouplayoutconstraint-class
+   * - Classes to cluster together \
+   *    For more information, see github documentation: https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#classestoclustertogetherlayoutconstraint-class
+   * - parent-child relations \
+   *    For more information, see github documentation: https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#childparentlayoutconstraint-and-parentchildlayoutconstraint-classes
+  */
+  private async loadConstraints() {
+      if (this.configuration?.constraints?.length > 0) {
+          let constraintRules = await this.graph.server.getConstraints(this.configuration.constraints[0]);
+          if (constraintRules === false) {
+              console.error("Error occurred while fetching constraint rules.\nCheck the correctness of IRI, URL of remote server or the internet connection.\nStyles will be emptied.");
+              this.areaManipulator.constraintRules.constraints = [];
+              this.viewOptions.isHierarchicalView = false;
+              this.layouts.currentLayout.constraintRulesLoaded = false;
+          } else {
+              this.areaManipulator.constraintRules = constraintRules;
+              this.viewOptions.isHierarchicalView = true;
+              this.layouts.currentLayout.constraintRulesLoaded = true;
+          }
+      } else {
+          this.areaManipulator.constraintRules.constraints = [];
+          this.viewOptions.isHierarchicalView = false;
+          this.layouts.currentLayout.constraintRulesLoaded = false;
+      }
+
+      if (this.layouts.currentLayout.constraintRulesLoaded && (this.areaManipulator.hierarchicalGroupsToCluster.length === 0) && (this.areaManipulator.visualGroups.length === 0) && (this.areaManipulator.classesToClusterTogether.length === 0) && (this.areaManipulator.childParentLayoutConstraints.length === 0)) {
+          for (let constraint of this.areaManipulator.constraintRules.constraints) {
+              if (constraint.type === "hierarchical-groups-to-cluster" && Array.isArray(constraint.properties["classesToApplyConstraint"])) {
+                if (constraint.properties["classesToApplyConstraint"].length === 1) {
+                  this.areaManipulator.hierarchicalGroupsToCluster.push(constraint.properties["classesToApplyConstraint"][0].slice(1))
+                } else {
+                  console.error("Each \"hierarchical groups to cluster\" constraint must refer to only one class.");
+                }
+              }
+              if (constraint.type === "visual-groups" && Array.isArray(constraint.properties["classesToApplyConstraint"])) {
+                if (constraint.properties["classesToApplyConstraint"].length === 1) {
+                  this.areaManipulator.visualGroups.push(constraint.properties["classesToApplyConstraint"][0].slice(1))
+                } else {
+                  console.error("Each \"visual groups\" constraint must refer to only one class.");
+                }
+              }
+              if (constraint.type === "classes-to-cluster-together" && Array.isArray(constraint.properties["classesToApplyConstraint"])) {
+                let classesToApplyConstraint = [];
+                constraint.properties["classesToApplyConstraint"].forEach((classToApplyConstraint) => { 
+                    classesToApplyConstraint.push(classToApplyConstraint.slice(1));
+                })
+                this.areaManipulator.classesToClusterTogether.push(classesToApplyConstraint);
+              }
+              if (constraint.type === "child-parent-relation") {
+                this.areaManipulator.childParentLayoutConstraints.push(constraint.properties);
+              }
+          }
+      }
+  }
+
   //#endregion Visual Style sheet variable and update logic
 
   //#region References to components used in Application
@@ -569,6 +628,9 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
       this.graph.configuration = data.configuration;
 
       this.loadStylesheet();
+
+      if (this.layouts.currentLayout.supportsHierarchicalView) this.loadConstraints();
+
       this.updateGraphSearcher();
     }
   }
@@ -588,6 +650,9 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
     this.areaManipulator.graph = this.graph;
     this.areaManipulator.layoutManager = this.layouts;
     this.layouts.graphChanged(this.graph);
+
+    if (this.layouts.currentLayout.supportsHierarchicalView) this.loadConstraints();
+    
     this.layouts.graphAreaManipulatorChanged(this.areaManipulator);
 
     this.manipulator = new GraphManipulator(this.graph, this.areaManipulator, this.layouts);

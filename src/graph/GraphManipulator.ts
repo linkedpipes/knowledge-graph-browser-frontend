@@ -102,6 +102,7 @@ export default class GraphManipulator {
         let nodeGroup = this.graph.createGroup();
         let position_add = {x: 0, y: 0};
         let position_count = 0;
+        let parentExists: boolean = false;
 
         for (let node of nodes) {
             // Average position
@@ -121,8 +122,33 @@ export default class GraphManipulator {
                 nodeGroup.addNode(node);
             }
 
+            // find a parent for group node
+            // and delete node from its parent children list, because 
+            // a new group containing this node will be a new child of a parent
+            if (node.getParent) {
+                node.getParent.children.splice(
+                    node.getParent.children.indexOf(node), 1
+                );
+                parentExists = true;
+            }
+
+            if (!nodeGroup.hierarchicalClass) {
+                nodeGroup.hierarchicalClass = node.hierarchicalClass;
+            }
+
             node.selected = false;
         }
+        
+        // set up a parent of a new group node;
+        // assuming that we are grouping nodes with same parent
+        if (parentExists){
+            nodeGroup.parent = nodes[0].getParent;
+            if (!nodeGroup.parent.children.find(child => child.identifier === nodeGroup.identifier)) {
+                nodeGroup.parent.children.push(nodeGroup)
+            }
+        }
+        
+        nodeGroup.hierarchicalLevel = nodeGroup.nodes[0].hierarchicalLevel;
         nodeGroup.onMountPosition = [position_add.x / position_count, position_add.y / position_count];
         nodeGroup.mounted = true;
         nodeGroup.selected = true;
@@ -138,7 +164,19 @@ export default class GraphManipulator {
     deGroup(group: NodeGroup) {
         for (let node of group.nodes) {
             node.belongsToGroup = null;
+            if (group.parent) {
+                node.parent = group.parent;
+                node.parent.children.push(node);
+            }
+            node.hierarchicalClass = group.hierarchicalClass;
+            node.hierarchicalLevel = group.hierarchicalLevel;
             node.mounted = true;
+            node.mountedFromGroup = true;
+        }
+        if (group.parent) {
+            group.parent.children.splice(
+                group.parent.children.indexOf(group), 1
+            );
         }
         this.graph.removeGroupIgnoreNodes(group);
         this.area.layoutManager.currentLayout.onGroupBroken(group.nodes, group);
@@ -152,18 +190,31 @@ export default class GraphManipulator {
         }
         group.nodes = group.nodes.filter(node => !nodes.includes(node));
 
+        if (group.parent) {
+            group.parent.children.push(newGroup);   
+            newGroup.parent = group.parent;
+            newGroup.hierarchicalLevel = group.hierarchicalLevel;
+            newGroup.hierarchicalClass = group.hierarchicalClass;
+        }
+
         newGroup.onMountPosition = [group.element?.element?.position().x, group.element?.element?.position().y];
         newGroup.mounted = true;
-
+        
         group.checkForNodes();
         newGroup.checkForNodes();
-
+        
         Vue.nextTick(() => this.area.layoutManager.currentLayout.run());
     }
 
     leaveGroup(nodes: Node[], group: NodeGroup) {
         for (let node of nodes) {
             node.belongsToGroup = null;
+            if (group.parent) {
+                node.parent = group.parent;
+                group.parent.children.push(node);
+            }
+            node.hierarchicalLevel = group.hierarchicalLevel;
+            node.hierarchicalClass = group.hierarchicalClass;
         }
         group.nodes = group.nodes.filter(node => !nodes.includes(node));
         group.checkForNodes();

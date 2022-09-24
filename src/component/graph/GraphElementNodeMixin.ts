@@ -36,9 +36,32 @@ export default class GraphElementNodeMixin extends Vue {
     protected selectedChanged() {
         if (this.node.selected) {
             this.element.select();
+            // make parent node selectable
+            let node = this.node;
+            while (node.getParent) {
+                node = node.getParent;
+                node.element.element.selectify();
+            }
         } else {
             this.element.unselect();
         }
+    }
+
+    /** Set up parent for all children in case expanded node is a parent node */ 
+    private setParent(): void {
+        let cy = this.areaManipulator.cy;
+        if (this.node.children?.length > 0) {
+            for (let child of this.node.children) {
+                if (child.mounted) {
+                    let parent = cy.getElementById(this.node.identifier).id();
+                    cy.getElementById(child.identifier).move({
+                        parent: parent
+                    });
+                    child.element.element.data().parent = this.node.identifier;
+                }
+            }
+        }
+        this.areaManipulator.cy = cy;
     }
 
     /**
@@ -46,6 +69,9 @@ export default class GraphElementNodeMixin extends Vue {
      * @abstract method which should be implemented in children
      */
     protected registerElement(): void {};
+
+    /** Set up hierarchical data for a node */
+    protected setHierarchicalInfo(): void {};
 
     /**
      * Function used for saving to file purposes. It generates the nodes position where it should be mounted.
@@ -67,9 +93,20 @@ export default class GraphElementNodeMixin extends Vue {
 
         this.registerElement();
 
+        this.setParent();
+
         this.element.scratch("_component", this);
 
-        this.element.on("select", () => this.node.selected = true);
+        this.element.on("select", () => {
+            if (this.node.element.element.selectable()) this.node.selected = true;
+            // set parent node unselectable when selecting only a child, because when selecting a child node, parent node is selected as well
+            let node = this.node;
+            while (node.getParent) {
+                node = node.getParent;
+                node.element.element.unselectify();
+            }
+        });
+        
         this.element.on("unselect", () => this.node.selected = false);
 
         this.showPopperChanged();

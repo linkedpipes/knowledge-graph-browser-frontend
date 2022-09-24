@@ -17,6 +17,9 @@ export default class ViewOptions implements ObjectSave {
      */
     edge: "full" | "hide_text" | "hide" = "full";
 
+    /** Specifies whether the layout should display hierarchical features. */ 
+    isHierarchicalView: boolean = false;
+
     /**
      * Whether the options are different than full
      */

@@ -18,6 +18,13 @@ export default abstract class Layout implements ObjectSave {
     public areaManipulator: GraphAreaManipulator;
     public graph: Graph;
 
+    /** Indicates whether layout supports hierarchical features. \
+     * For more information see https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#parent-child-or-child-parent-hierarchical-relationship
+     */ 
+    public readonly supportsHierarchicalView: boolean = false;
+    
+    /** Indicates whether constraint rules were loaded successfully */ 
+    public constraintRulesLoaded: boolean;
 
     /**
      * This is a way how layout can tell that it supports or don't node locking. Node locking means, that if user moves

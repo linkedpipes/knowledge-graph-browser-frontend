@@ -36,13 +36,15 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
      */
     protected registerElement(): void {
         let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
-
+        if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded)) {
+            this.setHierarchicalInfo();
+        }
         // All parameters here must correspond to functions trigger by watchers
         // The objects are considered owned by Cytoscape therefore are copied to remove Vue observers
         this.element = <Cytoscape.NodeSingular>this.cy.add({
             group: 'nodes',
             // label: Fixes Cytoscape bug when there is no clickable bounding box when node has [width: label] and previous label was empty
-            data: { label: "-", ...clone(this.node.lastPreview), id: this.node.IRI } as NodeDataDefinition,
+            data: { label: "-", ...clone(this.node.lastPreview), id: this.node.IRI, parent: this.node.parent?.IRI } as NodeDataDefinition,
             classes: this.classList as unknown as string,
             position,
         } as ElementDefinition);
@@ -50,6 +52,54 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
         this.lockedForLayoutsChangedPopper();
     }
 
+    protected setHierarchicalInfo() {
+        let parent = this.node.parent;
+        
+        if (this.node.children.length > 0) {
+            this.node.hierarchicalClass = this.node.children[0].hierarchicalClass;
+            this.node.hierarchicalLevel = this.node.children[0].hierarchicalLevel - 1;
+        } else if (parent) {
+            if (!this.node.hierarchicalClass) this.node.hierarchicalClass = parent.hierarchicalClass;
+            this.node.hierarchicalLevel = parent.hierarchicalLevel + 1;
+        } else {
+            if (this.areaManipulator.hierarchicalGroupsToCluster.length > 0) {
+                for (let hierarchicalGroupToCluster of this.areaManipulator.hierarchicalGroupsToCluster) {
+                    if (this.node.classes.includes(hierarchicalGroupToCluster)) {
+                        this.node.hierarchicalClass = hierarchicalGroupToCluster;
+                    }
+                }
+            }
+            else {
+                this.node.hierarchicalClass = null;
+            }
+        }
+
+        // Add pseudo-parent node as parent if node is the root in a hierarchy and has no parent
+        if (this.areaManipulator.visualGroups.length > 0) {
+            for (let visualGroup of this.areaManipulator.visualGroups) {
+                if (!parent && this.node.hierarchicalClass && this.node.classes.includes(visualGroup)) {
+                    let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchicalClass);
+                    if (!pseudoParent) {
+                        pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.hierarchicalClass);
+                        pseudoParent.hierarchicalLevel = this.node.hierarchicalLevel - 1;
+                        pseudoParent.mounted = true;
+                    }
+                    if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
+                        pseudoParent.children.push(this.node);
+                    }
+                    this.node.parent = pseudoParent;
+                }
+            }
+        }
+
+        // update the depth of a hierarchy
+        if ((this.areaManipulator.globalHierarchicalDepth < this.node.hierarchicalLevel) && this.areaManipulator.hierarchicalGroupsToCluster.find(hierarchicalGroupToCluster => hierarchicalGroupToCluster === this.node.hierarchicalClass) && !this.node.mountedFromGroup) {
+            this.areaManipulator.globalHierarchicalDepth = this.node.hierarchicalLevel;
+        }
+
+        this.node.mountedFromGroup = false;
+    }
+        
     //#region Methods for Popper manipulation and lock icon
     protected popperIsActive: boolean;
     @Ref() protected readonly iconsWrapper !: HTMLDivElement;
@@ -68,7 +118,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
     async onDoubleClicked() {
         let view: NodeView;
 
-        if (!this.node?.currentView.IRI) {
+        if (!this.node?.currentView?.IRI) {
             // Currently nodes obtained by expansion have view, but it does not contain IRI
             view = await this.node.getDefaultView();
         } else {

@@ -96,6 +96,20 @@ export default class GraphAreaStylesheetMixin extends Vue {
                 });
                 break;
         }
+        
+        /**
+         *  Place parent name to the top and center of node if it has opened children \
+         *  See the github documentation for more information: \
+         *      -   https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#extension-of-the-graphareastylesheetmixints
+         */
+        if (this.viewOptions.isHierarchicalView) {
+            viewOptionsStyles.push({selector: "node:parent",
+                    style: {
+                        "text-valign": "top",
+                        "text-halign": "center",
+                    }
+                });
+        }
 
         return viewOptionsStyles;
     }
@@ -109,7 +123,7 @@ export default class GraphAreaStylesheetMixin extends Vue {
             {
                 selector: "*",
                 style: {
-                    "opacity": 0.5,
+                    "opacity": 0.9,
                     "transition-property": "opacity",
                     "transition-duration": "0.25s",
                 }
@@ -152,6 +166,7 @@ export default class GraphAreaStylesheetMixin extends Vue {
                     "ghost-offset-x": 5,
                     "ghost-offset-y": -5,
                     "ghost-opacity": 1,
+                    "shape": "octagon",
                 }
             },
 
@@ -162,7 +177,16 @@ export default class GraphAreaStylesheetMixin extends Vue {
                     "overlay-opacity": 0.2,
                 }
             },
-
+            
+            {
+                selector: "node:parent",
+                style: {
+                    "min-width": 50,
+                    "min-height": 50,
+                    "padding": 50,
+                    "shape": "cut-rectangle", //change shape of parent's node
+                }
+            },
             ...this.viewOptionsStyles,
         ];
     }

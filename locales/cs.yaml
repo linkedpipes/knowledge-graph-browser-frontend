@@ -257,7 +257,7 @@ layout_dialog:
   change_layout: Nastavit tento layout
   close: Zavřít
 graph:
-  groupNode: 'jeden uzel | {n} uzly | {n} uzlů'
+  groupNode: skupina {count} uzlů
 configuration_selection:
   meta_configuration:
     title: Výběr konfigurace

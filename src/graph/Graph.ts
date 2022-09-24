@@ -60,6 +60,32 @@ export class Graph implements ObjectSave {
         return [...nodes, ...this.groups.filter(group => group.mounted)];
     }
 
+    /** returns unmounted nodes and groups */
+    public get nocache_nodesUnmounted(): NodeCommon[] {
+        let nodes: NodeCommon[] = [];
+        for (let iri in this.nodes) {
+            let node = this.nodes[iri];
+            if (!node.mounted && !node.belongsToGroup) {
+                nodes.push(node);
+            }
+        }
+
+        return [...nodes, ...this.groups.filter(group => !group.mounted)];
+    }
+
+    // returns only mounted nodes
+    public get mountedNodes(): Node[] {
+        let nodes: Node[] = [];
+        for (let iri in this.nodes) {
+            let node = this.nodes[iri];
+            if (node.mounted && !node.belongsToGroup) {
+                nodes.push(node);
+            }
+        }
+
+        return nodes;
+    }
+    
     public get nodesVisual(): NodeCommon[] {
         return this.vuexComponent?.nodesVisual ?? this.nocache_nodesVisual;
     }

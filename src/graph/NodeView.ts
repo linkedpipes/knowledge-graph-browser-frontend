@@ -1,6 +1,6 @@
 import { Node } from "./Node";
 import { Expansion } from "./Expansion";
-import { ResponseElementType } from "../remote-server/ResponseInterfaces";
+import { ResponseConstraints, ResponseElementType } from "../remote-server/ResponseInterfaces";
 import { NodeType } from "./Node";
 import { NodeViewSet } from "./NodeViewSet";
 import ObjectSave from "../file-save/ObjectSave";
@@ -133,7 +133,7 @@ export class NodeView implements ObjectSave {
     /**
      * Fetches expansion of the Node and returns it.
      */
-    async expand(): Promise<Expansion> {
+     async expand(childParentLayoutConstraints?: any[] | undefined): Promise<Expansion> {
         this.expansionInProgress = true;
 
         // Get the expansion
@@ -156,6 +156,7 @@ export class NodeView implements ObjectSave {
                         type: types.get(expansionNode.type)
                     };
                     node.currentView = view;
+                    node.hierarchicalLevel = this.node.hierarchicalLevel;
                 }
 
                 this.expansion.nodes.push(node);
@@ -163,10 +164,43 @@ export class NodeView implements ObjectSave {
 
             // Create edges
             for (let expansionEdge of result.edges) {
-                let edge = this.node.graph.createEdge(
-                    this.node.graph.getNodeByIRI(expansionEdge.source),
-                    this.node.graph.getNodeByIRI(expansionEdge.target), types.get(expansionEdge.type));
-                edge.classes = expansionEdge.classes;
+                let source = this.node.graph.getNodeByIRI(expansionEdge.source);
+                let target = this.node.graph.getNodeByIRI(expansionEdge.target);
+                
+                if (!source.mounted || !target.mounted) {
+                    let edge = this.node.graph.createEdge(
+                        this.node.graph.getNodeByIRI(expansionEdge.source),
+                        this.node.graph.getNodeByIRI(expansionEdge.target), types.get(expansionEdge.type));
+                        // set up hierarchical relations
+                        // for more information see https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#extension-of-the-nodeviewts
+                        if (childParentLayoutConstraints) {
+                            let found = false;
+                            for (let childParentLayoutConstraint of childParentLayoutConstraints) {
+                                let childSelector = Array.isArray(childParentLayoutConstraint["childSelector"]) ? childParentLayoutConstraint["childSelector"][0] : childParentLayoutConstraint["childSelector"];
+                                let edgeSelector = Array.isArray(childParentLayoutConstraint["edgeSelector"]) ? childParentLayoutConstraint["edgeSelector"][0] : childParentLayoutConstraint["edgeSelector"];
+                                if (source.classes.includes(childSelector.slice(1))) {
+                                    found = expansionEdge.classes.includes(edgeSelector.slice(1));
+                                }
+                            }
+                            if (found) {
+                                let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchicalClass);
+                                if (pseudoParent && source.parent === pseudoParent) {
+                                    pseudoParent.children.splice(
+                                        pseudoParent.children.indexOf(source), 1
+                                    );
+                                    target.parent = pseudoParent;
+                                    if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
+                                        pseudoParent.children.push(this.node);
+                                    }
+                                }
+                                source.parent = target;
+                                if (!target.children.find(child => child.identifier === expansionEdge.source)) {
+                                    target.children.push(source);
+                                }
+                            }
+                        }
+                    edge.classes = expansionEdge.classes;
+                }
             }
         }
 

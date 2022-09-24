@@ -220,7 +220,7 @@ layout_dialog:
   close: Close
 
 graph:
-  groupNode: single node | {n} resources
+  groupNode: Group of {count} nodes
 
 configuration_selection:
   meta_configuration:
