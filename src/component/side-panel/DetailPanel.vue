@@ -20,8 +20,13 @@
                     <div v-if="node.lastPreview">
                         <h1 class="mb-2 d-inline">{{node.lastPreview.label}}</h1>
                         <v-chip label v-for="cls in previewClasses" :key="cls.label" :color="cls.color" style="vertical-align: super;" class="mx-2">{{cls.label}}</v-chip>
+                        <div v-if="getHierarchicalClass">
+                            <b>Hierarchical class: </b> 
+                            <v-chip label :key="getHierarchicalClass.label" :color="getHierarchicalClass.color" style="vertical-align: super;" class="mx-2">{{getHierarchicalClass.label}}</v-chip>
+                        </div>
+                        
                     </div>
-                    <h1 v-else-if="node.IRI.startsWith('pseudo_parent')">Visual group "{{ node.children[0].hierarchyGroup }}"</h1>
+                    <h1 v-else-if="node.IRI.startsWith('pseudo_parent')">Visual group "{{ node.children[0].hierarchicalClass }}"</h1>
                     <h1 v-else>{{ $t("side_panel.detail_panel.loading") }}</h1>
                 </div>
 
@@ -158,7 +163,7 @@
 import {Component, Mixins, Prop, Ref, Watch} from 'vue-property-decorator';
 import { Node } from '@/graph/Node';
 import { NodeViewSet } from '@/graph/NodeViewSet';
-import {DetailValue} from '@/graph/NodeView';
+import {DetailValue, NodeView} from '@/graph/NodeView';
 import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
 import {
     mdiTrashCanOutline,
@@ -208,6 +213,20 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
      */
     get previewClasses(): {label: string; color: string}[] {
         return this.getClassesColors(this.node.lastPreview?.classes);
+    }
+
+    /**
+     * Returns hierarchical class \
+     * See the github documentation for more information: \
+     *      - https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#hierarchical-class
+     */
+    get getHierarchicalClass(): {label: string; color: string} {
+        for (let cls of this.previewClasses) {
+            if (cls.label === this.node.hierarchicalClass) {
+                return cls;
+            }
+        }
+        return null;
     }
 
     /**

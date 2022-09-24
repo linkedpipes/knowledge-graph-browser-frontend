@@ -116,18 +116,21 @@ export default class ColaLayout extends Layout {
         let group: NodeGroup = null;
         let groupParent: Node = null;
 
-        // Decides whether the nodes should be grouped
-        if (notMountedNodes.length >= this.options.expansionGroupLimit && this.options.groupExpansion) {
+        let classesToClusterTogetherID = 0;
+        let nodesToClusterByClass: Node[] = [];
+        
+        /** group not mounted nodes in case expansion has more than expansionGroupLimit nodes */
+        const groupNotMountedNodes = nodes => {
             group = this.graph.createGroup();
-            for (let node of notMountedNodes) {
+            for (let node of nodes) {
                 node.mounted = true;
                 group.addNode(node);
                 if (node.parent) {
                     if (!groupParent) {
                         groupParent = node.parent;
                     }
-                    node.parent.getChildren.splice(
-                        node.parent.getChildren.indexOf(node), 1
+                    node.parent.children.splice(
+                        node.parent.children.indexOf(node), 1
                     );
                 }
             }
@@ -135,15 +138,82 @@ export default class ColaLayout extends Layout {
             if (groupParent) {
                 group.parent = groupParent;
                 if (!groupParent.children.find(child => child.identifier === group.identifier)) {
-                    group.parent.getChildren.push(group);
+                    group.parent.children.push(group);
                 }
             }
-            group.hierarchyLevel = group.nodes[0].hierarchyLevel;
-            group.hierarchyGroup = group.nodes[0].hierarchyGroup;
+            group.hierarchicalLevel = group.nodes[0].hierarchicalLevel;
+            group.hierarchicalClass = group.nodes[0].hierarchicalClass;
             
             // By subtracting -1 we broke the possible line of nodes, allowing cola layout to work.
             group.onMountPosition = [currentPosition.x + 100, currentPosition.y - 1];
             group.mounted = true;
+            
+        }
+
+        if (notMountedNodes.length >= this.options.expansionGroupLimit && this.options.groupExpansion) {
+            // Group nodes according to classesToClusterTogetherLayoutConstraint
+            // for more information see https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#classestoclustertogetherlayoutconstraint-class
+            if (this.constraintRulesLoaded) {
+                while (notMountedNodes.length > 0) {
+                    let nodeClass = "";
+        
+                    if (this.areaManipulator.classesToClusterTogether.length > 0) {
+                        while (nodesToClusterByClass.length === 0 && classesToClusterTogetherID < this.areaManipulator.classesToClusterTogether.length) {
+                            notMountedNodes.forEach(node => {
+                                if (this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID].find(
+                                    cl => 
+                                     node.classes.includes(cl)
+                                    )) {
+                                    nodesToClusterByClass.push(node);
+                                }
+                            });									
+                            classesToClusterTogetherID++;
+                        }
+                    }
+                
+        
+                    if (nodesToClusterByClass.length === 0) {
+                        notMountedNodes.forEach(node => {
+                            if (!nodeClass) {
+                                if (node.classes.length > 1) {
+                                    for (let nodeAnotherClass of node.classes) {
+                                        if (nodeAnotherClass !== node.hierarchicalClass) {
+                                            nodeClass = nodeAnotherClass;
+                                        }
+                                    }
+                                }
+                                else {
+                                    nodeClass = node.classes[0];
+                                }
+                            }
+                        })
+        
+                        if (nodeClass) {
+                            notMountedNodes.forEach(node => { 
+                                if (node.classes.includes(nodeClass)) {
+                                    nodesToClusterByClass.push(node);
+                                }
+                            });
+                        }
+                    }
+        
+                    nodesToClusterByClass.forEach(child => {
+                        notMountedNodes.splice(
+                            notMountedNodes.indexOf(child), 1
+                        );
+                    }); 
+        
+                    if (nodesToClusterByClass.length > 1) {
+                        groupNotMountedNodes(nodesToClusterByClass);
+                    } else if (nodesToClusterByClass.length === 1) {
+                        nodesToClusterByClass[0].mounted = true;
+                    }
+        
+                    nodesToClusterByClass = [];
+                }
+            } else {
+                groupNotMountedNodes(notMountedNodes);
+            }
         } else {
             this.circleLayout(notMountedNodes, currentPosition);
         }

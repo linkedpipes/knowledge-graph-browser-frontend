@@ -60,7 +60,7 @@ export class Graph implements ObjectSave {
         return [...nodes, ...this.groups.filter(group => group.mounted)];
     }
 
-    // similar to above function, but returns unmounted nodes and groups
+    /** returns unmounted nodes and groups */
     public get nocache_nodesUnmounted(): NodeCommon[] {
         let nodes: NodeCommon[] = [];
         for (let iri in this.nodes) {

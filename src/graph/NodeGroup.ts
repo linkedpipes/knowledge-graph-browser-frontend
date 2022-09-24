@@ -71,8 +71,9 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         this.parent?.children.splice(
             this.parent?.children.indexOf(this), 1
         );
-
-        if (this.parent && this.parent.identifier.startsWith('pseudo_parent') && this.parent.getChildren.length === 0) {
+        
+        // remove also pseudo-parent node if a node is a single child of pseudo-parent node 
+        if (this.parent && this.parent.identifier.startsWith('pseudo_parent') && this.parent.children.length === 0) {
             this.parent.graph._removeNode(this.parent);
         }
 
@@ -125,25 +126,6 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
 
     public get getParent(): Node {
         return this.parent;
-    }
-
-    /**
-     * Group node cannot have children in hierarchy
-     */
-    public get getChildren(): NodeCommon[] {
-        return null;
-    }
-
-    public get getCurrentView(): NodeView {
-        return null;
-    }
-
-    public get getHierarchyLevel(): number {
-        return this.hierarchyLevel;
-    }
-
-    public get getHierarchyGroup(): string {
-        return this.hierarchyGroup;
     }
 
     /**

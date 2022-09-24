@@ -47,26 +47,21 @@ export default class GraphElementNodeMixin extends Vue {
         }
     }
 
-    // Set up parent for all children in case expanded node is a parent node
+    /** Set up parent for all children in case expanded node is a parent node */ 
     private setParent(): void {
-        let parentNode = this.node;
         let cy = this.areaManipulator.cy;
-        if (parentNode.getChildren?.length > 0) {
-            for (let child of this.node.getChildren) {
-                // let parent = cy.nodes().filter(node => node.id() == parentNode.identifier)
-                if (child.isMountedInHierarchy) {
-                    let parent = cy.getElementById(parentNode.identifier).id();
-                    // cy.nodes().filter(node => node.id() == child.IRI).move({
+        if (this.node.children?.length > 0) {
+            for (let child of this.node.children) {
+                if (child.mounted) {
+                    let parent = cy.getElementById(this.node.identifier).id();
                     cy.getElementById(child.identifier).move({
                         parent: parent
                     });
-                    child.element.element.data().parent = parentNode.identifier;
+                    child.element.element.data().parent = this.node.identifier;
                 }
             }
         }
-        this.node = parentNode;
         this.areaManipulator.cy = cy;
-        
     }
 
     /**
@@ -75,7 +70,8 @@ export default class GraphElementNodeMixin extends Vue {
      */
     protected registerElement(): void {};
 
-    protected setHierarchyInfo(): void {};
+    /** Set up hierarchical data for a node */
+    protected setHierarchicalInfo(): void {};
 
     /**
      * Function used for saving to file purposes. It generates the nodes position where it should be mounted.

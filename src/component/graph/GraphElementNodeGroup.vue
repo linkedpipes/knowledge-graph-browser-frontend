@@ -40,7 +40,7 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
         let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
                 
         if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded)) {
-            this.setHierarchyInfo();
+            this.setHierarchicalInfo();
         }
 
         // All parameters here must correspond to functions trigger by watchers
@@ -53,41 +53,33 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
         } as ElementDefinition);
     }
 
-    // Set up hierarchy data
-    protected setHierarchyInfo() {
+    protected setHierarchicalInfo() {
         let parent = this.node.parent;        
 
-        if (this.node.getChildren?.length > 0) {
-            this.node.hierarchyGroup = this.node.getChildren[0].hierarchyGroup;
-            this.node.hierarchyLevel = this.node.getChildren[0].hierarchyLevel - 1;
-        } else if (parent) {
-            if (!this.node.hierarchyGroup) this.node.hierarchyGroup = parent.hierarchyGroup;
-            this.node.hierarchyLevel = parent.hierarchyLevel + 1;
+        if (parent) {
+            if (!this.node.hierarchicalClass) this.node.hierarchicalClass = parent.hierarchicalClass;
+            this.node.hierarchicalLevel = parent.hierarchicalLevel + 1;
         } else {
-            let hierarchyGroupsToCluster = this.areaManipulator.constraintRules.constraints.filter(constraint => constraint.type === "hierarchy-groups-to-cluster")
-            if (hierarchyGroupsToCluster.length > 0) {
-                for (let hierarchyGroupToCluster of hierarchyGroupsToCluster) {
-                    let nodeClass = hierarchyGroupToCluster.properties["classesToApplyConstraint"][0].slice(1);
-                    if (this.node.classes.includes(nodeClass)) {
-                        this.node.hierarchyGroup = nodeClass;
+            if (this.areaManipulator.hierarchicalGroupsToCluster.length > 0) {
+                for (let hierarchicalGroupToCluster of this.areaManipulator.hierarchicalGroupsToCluster) {
+                    if (this.node.classes.includes(hierarchicalGroupToCluster)) {
+                        this.node.hierarchicalClass = hierarchicalGroupToCluster;
                     }
                 }
             }
             else {
-                this.node.hierarchyGroup = null;
+                this.node.hierarchicalClass = null;
             }
         }
 
-        let visualGroups = this.areaManipulator.constraintRules.constraints.filter(constraint => constraint.type === "visual-groups");
-        
-        if (visualGroups.length > 0) {
-            for (let visualGroup of visualGroups) {
-                let nodeClass = visualGroup.properties["classesToApplyConstraint"][0].slice(1);
-                if (!parent && this.node.hierarchyGroup && this.node.classes.includes(nodeClass)) {
-                    let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchyGroup);
+        // Add pseudo-parent node as parent if node is the root in a hierarchy and has no parent
+        if (this.areaManipulator.visualGroups.length > 0) {
+            for (let visualGroup of this.areaManipulator.visualGroups) {
+                if (!parent && this.node.hierarchicalClass && this.node.classes.includes(visualGroup)) {
+                    let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchicalClass);
                     if (!pseudoParent) {
-                        pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.hierarchyGroup);
-                        pseudoParent.hierarchyLevel = this.node.hierarchyLevel - 1;
+                        pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.hierarchicalClass);
+                        pseudoParent.hierarchicalLevel = this.node.hierarchicalLevel - 1;
                         pseudoParent.mounted = true;
                     }
                     if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
@@ -98,8 +90,9 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
             }
         }
 
-        if ((this.areaManipulator.globalHierarchyDepth < this.node.hierarchyLevel) && this.areaManipulator.hierarchyGroupsToCluster.find(hierarchyGroupToCluster => hierarchyGroupToCluster === this.node.hierarchyGroup)) {
-            this.areaManipulator.globalHierarchyDepth = this.node.hierarchyLevel;
+        // update the depth of a hierarchy
+        if ((this.areaManipulator.globalHierarchicalDepth < this.node.hierarchicalLevel) && this.areaManipulator.hierarchicalGroupsToCluster.find(hierarchicalGroupToCluster => hierarchicalGroupToCluster === this.node.hierarchicalClass)) {
+            this.areaManipulator.globalHierarchicalDepth = this.node.hierarchicalLevel;
         }
 
     }

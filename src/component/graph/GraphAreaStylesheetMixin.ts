@@ -97,8 +97,12 @@ export default class GraphAreaStylesheetMixin extends Vue {
                 break;
         }
         
-        // Place parent name to the top and center of node if it has opened children
-        if (this.viewOptions.isHierarchyView) {
+        /**
+         *  Place parent name to the top and center of node if it has opened children \
+         *  See the github documentation for more information: \
+         *      -   https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#extension-of-the-graphareastylesheetmixints
+         */
+        if (this.viewOptions.isHierarchicalView) {
             viewOptionsStyles.push({selector: "node:parent",
                     style: {
                         "text-valign": "top",
@@ -173,6 +177,7 @@ export default class GraphAreaStylesheetMixin extends Vue {
                     "overlay-opacity": 0.2,
                 }
             },
+            
             {
                 selector: "node:parent",
                 style: {

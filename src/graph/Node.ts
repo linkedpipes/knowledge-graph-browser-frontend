@@ -49,16 +49,6 @@ export class Node extends NodeCommon implements ObjectSave {
     /**
      * @inheritDoc
      */
-    public get getChildren(): NodeCommon[] {
-        return this.children;
-    }
-
-    public get getCurrentView(): NodeView {
-        return this.currentView;
-    }
-    /**
-     * @inheritDoc
-     */
     public get selfOrGroup(): NodeCommon {
         return this.belongsToGroup ?? this;
     }
@@ -68,16 +58,14 @@ export class Node extends NodeCommon implements ObjectSave {
      */
     belongsToGroup: NodeGroup | null = null;
 
+    /**
+     * Indicates if the node is coming from a group
+     * This is need for hierarchical clustering
+     */
+    mountedFromGroup: boolean = false;
+
     get classes(): string[] {
         return this.currentView?.preview?.classes ?? [];
-    }
-
-    get getHierarchyLevel(): number {
-        return this.hierarchyLevel;
-    }
-
-    get getHierarchyGroup(): string {
-        return this.hierarchyGroup;
     }
 
     /**
@@ -207,13 +195,19 @@ export class Node extends NodeCommon implements ObjectSave {
         return this.nodeVuexComponent?.neighbourSelected ?? this.nocache_neighbourSelected;
     }
 
+    /**
+     * Hierarchical view: remove descendant nodes recursively \
+     * Standard: remove nodes as usual 
+     * @param fromGroup - true value indicates that a parent node has a group as a child 
+     *      but not a node to remove (placed inside a group).
+     */
     remove(fromGroup: boolean = false) {
         
         const removeChildrenRecursively = node => {
             
-            if (node.getChildren && node.getChildren?.length > 0) {
-                while (node.getChildren?.length !== 0) {
-                    let child = node.getChildren[0];
+            if (node.children?.length > 0) {
+                while (node.children.length !== 0) {
+                    let child = node.children[0];
                     removeChildrenRecursively(child);
                 }
             }

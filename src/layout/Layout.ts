@@ -18,12 +18,12 @@ export default abstract class Layout implements ObjectSave {
     public areaManipulator: GraphAreaManipulator;
     public graph: Graph;
 
-    /** Whether layout supports hierarchy features. 
-     * Hierarchy features means, that graph will should parent node as a big one, 
-     * and its children (nodes) will be placed inside parent node.
+    /** Indicates whether layout supports hierarchical features. \
+     * For more information see https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#parent-child-or-child-parent-hierarchical-relationship
      */ 
     public readonly supportsHierarchicalView: boolean = false;
-    // Whether constraint rules were loaded successfully
+    
+    /** Indicates whether constraint rules were loaded successfully */ 
     public constraintRulesLoaded: boolean;
 
     /**

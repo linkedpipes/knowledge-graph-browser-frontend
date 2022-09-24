@@ -30,9 +30,6 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     onMountPosition: [number, number] | null = null;
 
-    // Node might be hidden for hierarchy purposes. For example when zooming out and switching to higher level of hierarchy depth
-    isMountedInHierarchy: boolean = true;
-
     /**
      * Vue component responsible for registering the node in the Cytoscape instance.
      * GraphElementNodeMixin is a common ancestor for both GraphElementNode and GraphElementNodeGroup.
@@ -48,17 +45,18 @@ export default abstract class NodeCommon implements ObjectSave {
     /**
      * Node's parent
      */
-    parent: Node = null;
+    parent: Node;
 
     /**
      * Node's children
      */
     children: NodeCommon[] = [];
 
-    // Node must belong only to one hierarchy group
-    hierarchyGroup: string;
+    /** Indicates which hierarchical group the node belongs to. */
+    hierarchicalClass: string;
 
-    hierarchyLevel: number = 0;
+    /** Indicates at what hierarchical level the node is located. */
+    hierarchicalLevel: number = 0;
 
     /**
      * Safely removes the element from the graph.
@@ -78,18 +76,11 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     abstract get selfOrGroup(): NodeCommon;
 
+    /** Returns the parent node */
     abstract get getParent(): Node;
-
-    abstract get getChildren(): NodeCommon[];
-
-    abstract get getCurrentView(): NodeView;
 
     abstract get classes(): string[];
 
-    abstract get getHierarchyLevel(): number;
-
-    abstract get getHierarchyGroup(): string;
-    
     /**
      * Whether the node is selected on the board.
      */

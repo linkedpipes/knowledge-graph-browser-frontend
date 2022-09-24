@@ -10,8 +10,8 @@
 				<p>Scaling options</p>
 				<v-checkbox
 					class="ma-0 pa-0"
-					label="Clustering"
-					@click = "clusteringEvent()"
+					label="Grouping of clusters"
+					@click = "groupingOfClustersEvent()"
 				></v-checkbox>
 				<v-checkbox
 					class="ma-0 pa-0"
@@ -224,7 +224,12 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	}
 	//#endregion Cytoscape batch optimisation
 
-	// #region Tracking of chosen boxes of clustering checkbox
+	// #region Tracking of chosen options of clustering checkbox
+	
+	/** 
+	 * Handles zooming event \
+	 * For more information see https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/user_documentation.md#checkbox-1 
+	 */
 	public zoomingEvent() {
 		
 		if (this.areaManipulator.isZoomingChecked) {
@@ -238,13 +243,17 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 
 	}
 
-	public clusteringEvent() {
+	/** 
+	 * Handles grouping of clusters event \
+	 * For more information see https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/user_documentation.md#checkbox-1 
+	 */
+	public groupingOfClustersEvent() {
 		
-		if (this.areaManipulator.isClusteringChecked) {
-			this.areaManipulator.isClusteringChecked = false;
+		if (this.areaManipulator.isGroupingOfClustersChecked) {
+			this.areaManipulator.isGroupingOfClustersChecked = false;
 		}
 		else {
-			this.areaManipulator.isClusteringChecked = true;
+			this.areaManipulator.isGroupingOfClustersChecked = true;
 		}	
 
 	}

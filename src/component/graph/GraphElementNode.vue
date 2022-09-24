@@ -37,7 +37,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
     protected registerElement(): void {
         let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
         if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded)) {
-            this.setHierarchyInfo();
+            this.setHierarchicalInfo();
         }
         // All parameters here must correspond to functions trigger by watchers
         // The objects are considered owned by Cytoscape therefore are copied to remove Vue observers
@@ -52,55 +52,53 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
         this.lockedForLayoutsChangedPopper();
     }
 
-    // Set up hierarchy data
-    protected setHierarchyInfo() {
-            let parent = this.node.parent;
-            
-            if (this.node.children.length > 0) {
-                this.node.hierarchyGroup = this.node.children[0].hierarchyGroup;
-                this.node.hierarchyLevel = this.node.children[0].hierarchyLevel - 1;
-            } else if (parent) {
-                if (!this.node.hierarchyGroup) this.node.hierarchyGroup = parent.hierarchyGroup;
-                this.node.hierarchyLevel = parent.hierarchyLevel + 1;
-            } else {
-                let hierarchyGroupsToCluster = this.areaManipulator.constraintRules.constraints.filter(constraint => constraint.type === "hierarchy-groups-to-cluster")
-                if (hierarchyGroupsToCluster.length > 0) {
-                    for (let hierarchyGroupToCluster of hierarchyGroupsToCluster) {
-                        let nodeClass = hierarchyGroupToCluster.properties["classesToApplyConstraint"][0].slice(1);
-                        if (this.node.classes.includes(nodeClass)) {
-                            this.node.hierarchyGroup = nodeClass;
-                        }
+    protected setHierarchicalInfo() {
+        let parent = this.node.parent;
+        
+        if (this.node.children.length > 0) {
+            this.node.hierarchicalClass = this.node.children[0].hierarchicalClass;
+            this.node.hierarchicalLevel = this.node.children[0].hierarchicalLevel - 1;
+        } else if (parent) {
+            if (!this.node.hierarchicalClass) this.node.hierarchicalClass = parent.hierarchicalClass;
+            this.node.hierarchicalLevel = parent.hierarchicalLevel + 1;
+        } else {
+            if (this.areaManipulator.hierarchicalGroupsToCluster.length > 0) {
+                for (let hierarchicalGroupToCluster of this.areaManipulator.hierarchicalGroupsToCluster) {
+                    if (this.node.classes.includes(hierarchicalGroupToCluster)) {
+                        this.node.hierarchicalClass = hierarchicalGroupToCluster;
                     }
                 }
-                else {
-                    this.node.hierarchyGroup = null;
-                }
             }
-
-            let visualGroups = this.areaManipulator.constraintRules.constraints.filter(constraint => constraint.type === "visual-groups");
-            
-            if (visualGroups.length > 0) {
-                    for (let visualGroup of visualGroups) {
-                        let nodeClass = visualGroup.properties["classesToApplyConstraint"][0].slice(1);
-                        if (!parent && this.node.hierarchyGroup && this.node.classes.includes(nodeClass)) {
-                            let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchyGroup);
-                            if (!pseudoParent) {
-                                pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.hierarchyGroup);
-                                pseudoParent.hierarchyLevel = this.node.hierarchyLevel - 1;
-                                pseudoParent.mounted = true;
-                            }
-                            if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
-                                pseudoParent.children.push(this.node);
-                            }
-                            this.node.parent = pseudoParent;
-                        }
-                    }
-            }
-
-            if ((this.areaManipulator.globalHierarchyDepth < this.node.hierarchyLevel) && this.areaManipulator.hierarchyGroupsToCluster.find(hierarchyGroupToCluster => hierarchyGroupToCluster === this.node.hierarchyGroup)) {
-                this.areaManipulator.globalHierarchyDepth = this.node.hierarchyLevel;
+            else {
+                this.node.hierarchicalClass = null;
             }
         }
+
+        // Add pseudo-parent node as parent if node is the root in a hierarchy and has no parent
+        if (this.areaManipulator.visualGroups.length > 0) {
+            for (let visualGroup of this.areaManipulator.visualGroups) {
+                if (!parent && this.node.hierarchicalClass && this.node.classes.includes(visualGroup)) {
+                    let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchicalClass);
+                    if (!pseudoParent) {
+                        pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.hierarchicalClass);
+                        pseudoParent.hierarchicalLevel = this.node.hierarchicalLevel - 1;
+                        pseudoParent.mounted = true;
+                    }
+                    if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
+                        pseudoParent.children.push(this.node);
+                    }
+                    this.node.parent = pseudoParent;
+                }
+            }
+        }
+
+        // update the depth of a hierarchy
+        if ((this.areaManipulator.globalHierarchicalDepth < this.node.hierarchicalLevel) && this.areaManipulator.hierarchicalGroupsToCluster.find(hierarchicalGroupToCluster => hierarchicalGroupToCluster === this.node.hierarchicalClass) && !this.node.mountedFromGroup) {
+            this.areaManipulator.globalHierarchicalDepth = this.node.hierarchicalLevel;
+        }
+
+        this.node.mountedFromGroup = false;
+    }
         
     //#region Methods for Popper manipulation and lock icon
     protected popperIsActive: boolean;
