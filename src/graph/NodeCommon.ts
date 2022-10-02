@@ -4,7 +4,6 @@ import { Node } from "./Node";
 import GraphElementNodeMixin from "../component/graph/GraphElementNodeMixin";
 import GraphElementNode from "../component/graph/GraphElementNode.vue";
 import GraphElementNodeGroup from "../component/graph/GraphElementNodeGroup.vue";
-import { NodeView } from "./NodeView";
 
 export default abstract class NodeCommon implements ObjectSave {
     /**
@@ -45,7 +44,7 @@ export default abstract class NodeCommon implements ObjectSave {
     /**
      * Node's parent
      */
-    parent: Node;
+    parent: Node = null;
 
     /**
      * Node's children
@@ -58,11 +57,14 @@ export default abstract class NodeCommon implements ObjectSave {
     /** Indicates at what hierarchical level the node is located. */
     hierarchicalLevel: number = 0;
 
+    /** Indicates whether a node is mounted in hierarchy. In case it is not mounted in a graph area. */
+    isMountedInHierarchy: boolean = false;
+
     /**
      * Safely removes the element from the graph.
      * This method should properly unregister everything about the node.
      */
-    public abstract remove(fromGroup: boolean | undefined): void;
+    public abstract remove(): void;
 
     /**
      * Unique identifier for both Node and NodeGroup.
@@ -75,9 +77,6 @@ export default abstract class NodeCommon implements ObjectSave {
      * Can be used to obtain NodeCommon which is drawn in the graph.
      */
     abstract get selfOrGroup(): NodeCommon;
-
-    /** Returns the parent node */
-    abstract get getParent(): Node;
 
     abstract get classes(): string[];
 

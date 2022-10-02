@@ -136,7 +136,7 @@
                     :help="$tc('side_panel.locate_desc', 1)"
             />
             <panel-action-button
-                    @click="node.visible = !node.visible"
+                    @click="visibilityChanged()"
                     :icon="icons.visibility[node.visible ? 1 : 0]"
                     :text="$tc('side_panel.' + (node.visible ? 'hide' : 'unhide'), 1)"
                     :help="$tc('side_panel.' + (node.visible ? 'hide' : 'unhide') + '_desc', 1)"
@@ -160,10 +160,10 @@
     </panel-template>
 </template>
 <script lang="ts">
-import {Component, Mixins, Prop, Ref, Watch} from 'vue-property-decorator';
+import {Component, Mixins, Prop, Watch} from 'vue-property-decorator';
 import { Node } from '@/graph/Node';
 import { NodeViewSet } from '@/graph/NodeViewSet';
-import {DetailValue, NodeView} from '@/graph/NodeView';
+import {DetailValue} from '@/graph/NodeView';
 import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
 import {
     mdiTrashCanOutline,
@@ -221,9 +221,11 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
      *      - https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#hierarchical-class
      */
     get getHierarchicalClass(): {label: string; color: string} {
-        for (let cls of this.previewClasses) {
-            if (cls.label === this.node.hierarchicalClass) {
-                return cls;
+        if (this.node.hierarchicalClass) {
+            for (let cls of this.previewClasses) {
+                if (cls.label === this.node.hierarchicalClass) {
+                    return cls;
+                }
             }
         }
         return null;
@@ -258,11 +260,19 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
         this.nodeChanged();
     }
 
-  async expand(view) {
-    let expansion = await this.areaManipulator.expandNode(view);
+    async expand(view) {
+        let expansion = await this.areaManipulator.expandNode(view);
 
-    this.$root.$emit('expansion', [this.node, expansion.getNodes()]);
-  }
+        this.$root.$emit('expansion', [this.node, expansion.getNodes()]);
+    }
+
+    visibilityChanged() {
+        this.node.visible = !this.node.visible;
+        if ((this.areaManipulator.visualGroups.length > 0) && this.node.parent?.identifier.startsWith("pseudo_parent")) {
+            if (this.node.parent?.children?.every(childNode => childNode.visible === false)) this.node.parent.visible = false;
+            else this.node.parent.visible = true;
+        }
+    }
 
     removeNode() {
       this.node.remove()

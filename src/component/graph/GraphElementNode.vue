@@ -36,7 +36,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
      */
     protected registerElement(): void {
         let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
-        if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded)) {
+        if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded) && (this.areaManipulator.layoutManager?.currentLayout?.supportsHierarchicalView)) {
             this.setHierarchicalInfo();
         }
         // All parameters here must correspond to functions trigger by watchers
