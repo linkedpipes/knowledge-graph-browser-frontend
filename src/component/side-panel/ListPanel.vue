@@ -260,7 +260,7 @@ export default class ListPanel extends Vue {
 
         for (const nodeGroup of this.groups) {
             for (const node of nodeGroup.nodes) {
-            allGroupsNodes.push(node)
+                allGroupsNodes.push(node)
             }
         }
 
