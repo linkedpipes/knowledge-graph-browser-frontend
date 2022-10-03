@@ -86,15 +86,21 @@ export default class GraphAreaManipulator implements ObjectSave {
             }
             isBeingDragged = false;
         });
+        
+        /** easy counter to change sensitivity of "grouping of clusters" event. Run once in 5 wheel rotations */
+        let count_in = 0;
+        let count_out = 0;
         window.addEventListener('wheel', e => {
             if (this.isGroupingOfClustersChecked) {
                 if (e.deltaY < 0) {
-                    this.groupingOfClustersManager(true);
+                    if (count_in < 5) count_in++;
+                    else { this.groupingOfClustersManager(true); count_in = 0; }
                 } else if (e.deltaY > 0) {
-                    this.groupingOfClustersManager(false);
+                    if (count_out < 5) count_out++;
+                    else { this.groupingOfClustersManager(false); count_out = 0; }
                 }
             }
-         });
+        });
 
     }
 
