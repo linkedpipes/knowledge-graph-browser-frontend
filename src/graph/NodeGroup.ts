@@ -7,7 +7,6 @@ import ObjectSave from "../file-save/ObjectSave";
 import GraphElementNodeGroup from "../component/graph/GraphElementNodeGroup.vue";
 import GroupEdge from "./GroupEdge";
 import NodeGroupVuex from "./component/NodeGroupVuex";
-import {NodeView} from "./NodeView"
 
 export default class NodeGroup extends NodeCommon implements ObjectSave {
     public vuexComponent: NodeGroupVuex;
@@ -47,6 +46,9 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      */
     nodes: Node[] = [];
 
+    /** Classes of nodes different from hierarchical class. Needed for clustering */
+    private classesOfNodes: string[] = [];
+
     /**
      * Adds node to this group.
      * @param node
@@ -59,6 +61,15 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
             node.belongsToGroup = this;
             this.nodes.push(node);
         }
+
+        node.classes.filter(cls => {
+            if (cls !== node.hierarchicalClass) {
+                if (!this.classesOfNodes.includes(cls)) {
+                    this.classesOfNodes.push(cls);
+                }
+            }
+        });
+        
     }
 
     /**
@@ -66,15 +77,17 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      * Safe to call anytime.
      */
      public remove() {
-        this.nodes.forEach(node => node.remove(true));
+        this.nodes.forEach(node => node.remove());
         
-        this.parent?.children.splice(
-            this.parent?.children.indexOf(this), 1
-        );
-        
-        // remove also pseudo-parent node if a node is a single child of pseudo-parent node 
-        if (this.parent && this.parent.identifier.startsWith('pseudo_parent') && this.parent.children.length === 0) {
-            this.parent.graph._removeNode(this.parent);
+        if (this.parent) {
+            this.parent.children.splice(
+                this.parent.children.indexOf(this), 1
+            );
+            
+            // remove also pseudo-parent node if a node is a single child of pseudo-parent node 
+            if (this.parent.identifier.startsWith("pseudo_parent") && this.parent.children?.length === 0) {
+                this.parent.graph._removeNode(this.parent);
+            }
         }
 
         this.selected = false;
@@ -115,6 +128,10 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         return this.vuexComponent?.classes ?? this.nocache_classes;
     }
 
+    public get nocache_nonhierarchical_classesOfNodes(): string[] {
+        return this.classesOfNodes.filter(cls => cls !== this.hierarchicalClass);
+    }
+
     /**
      * @non-reactive
      */
@@ -123,10 +140,6 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         in: {[identifier: string]: GroupEdge},
         in_group: {[identifier: string]: GroupEdge},
     };
-
-    public get getParent(): Node {
-        return this.parent;
-    }
 
     /**
      * This function returns array of graph-unique GroupEdges which connects this NodeGroup, but does not point from

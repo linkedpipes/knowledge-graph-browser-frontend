@@ -23,7 +23,7 @@
                     :help="$tc('side_panel.locate_desc', 2)"
             />
             <panel-action-button
-                    @click="manipulator.groupExistingNodes(elements)"
+                    @click="groupManually()"
                     :width="1/3"
                     :icon="icons.group"
                     :text="$tc('side_panel.group', 2)"
@@ -117,6 +117,113 @@ export default class ListPanel extends Vue {
         return [...this.nodes, ...this.groups];
     }
 
+    public groupManually() {
+        let nodesToClusterByHierarchicalGroup: NodeCommon[] = [];
+		let nodesToClusterByLevel: NodeCommon[] = [];
+		let nodesToClusterByParent: NodeCommon[] = [];
+        let nodesToClusterByClass: NodeCommon[] = [];
+        let classesToClusterTogetherID = 0;
+        let nodeClass = "";
+
+        if (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded) {
+
+            for (let node of this.elements) {
+                if (node.mounted) {
+                    if (node.hierarchicalClass === this.elements[0].hierarchicalClass) {
+                        nodesToClusterByHierarchicalGroup.push(node);
+                    }
+
+                    if (node.hierarchicalLevel === this.elements[0].hierarchicalLevel) {
+                        nodesToClusterByLevel.push(node);
+                    }
+
+                    if (node.parent === this.elements[0].parent) {
+                        nodesToClusterByParent.push(node);
+                    }
+
+                    if (node.children[0]?.mounted) {
+                        alert("It is not possible to group nodes, because some of them has expanded children. Please, collapse all its children nodes first.");
+                        return;
+                    }
+
+                    if (node.identifier.startsWith("pseudo_parent")) {
+                        alert("It is not possible to group pseudo-parent node. Please select different nodes.");
+                        return;
+                    }
+                }
+                
+            }
+
+            if (nodesToClusterByHierarchicalGroup.length !== this.elements.length) {
+                alert("It is not possible to group nodes placed in different hierarchical groups. Please select nodes in the same hierarchical group.");
+                return;
+            }
+
+            if (nodesToClusterByLevel.length !== this.elements.length) {
+                alert("It is not possible to group nodes placed in different hierarchical levels. Please select nodes in the same hierarchical level.");
+                return;
+            }
+    
+            if (nodesToClusterByParent.length !== this.elements.length) {
+                alert("It is not possible to group nodes having different parent node. Please select nodes having same parent node.");
+                return;
+            }
+            
+            if (this.areaManipulator.classesToClusterTogether.length > 0) {
+                while (nodesToClusterByClass.length === 0 && classesToClusterTogetherID < this.areaManipulator.classesToClusterTogether.length) {
+                    this.elements.forEach(node => {
+                        if ((node instanceof NodeGroup) && (this.areaManipulator.isSubset(node.nocache_nonhierarchical_classesOfNodes, this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID]) || this.areaManipulator.isSubset(this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID], node.nocache_nonhierarchical_classesOfNodes))) {
+                            nodesToClusterByClass.push(node);
+                        } else if (this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID].find(cl => node.classes.includes(cl))) {
+                            nodesToClusterByClass.push(node);
+                        }
+
+                    });									
+                    classesToClusterTogetherID++;
+                }
+            }
+        
+            if (nodesToClusterByClass.length === 0) {
+                this.elements.forEach(node => {
+                    if (!nodeClass) {
+                        if (node.classes.length > 1) {
+                            for (let nodeAnotherClass of node.classes) {
+                                if (nodeAnotherClass !== node.hierarchicalClass) {
+                                    nodeClass = nodeAnotherClass;
+                                }
+                            }
+                        }
+                        else {
+                            nodeClass = node.classes[0];
+                        }
+                    }
+                })
+
+                if (nodeClass) {
+                    this.elements.forEach(node => { 
+                        if (node.classes.includes(nodeClass)) {
+                            nodesToClusterByClass.push(node);
+                        }
+                    });
+                }
+            }
+
+            if (nodesToClusterByClass.length !== this.elements.length) {
+                alert("It is not possible to group nodes. Please select nodes having the same class or class predefined by Classes to cluster constraint.");
+                return;
+            }
+
+            if (nodesToClusterByParent.length > 1) {
+                this.manipulator.groupExistingNodes(nodesToClusterByParent);
+            }
+            
+        } else {
+            this.manipulator.groupExistingNodes(this.elements);
+        }
+        
+            
+    }
+
     get groupedNodes(): NodeTypeGroup[] {
         let map = new Map<string, NodeTypeGroup>();
         for (let node of this.nodes) {
@@ -145,25 +252,34 @@ export default class ListPanel extends Vue {
     }
 
     remove() {
-      let allGroupsNodes: Node[] = [];
+        let allGroupsNodes: Node[] = [];
 
-      for (const node of this.nodes) {
-        allGroupsNodes.push(node);
-      }
-
-      for (const nodeGroup of this.groups) {
-        for (const node of nodeGroup.nodes) {
-          allGroupsNodes.push(node)
+        for (const node of this.nodes) {
+            allGroupsNodes.push(node);
         }
-      }
 
-      for (let node of this.elements) {
-          node.remove(false);
-      }
+        for (const nodeGroup of this.groups) {
+            for (const node of nodeGroup.nodes) {
+                allGroupsNodes.push(node)
+            }
+        }
 
-      for (const node of allGroupsNodes) {
-        this.$root.$emit('deletion', node);
-      }
+        if (this.areaManipulator.visualGroups.length > 0) {
+            for (let element of this.elements) {
+                if (element.identifier.startsWith("pseudo_parent")) {
+                    alert("It is not possible to delete the pseudo-parent node. Please unselect the pseudo-parent node.");
+                    return;
+                }
+            }
+        }
+
+        for (let node of this.elements) {
+            node.remove();
+        }
+
+        for (const node of allGroupsNodes) {
+            this.$root.$emit('deletion', node);
+        }
     }
 }
 </script>

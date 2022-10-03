@@ -73,7 +73,7 @@ export class Graph implements ObjectSave {
         return [...nodes, ...this.groups.filter(group => !group.mounted)];
     }
 
-    // returns only mounted nodes
+    /** returns mounted nodes only */ 
     public get mountedNodes(): Node[] {
         let nodes: Node[] = [];
         for (let iri in this.nodes) {

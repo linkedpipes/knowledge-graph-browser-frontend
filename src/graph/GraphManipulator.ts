@@ -102,7 +102,6 @@ export default class GraphManipulator {
         let nodeGroup = this.graph.createGroup();
         let position_add = {x: 0, y: 0};
         let position_count = 0;
-        let parentExists: boolean = false;
 
         for (let node of nodes) {
             // Average position
@@ -122,33 +121,34 @@ export default class GraphManipulator {
                 nodeGroup.addNode(node);
             }
 
-            // find a parent for group node
-            // and delete node from its parent children list, because 
-            // a new group containing this node will be a new child of a parent
-            if (node.getParent) {
-                node.getParent.children.splice(
-                    node.getParent.children.indexOf(node), 1
-                );
-                parentExists = true;
-            }
-
-            if (!nodeGroup.hierarchicalClass) {
-                nodeGroup.hierarchicalClass = node.hierarchicalClass;
+            if (this.area.childParentLayoutConstraints.length > 0 && this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
+                // find a parent for group node
+                // and delete node from its parent children list, because 
+                // a new group containing this node will be a new child of a parent
+                if (node.parent) {
+                    node.parent.children.splice(
+                        node.parent.children.indexOf(node), 1
+                    );
+                    if (!nodeGroup.parent) {
+                        nodeGroup.parent = node.parent;
+                        if (!nodeGroup.parent.children.find(child => child.identifier === nodeGroup.identifier)) {
+                            nodeGroup.parent.children.push(nodeGroup)
+                        }
+                    }
+                }
+    
+                if (!nodeGroup.hierarchicalClass && node.hierarchicalClass) {
+                    nodeGroup.hierarchicalClass = node.hierarchicalClass;
+                }
+                
+                if (!nodeGroup.hierarchicalLevel && node.hierarchicalLevel) {
+                    nodeGroup.hierarchicalLevel = node.hierarchicalLevel;
+                }
             }
 
             node.selected = false;
         }
         
-        // set up a parent of a new group node;
-        // assuming that we are grouping nodes with same parent
-        if (parentExists){
-            nodeGroup.parent = nodes[0].getParent;
-            if (!nodeGroup.parent.children.find(child => child.identifier === nodeGroup.identifier)) {
-                nodeGroup.parent.children.push(nodeGroup)
-            }
-        }
-        
-        nodeGroup.hierarchicalLevel = nodeGroup.nodes[0].hierarchicalLevel;
         nodeGroup.onMountPosition = [position_add.x / position_count, position_add.y / position_count];
         nodeGroup.mounted = true;
         nodeGroup.selected = true;
@@ -163,17 +163,19 @@ export default class GraphManipulator {
      */
     deGroup(group: NodeGroup) {
         for (let node of group.nodes) {
-            node.belongsToGroup = null;
-            if (group.parent) {
-                node.parent = group.parent;
-                node.parent.children.push(node);
+            if (this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
+                if (group.parent) {
+                    node.parent = group.parent;
+                    node.parent.children.push(node);
+                }
+                node.hierarchicalClass = group.hierarchicalClass;
+                node.hierarchicalLevel = group.hierarchicalLevel;
             }
-            node.hierarchicalClass = group.hierarchicalClass;
-            node.hierarchicalLevel = group.hierarchicalLevel;
+            node.belongsToGroup = null;
             node.mounted = true;
             node.mountedFromGroup = true;
         }
-        if (group.parent) {
+        if (group.parent && this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
             group.parent.children.splice(
                 group.parent.children.indexOf(group), 1
             );
@@ -190,9 +192,11 @@ export default class GraphManipulator {
         }
         group.nodes = group.nodes.filter(node => !nodes.includes(node));
 
-        if (group.parent) {
-            group.parent.children.push(newGroup);   
-            newGroup.parent = group.parent;
+        if (this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
+            if (group.parent) {
+                group.parent.children.push(newGroup);   
+                newGroup.parent = group.parent;
+            }
             newGroup.hierarchicalLevel = group.hierarchicalLevel;
             newGroup.hierarchicalClass = group.hierarchicalClass;
         }
@@ -209,12 +213,14 @@ export default class GraphManipulator {
     leaveGroup(nodes: Node[], group: NodeGroup) {
         for (let node of nodes) {
             node.belongsToGroup = null;
-            if (group.parent) {
-                node.parent = group.parent;
-                group.parent.children.push(node);
+            if (this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
+                if (group.parent) {
+                    group.parent.children.push(node);
+                    node.parent = group.parent;
+                }
+                node.hierarchicalLevel = group.hierarchicalLevel;
+                node.hierarchicalClass = group.hierarchicalClass;
             }
-            node.hierarchicalLevel = group.hierarchicalLevel;
-            node.hierarchicalClass = group.hierarchicalClass;
         }
         group.nodes = group.nodes.filter(node => !nodes.includes(node));
         group.checkForNodes();

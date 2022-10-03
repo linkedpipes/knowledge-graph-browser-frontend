@@ -42,13 +42,6 @@ export class Node extends NodeCommon implements ObjectSave {
     /**
      * @inheritDoc
      */
-     public get getParent(): Node {
-        return this.parent;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public get selfOrGroup(): NodeCommon {
         return this.belongsToGroup ?? this;
     }
@@ -196,45 +189,50 @@ export class Node extends NodeCommon implements ObjectSave {
     }
 
     /**
-     * Hierarchical view: remove descendant nodes recursively \
+     * Hierarchical view: remove descendants nodes recursively or remove the node from its parent's children list \
      * Standard: remove nodes as usual 
-     * @param fromGroup - true value indicates that a parent node has a group as a child 
-     *      but not a node to remove (placed inside a group).
      */
-    remove(fromGroup: boolean = false) {
-        
-        const removeChildrenRecursively = node => {
-            
-            if (node.children?.length > 0) {
-                while (node.children.length !== 0) {
-                    let child = node.children[0];
-                    removeChildrenRecursively(child);
-                }
-            }
-            
-            if ((node instanceof Node) && node.belongsToGroup) {
-                node.belongsToGroup.nodes = node.belongsToGroup.nodes.filter(group_node => group_node !== node);
-                node.belongsToGroup.checkForNodes();
-            }
-    
-            node.selected = false;
-            
-            if (!fromGroup) {
-                node.parent?.children.splice(
-                    node.parent?.children.indexOf(node), 1
-                );
-            }
+    remove() {
 
-            if (node instanceof Node) {
-                node.graph._removeNode(node);
+        if (this.children?.length > 0 || this.parent) {
+            this.removeChildrenRecursively(this);
+        } else {
+            if (this.belongsToGroup) {
+                this.belongsToGroup.nodes = this.belongsToGroup.nodes.filter(node => node !== this);
+                this.belongsToGroup.checkForNodes();
             }
-            else if (node instanceof NodeGroup) {
-                node.remove();
+            this.graph._removeNode(this);
+        }
+    }
+
+    private removeChildrenRecursively(node: NodeCommon) {
+            
+        if (node.children?.length > 0) {
+            while (node.children.length !== 0) {
+                let child = node.children[0];
+                this.removeChildrenRecursively(child);
             }
         }
+        
+        if ((node instanceof Node) && node.belongsToGroup) {
+            node.belongsToGroup.nodes = node.belongsToGroup.nodes.filter(group_node => group_node !== node);
+            node.belongsToGroup.checkForNodes();
+        }
 
+        node.selected = false;
+        
+        if (node.parent?.children?.indexOf(node) > -1) {
+            node.parent?.children?.splice(
+                node.parent?.children?.indexOf(node), 1
+            );
+        }
 
-        removeChildrenRecursively(this);
+        if (node instanceof Node) {
+            node.graph._removeNode(node);
+        }
+        else if (node instanceof NodeGroup) {
+            node.remove();
+        }
     }
 
     createViewSet(IRI: string): NodeViewSet {
