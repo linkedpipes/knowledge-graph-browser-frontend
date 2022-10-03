@@ -70,7 +70,7 @@ export default class ColaLayout extends Layout {
     }
 
     onDrag(isStartNotEnd: boolean) {
-        if (this.options.doLayoutAfterReposition && (!isStartNotEnd || (this.options.animate && this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded))) {
+        if (this.options.doLayoutAfterReposition && (!isStartNotEnd || (this.options.animate && !this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded))) {
             this.executeLayout(this.getCollectionToAnimate());
         }
     };
