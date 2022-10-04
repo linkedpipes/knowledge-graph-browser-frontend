@@ -308,3 +308,9 @@ load_dialog:
   cancel: Zrušit
 any_data_value:
   open_node: Zobrazit vrchol
+scaling:
+  scaling_options: Možnosti škálování
+  grouping: Seskupování shluků
+  zooming: Zoomování
+hierarchy:
+  hierarchical_class: Hierarchická třída

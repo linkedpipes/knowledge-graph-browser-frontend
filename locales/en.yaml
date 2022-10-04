@@ -274,3 +274,10 @@ load_dialog:
 
 any_data_value:
   open_node: Show node
+
+scaling:
+  scaling_options: Scaling options
+  grouping: Grouping of clusters
+  zooming: Zoom
+hierarchy:
+  hierarchical_class: Hierarchical class
