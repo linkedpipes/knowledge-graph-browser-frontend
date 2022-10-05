@@ -29,7 +29,7 @@
                     :help="$tc('side_panel.locate_desc', 1)"
             />
             <panel-action-button
-                    @click="visibilityChanged()"
+                    @click="visibilityChanged"
                     :icon="icons.visibility[nodeGroup.visible ? 1 : 0]"
                     :text="$tc('side_panel.' + (nodeGroup.visible ? 'hide' : 'unhide'), 1)"
                     :help="$tc('side_panel.' + (nodeGroup.visible ? 'hide' : 'unhide') + '_desc', 1)"
@@ -87,14 +87,6 @@ export default class DetailGroupPanel extends Mixins(NodeCommonPanelMixin) {
         locate: mdiCrosshairsGps,
     }
 
-    visibilityChanged() {
-        this.nodeGroup.visible = !this.nodeGroup.visible;
-        if ((this.areaManipulator.visualGroups.length > 0) && this.nodeGroup.parent?.identifier.startsWith("pseudo_parent")) {
-            if (this.nodeGroup.parent?.children?.every(childNode => childNode.visible === false)) this.nodeGroup.parent.visible = false;
-            else this.nodeGroup.parent.visible = true;
-        }
-    }
-
     removeNodes() {
       const groupNodes = this.nodeGroup.nodes;
 
@@ -103,6 +95,14 @@ export default class DetailGroupPanel extends Mixins(NodeCommonPanelMixin) {
       for (const node of groupNodes) {
         this.$root.$emit('deletion', node);
       }
+    }
+
+    visibilityChanged() {
+        this.nodeGroup.visible = !this.nodeGroup.visible;
+        if ((this.areaManipulator.visualGroups.length > 0) && this.nodeGroup.parent?.identifier.startsWith("pseudo_parent")) {
+            if (this.nodeGroup.parent?.children?.every(childNode => childNode.visible === false)) this.nodeGroup.parent.visible = false;
+            else this.nodeGroup.parent.visible = true;
+        }
     }
 
     get previewClasses(): {label: string; color: string}[] {

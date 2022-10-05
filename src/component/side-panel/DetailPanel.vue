@@ -21,7 +21,7 @@
                         <h1 class="mb-2 d-inline">{{node.lastPreview.label}}</h1>
                         <v-chip label v-for="cls in previewClasses" :key="cls.label" :color="cls.color" style="vertical-align: super;" class="mx-2">{{cls.label}}</v-chip>
                         <div v-if="getHierarchicalClass">
-                            <b>Hierarchical class: </b> 
+                            <b>{{$tc('hierarchy.hierarchical_class', 1)}}: </b> 
                             <v-chip label :key="getHierarchicalClass.label" :color="getHierarchicalClass.color" style="vertical-align: super;" class="mx-2">{{getHierarchicalClass.label}}</v-chip>
                         </div>
                         
@@ -79,7 +79,7 @@
                                     <v-list-item v-for="view in viewSet.views" :key="view.IRI" :value="view.IRI" @click="view.use()">
                                         <v-list-item-content>
                                             <v-list-item-title style="flex-basis: auto;" class="flex-grow-1">{{view.label}}</v-list-item-title>
-                                            <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="secondary" :loading="view.expansionInProgress" @click.stop="areaManipulator.expandNode(view)">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
+                                            <v-btn style="flex-basis: auto;" class="flex-grow-0" small color="secondary" :loading="view.expansionInProgress" @click.stop="expand(view)">{{ $t("side_panel.detail_panel.expand") }}</v-btn>
                                         </v-list-item-content>
                                     </v-list-item>
                                 </template>
@@ -136,7 +136,7 @@
                     :help="$tc('side_panel.locate_desc', 1)"
             />
             <panel-action-button
-                    @click="visibilityChanged()"
+                    @click="visibilityChanged"
                     :icon="icons.visibility[node.visible ? 1 : 0]"
                     :text="$tc('side_panel.' + (node.visible ? 'hide' : 'unhide'), 1)"
                     :help="$tc('side_panel.' + (node.visible ? 'hide' : 'unhide') + '_desc', 1)"
@@ -160,7 +160,7 @@
     </panel-template>
 </template>
 <script lang="ts">
-import {Component, Mixins, Prop, Watch} from 'vue-property-decorator';
+import {Component, Mixins, Prop, Ref, Watch} from 'vue-property-decorator';
 import { Node } from '@/graph/Node';
 import { NodeViewSet } from '@/graph/NodeViewSet';
 import {DetailValue} from '@/graph/NodeView';

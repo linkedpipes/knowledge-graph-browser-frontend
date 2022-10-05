@@ -7,15 +7,15 @@
 		</v-toolbar>
 		<v-main v-if="layoutManager.currentLayout.constraintRulesLoaded && layoutManager.currentLayout.supportsHierarchicalView" title='Hint: Check both to cluster and zoom at the same time' class="checkbox" :disabled="modeCompact" :style="rightStyle">
 			<v-container>
-				<p>Scaling options</p>
+				<p>{{ $tc('scaling.scaling_options', 1) }}</p>
 				<v-checkbox
 					class="ma-0 pa-0"
-					label="Grouping of clusters"
+					:label="$tc('scaling.grouping', 1)"
 					@click = "groupingOfClustersEvent()"
 				></v-checkbox>
 				<v-checkbox
 					class="ma-0 pa-0"
-					label="Zoom"
+					:label="$tc('scaling.zooming', 1)"
 					:input-value="true"
 					@click = "zoomingEvent()"
 				></v-checkbox>

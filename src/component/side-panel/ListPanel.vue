@@ -23,7 +23,7 @@
                     :help="$tc('side_panel.locate_desc', 2)"
             />
             <panel-action-button
-                    @click="groupManually()"
+                    @click="groupManually"
                     :width="1/3"
                     :icon="icons.group"
                     :text="$tc('side_panel.group', 2)"
