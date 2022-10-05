@@ -345,7 +345,7 @@ export default class GraphAreaManipulator implements ObjectSave {
     zoomIn() {
         if (this.layoutManager?.currentLayout?.constraintRulesLoaded && this.layoutManager?.currentLayout?.supportsHierarchicalView) {
             if (this.isZoomingChecked) this.changeZoomByQuotient(this.manualZoomScale);
-            if (this.isGroupingOfClustersChecked && !this.isZoomingChecked) this.groupingOfClustersManager(true);
+            if (this.isGroupingOfClustersChecked) this.groupingOfClustersManager(true);
         } else {
             this.changeZoomByQuotient(this.manualZoomScale);
         }
@@ -354,7 +354,7 @@ export default class GraphAreaManipulator implements ObjectSave {
     zoomOut() {
         if (this.layoutManager?.currentLayout?.constraintRulesLoaded && this.layoutManager?.currentLayout?.supportsHierarchicalView) {
             if (this.isZoomingChecked) this.changeZoomByQuotient(1 / this.manualZoomScale);
-            if (this.isGroupingOfClustersChecked && !this.isZoomingChecked) this.groupingOfClustersManager(false);
+            if (this.isGroupingOfClustersChecked) this.groupingOfClustersManager(false);
         } else {
             this.changeZoomByQuotient(1 / this.manualZoomScale);
         }
