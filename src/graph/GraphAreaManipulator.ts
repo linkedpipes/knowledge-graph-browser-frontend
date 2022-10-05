@@ -373,7 +373,7 @@ export default class GraphAreaManipulator implements ObjectSave {
         else {
             expansion = await view.expand();
         }
-        this.layoutManager?.currentLayout?.onExpansion(expansion);
+        this.layoutManager.currentLayout.onExpansion(expansion);
 
         return expansion;
     }

@@ -118,7 +118,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
     async onDoubleClicked() {
         let view: NodeView;
 
-        if (!this.node?.currentView?.IRI) {
+        if (!this.node?.currentView.IRI) {
             // Currently nodes obtained by expansion have view, but it does not contain IRI
             view = await this.node.getDefaultView();
         } else {

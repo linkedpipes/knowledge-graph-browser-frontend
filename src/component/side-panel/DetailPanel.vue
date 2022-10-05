@@ -136,7 +136,7 @@
                     :help="$tc('side_panel.locate_desc', 1)"
             />
             <panel-action-button
-                    @click="visibilityChanged()"
+                    @click="visibilityChanged"
                     :icon="icons.visibility[node.visible ? 1 : 0]"
                     :text="$tc('side_panel.' + (node.visible ? 'hide' : 'unhide'), 1)"
                     :help="$tc('side_panel.' + (node.visible ? 'hide' : 'unhide') + '_desc', 1)"
@@ -160,7 +160,7 @@
     </panel-template>
 </template>
 <script lang="ts">
-import {Component, Mixins, Prop, Watch} from 'vue-property-decorator';
+import {Component, Mixins, Prop, Ref, Watch} from 'vue-property-decorator';
 import { Node } from '@/graph/Node';
 import { NodeViewSet } from '@/graph/NodeViewSet';
 import {DetailValue} from '@/graph/NodeView';
