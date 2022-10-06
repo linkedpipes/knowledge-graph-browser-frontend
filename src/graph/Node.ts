@@ -203,6 +203,11 @@ export class Node extends NodeCommon implements ObjectSave {
             }
             this.graph._removeNode(this);
         }
+
+        // Delete pseudoparent if all its children are removed
+        if (this.parent?.identifier.startsWith("pseudo_parent")) {
+            if (this.parent.children.length === 0) this.graph._removeNode(this.parent);
+        }
     }
 
     private removeChildrenRecursively(node: NodeCommon) {
