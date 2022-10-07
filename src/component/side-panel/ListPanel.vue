@@ -280,6 +280,16 @@ export default class ListPanel extends Vue {
         for (const node of allGroupsNodes) {
             this.$root.$emit('deletion', node);
         }
+        // setup new global depth when some node is deleted
+        if (this.areaManipulator.childParentLayoutConstraints) {
+            let new_hierarchical_level = Number.MIN_SAFE_INTEGER;
+            for (let node of this.areaManipulator.graph.nocache_nodesVisual) {
+                if (new_hierarchical_level < node.hierarchicalLevel) new_hierarchical_level = node.hierarchicalLevel;
+                if (new_hierarchical_level === this.areaManipulator.globalHierarchicalDepth) return;
+            }
+
+            this.areaManipulator.globalHierarchicalDepth = new_hierarchical_level;
+        }
     }
 }
 </script>

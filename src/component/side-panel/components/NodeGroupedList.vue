@@ -112,6 +112,17 @@
             for (let node of group.nodes) {
                 node.remove();
             }
+
+            // setup new global depth when some node is deleted
+            if (this.manipulator.area.childParentLayoutConstraints) {
+                let new_hierarchical_level = Number.MIN_SAFE_INTEGER;
+                for (let node of this.manipulator.area.graph.nocache_nodesVisual) {
+                    if (new_hierarchical_level < node.hierarchicalLevel) new_hierarchical_level = node.hierarchicalLevel;
+                    if (new_hierarchical_level === this.manipulator.area.globalHierarchicalDepth) return;
+                }
+
+                this.manipulator.area.globalHierarchicalDepth = new_hierarchical_level;
+            }
         }
 
         private groupVisibility(group: NodeTypeGroup, visibility: boolean) {

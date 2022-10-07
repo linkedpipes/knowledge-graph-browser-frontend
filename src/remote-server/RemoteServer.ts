@@ -44,5 +44,5 @@ export class RemoteServer {
     getConfiguration = (IRI: string, languages: string[]): Promise<ResponseConfiguration|false> => this.sentRequest("/configuration", {iri: IRI, languages: languages.join(',')});
 
     getFacetsItems = (configIRI: string, currentNodesIRIs: string[]): Promise<any> => this.sentRequest("/facets-items", {configIRI: configIRI, currentNodesIRIs: currentNodesIRIs.join(',')})
-     //#endregion Queries
+    //#endregion Queries
 }

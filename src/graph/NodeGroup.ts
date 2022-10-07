@@ -76,7 +76,7 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      * Completely removes NodeGroup with all Nodes from the graph.
      * Safe to call anytime.
      */
-     public remove() {
+    public remove() {
         this.nodes.forEach(node => node.remove());
         
         if (this.parent) {
