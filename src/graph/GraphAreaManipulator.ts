@@ -187,7 +187,7 @@ export default class GraphAreaManipulator implements ObjectSave {
                     if (this.classesToClusterTogether.length > 0) {
                         while (nodesToClusterByClass.length === 0 && classesToClusterTogetherID < this.classesToClusterTogether.length) {
                             nodesToClusterByParent.forEach(node => {
-                                if ((node instanceof NodeGroup) && (this.isSubset(node.nocache_nonhierarchical_classesOfNodes, this.classesToClusterTogether[classesToClusterTogetherID]) || this.isSubset(this.classesToClusterTogether[classesToClusterTogetherID], node.nocache_nonhierarchical_classesOfNodes))) {
+                                if ((node instanceof NodeGroup) && (this.isSubset(node.nocache_nonhierarchicalClassesOfNodes, this.classesToClusterTogether[classesToClusterTogetherID]) || this.isSubset(this.classesToClusterTogether[classesToClusterTogetherID], node.nocache_nonhierarchicalClassesOfNodes))) {
                                     nodesToClusterByClass.push(node);
                                 } else if (this.classesToClusterTogether[classesToClusterTogetherID].find(cl => node.classes.includes(cl))) {
                                     nodesToClusterByClass.push(node);
