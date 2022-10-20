@@ -80,9 +80,11 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         this.nodes.forEach(node => node.remove());
         
         if (this.parent) {
-            this.parent.children.splice(
-                this.parent.children.indexOf(this), 1
-            );
+            if (this.parent.children?.indexOf(this) > -1) {
+                this.parent.children.splice(
+                    this.parent.children.indexOf(this), 1
+                );
+            }
             
             // remove also pseudo-parent node if a node is a single child of pseudo-parent node 
             if (this.parent.identifier.startsWith("pseudo_parent") && this.parent.children?.length === 0) {
@@ -128,7 +130,7 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         return this.vuexComponent?.classes ?? this.nocache_classes;
     }
 
-    public get nocache_nonhierarchical_classesOfNodes(): string[] {
+    public get nocache_nonhierarchicalClassesOfNodes(): string[] {
         return this.classesOfNodes.filter(cls => cls !== this.hierarchicalClass);
     }
 

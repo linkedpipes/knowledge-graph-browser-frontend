@@ -136,6 +136,15 @@ export default class GraphAreaManipulator implements ObjectSave {
                     
                 });
 
+                // if nodes having intermediate level are removed
+                // the algorithm searches for next level of nodes shown on the graph
+                let new_hierarchical_level = Number.MIN_SAFE_INTEGER;
+                for (let node of this.graph.nocache_nodesVisual) {
+                    if ((node.parent?.identifier.startsWith("pseudo_parent") && node.parent?.children.length <= 1) || node.identifier.startsWith("pseudo_parent")) continue;
+                    if (new_hierarchical_level < node.hierarchicalLevel && node.hierarchicalLevel <= this.globalHierarchicalDepth) new_hierarchical_level = node.hierarchicalLevel;
+                }
+                if (new_hierarchical_level !== Number.MIN_SAFE_INTEGER) this.globalHierarchicalDepth = new_hierarchical_level;
+
                 nodesToClusterByHierarchicalGroup.forEach(node => {
                     if (node.hierarchicalLevel === this.globalHierarchicalDepth) {
                         nodesToClusterByLevel.push(node);
@@ -338,6 +347,19 @@ export default class GraphAreaManipulator implements ObjectSave {
                     }
                     Vue.nextTick(() => this.layoutManager?.currentLayout?.run());
                 }
+                else {
+                    // if nodes having intermediate level are removed
+                    // the algorithm searches for next level of nodes shown on the graph
+                    let new_hierarchical_level = Number.MAX_SAFE_INTEGER;
+                    for (let node of this.graph.nocache_nodesVisual) {
+                        // if (node.parent?.identifier.startsWith("pseudo_parent") && node.parent?.children.length <= 1) continue;
+                        if (new_hierarchical_level > node.hierarchicalLevel && node.hierarchicalLevel > this.globalHierarchicalDepth) new_hierarchical_level = node.hierarchicalLevel;
+                    }
+                    if (new_hierarchical_level !== Number.MAX_SAFE_INTEGER) {
+                        this.globalHierarchicalDepth = new_hierarchical_level;
+                        this.groupingOfClustersManager(true);
+                    }
+                }
             }
         }
 	}
@@ -507,7 +529,7 @@ export default class GraphAreaManipulator implements ObjectSave {
             else break;
         }
 
-        if (i === arr1.length) return true;
+        if (i === arr1.length && arr1.length > 0 && arr2.length > 0) return true;
         else return false;
     }
 
