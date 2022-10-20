@@ -93,11 +93,9 @@ export default class GraphAreaManipulator implements ObjectSave {
         window.addEventListener('wheel', e => {
             if (this.isGroupingOfClustersChecked) {
                 if (e.deltaY < 0) {
-                    if (count_in < 5) count_in++;
-                    else { this.groupingOfClustersManager(true); count_in = 0; }
+                    this.groupingOfClustersManager(true);
                 } else if (e.deltaY > 0) {
-                    if (count_out < 5) count_out++;
-                    else { this.groupingOfClustersManager(false); count_out = 0; }
+                    this.groupingOfClustersManager(false);
                 }
             }
         });
