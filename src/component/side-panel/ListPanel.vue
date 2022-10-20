@@ -172,7 +172,7 @@ export default class ListPanel extends Vue {
             if (this.areaManipulator.classesToClusterTogether.length > 0) {
                 while (nodesToClusterByClass.length === 0 && classesToClusterTogetherID < this.areaManipulator.classesToClusterTogether.length) {
                     this.elements.forEach(node => {
-                        if ((node instanceof NodeGroup) && (this.areaManipulator.isSubset(node.nocache_nonhierarchical_classesOfNodes, this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID]) || this.areaManipulator.isSubset(this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID], node.nocache_nonhierarchical_classesOfNodes))) {
+                        if ((node instanceof NodeGroup) && (this.areaManipulator.isSubset(node.nocache_nonhierarchicalClassesOfNodes, this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID]) || this.areaManipulator.isSubset(this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID], node.nocache_nonhierarchicalClassesOfNodes))) {
                             nodesToClusterByClass.push(node);
                         } else if (this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID].find(cl => node.classes.includes(cl))) {
                             nodesToClusterByClass.push(node);
@@ -280,6 +280,7 @@ export default class ListPanel extends Vue {
         for (const node of allGroupsNodes) {
             this.$root.$emit('deletion', node);
         }
+        
     }
 }
 </script>

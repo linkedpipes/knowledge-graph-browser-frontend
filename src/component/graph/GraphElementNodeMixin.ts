@@ -304,17 +304,6 @@ export default class GraphElementNodeMixin extends Vue {
     beforeDestroy() {
         this.cy.remove(this.element);
         this.node.element = null;
-
-        // setup new global depth when some node is deleted
-        if (this.areaManipulator.childParentLayoutConstraints) {
-            let new_hierarchical_level = Number.MIN_SAFE_INTEGER;
-            for (let node of this.areaManipulator.graph.nocache_nodesVisual) {
-                if (new_hierarchical_level < node.hierarchicalLevel) new_hierarchical_level = node.hierarchicalLevel;
-                if (new_hierarchical_level === this.areaManipulator.globalHierarchicalDepth) return;
-            }
-
-            this.areaManipulator.globalHierarchicalDepth = new_hierarchical_level;
-        }
     };
 
     //#region Class list manipulation

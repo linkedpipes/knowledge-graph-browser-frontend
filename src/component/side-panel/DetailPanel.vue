@@ -221,14 +221,11 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
      *      - https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#hierarchical-class
      */
     get getHierarchicalClass(): {label: string; color: string} {
-        if (this.node.hierarchicalClass) {
-            for (let cls of this.previewClasses) {
-                if (cls.label === this.node.hierarchicalClass) {
-                    return cls;
-                }
+        for (let cls of this.previewClasses) {
+            if (cls.label === this.node.hierarchicalClass) {
+                return cls;
             }
         }
-        return null;
     }
 
     /**
@@ -275,7 +272,7 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
     }
 
     removeNode() {
-        this.node.remove()
+        this.node.remove();
 
         this.$root.$emit('deletion', this.node);
     }

@@ -483,7 +483,9 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
     }
   }
 
-  /** When a new configuration or layout is loaded, this function downloads and sets up new constraint rules, namely: \ 
+  //#endregion Visual Style sheet variable and update logic
+
+  /** When a new configuration or layout is loaded, this function downloads and sets up new constraint rules, namely: \
    * - Hierarchical groups to cluster \
    *    For more information, see github documentation: https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#hierarchicalgroupstoclusterlayoutconstraint-class
    * - Visual groups \
@@ -530,7 +532,7 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
               }
               if (constraint.type === "classes-to-cluster-together" && Array.isArray(constraint.properties["classesToApplyConstraint"])) {
                 let classesToApplyConstraint = [];
-                constraint.properties["classesToApplyConstraint"].forEach((classToApplyConstraint) => { 
+                constraint.properties["classesToApplyConstraint"].forEach((classToApplyConstraint) => {
                     classesToApplyConstraint.push(classToApplyConstraint.slice(1));
                 })
                 this.areaManipulator.classesToClusterTogether.push(classesToApplyConstraint);
@@ -541,8 +543,6 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
           }
       }
   }
-
-  //#endregion Visual Style sheet variable and update logic
 
   //#region References to components used in Application
 

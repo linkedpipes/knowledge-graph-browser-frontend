@@ -14,6 +14,8 @@ export class Expansion {
     nodes: Node[] = [];
     edges: Edge[] = [];
 
+    hierarchical: boolean = false;
+
     /**
      * Creates new Expansion - subgraph with own list of nodes and eges
      * @param initiator Expanded node

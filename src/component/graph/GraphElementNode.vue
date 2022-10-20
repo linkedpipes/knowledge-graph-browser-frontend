@@ -36,9 +36,7 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
      */
     protected registerElement(): void {
         let position = this.node.onMountPosition ? {x: this.node.onMountPosition[0], y: this.node.onMountPosition[1]} : {x: 0, y: 0};
-        if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded) && (this.areaManipulator.layoutManager?.currentLayout?.supportsHierarchicalView)) {
-            this.setHierarchicalInfo();
-        }
+        this.setHierarchicalInfo();
         // All parameters here must correspond to functions trigger by watchers
         // The objects are considered owned by Cytoscape therefore are copied to remove Vue observers
         this.element = <Cytoscape.NodeSingular>this.cy.add({
@@ -52,52 +50,55 @@ export default class GraphElementNode extends Mixins(GraphElementNodeMixin) {
         this.lockedForLayoutsChangedPopper();
     }
 
+    @Watch('node.classes')
     protected setHierarchicalInfo() {
-        let parent = this.node.parent;
-        
-        if (this.node.children.length > 0) {
-            this.node.hierarchicalClass = this.node.children[0].hierarchicalClass;
-            this.node.hierarchicalLevel = this.node.children[0].hierarchicalLevel - 1;
-        } else if (parent) {
-            if (!this.node.hierarchicalClass) this.node.hierarchicalClass = parent.hierarchicalClass;
-            this.node.hierarchicalLevel = parent.hierarchicalLevel + 1;
-        } else {
-            if (this.areaManipulator.hierarchicalGroupsToCluster.length > 0) {
-                for (let hierarchicalGroupToCluster of this.areaManipulator.hierarchicalGroupsToCluster) {
-                    if (this.node.classes.includes(hierarchicalGroupToCluster)) {
-                        this.node.hierarchicalClass = hierarchicalGroupToCluster;
+        if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded) && (this.areaManipulator.layoutManager?.currentLayout?.supportsHierarchicalView)) {
+            let parent = this.node.parent;
+            
+            if (parent) {
+                if (!this.node.hierarchicalClass) this.node.hierarchicalClass = parent.hierarchicalClass;
+                this.node.hierarchicalLevel = parent.hierarchicalLevel + 1;
+            } else if (this.node.children.length > 0) {
+                if (!this.node.hierarchicalClass) this.node.hierarchicalClass = this.node.children[0].hierarchicalClass;
+                this.node.hierarchicalLevel = this.node.children[0].hierarchicalLevel - 1;
+            } else {
+                if (this.areaManipulator.hierarchicalGroupsToCluster.length > 0) {
+                    for (let hierarchicalGroupToCluster of this.areaManipulator.hierarchicalGroupsToCluster) {
+                        if (this.node.classes.includes(hierarchicalGroupToCluster)) {
+                            this.node.hierarchicalClass = hierarchicalGroupToCluster;
+                        }
+                    }
+                }
+                else {
+                    this.node.hierarchicalClass = null;
+                }
+            }
+
+            // Add pseudo-parent node as parent if node is the root in a hierarchy and has no parent
+            if (this.areaManipulator.visualGroups.length > 0) {
+                for (let visualGroup of this.areaManipulator.visualGroups) {
+                    if (!parent && this.node.hierarchicalClass && this.node.classes.includes(visualGroup)) {
+                        let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchicalClass);
+                        if (!pseudoParent) {
+                            pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.hierarchicalClass);
+                            pseudoParent.hierarchicalLevel = this.node.hierarchicalLevel - 1;
+                            pseudoParent.mounted = true;
+                        }
+                        if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
+                            pseudoParent.children.push(this.node);
+                        }
+                        this.node.parent = pseudoParent;
                     }
                 }
             }
-            else {
-                this.node.hierarchicalClass = null;
+
+            // update the depth of a hierarchy
+            if ((this.areaManipulator.globalHierarchicalDepth < this.node.hierarchicalLevel) && this.areaManipulator.hierarchicalGroupsToCluster.find(hierarchicalGroupToCluster => hierarchicalGroupToCluster === this.node.hierarchicalClass) && !this.node.mountedFromGroup) {
+                this.areaManipulator.globalHierarchicalDepth = this.node.hierarchicalLevel;
             }
-        }
 
-        // Add pseudo-parent node as parent if node is the root in a hierarchy and has no parent
-        if (this.areaManipulator.visualGroups.length > 0) {
-            for (let visualGroup of this.areaManipulator.visualGroups) {
-                if (!parent && this.node.hierarchicalClass && this.node.classes.includes(visualGroup)) {
-                    let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchicalClass);
-                    if (!pseudoParent) {
-                        pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.hierarchicalClass);
-                        pseudoParent.hierarchicalLevel = this.node.hierarchicalLevel - 1;
-                        pseudoParent.mounted = true;
-                    }
-                    if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
-                        pseudoParent.children.push(this.node);
-                    }
-                    this.node.parent = pseudoParent;
-                }
-            }
+            this.node.mountedFromGroup = false;
         }
-
-        // update the depth of a hierarchy
-        if ((this.areaManipulator.globalHierarchicalDepth < this.node.hierarchicalLevel) && this.areaManipulator.hierarchicalGroupsToCluster.find(hierarchicalGroupToCluster => hierarchicalGroupToCluster === this.node.hierarchicalClass) && !this.node.mountedFromGroup) {
-            this.areaManipulator.globalHierarchicalDepth = this.node.hierarchicalLevel;
-        }
-
-        this.node.mountedFromGroup = false;
     }
         
     //#region Methods for Popper manipulation and lock icon

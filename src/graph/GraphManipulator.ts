@@ -12,7 +12,7 @@ import NodeCommon from "./NodeCommon";
 
 export default class GraphManipulator {
     private readonly graph: Graph;
-    private readonly area: GraphAreaManipulator;
+    readonly area: GraphAreaManipulator;
     private readonly layoutManager: LayoutManager;
 
     constructor(graph: Graph, area: GraphAreaManipulator, layoutManager: LayoutManager) {

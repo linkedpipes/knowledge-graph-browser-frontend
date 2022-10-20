@@ -41,6 +41,12 @@ export default class DagreLayout extends Layout {
     }
 
     public async onExpansion(expansion: Expansion) {
+        // if the expansion is hierarchical and at least one node of such hierarchical group exists, then expanded nodes should not be shown
+        if (!expansion.hierarchical && this.constraintRulesLoaded && this.areaManipulator.childParentLayoutConstraints.length > 0) {
+            for (let hierarchicalGroup of this.areaManipulator.hierarchicalGroupsToCluster) {
+                if (expansion.nodes[0]?.classes.includes(hierarchicalGroup) && this.graph.nocache_nodesVisual.some(node => node.hierarchicalClass === hierarchicalGroup && !node.parent?.identifier.startsWith("pseudo_parent"))) return;
+            }
+        }
         expansion.nodes.forEach(node => node.mounted = true);
         await Vue.nextTick();
         this.run();

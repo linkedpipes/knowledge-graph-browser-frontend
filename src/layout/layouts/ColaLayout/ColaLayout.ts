@@ -110,6 +110,13 @@ export default class ColaLayout extends Layout {
     }
 
     async onExpansion(expansion: Expansion) {
+        // if the expansion is hierarchical and at least one node of such hierarchical group exists, then expanded nodes should not be shown
+        if (!expansion.hierarchical && this.constraintRulesLoaded && this.areaManipulator.childParentLayoutConstraints.length > 0) {
+            for (let hierarchicalGroup of this.areaManipulator.hierarchicalGroupsToCluster) {
+                if (expansion.nodes[0]?.classes.includes(hierarchicalGroup) && this.graph.nocache_nodesVisual.some(node => node.hierarchicalClass === hierarchicalGroup && !node.parent?.identifier.startsWith("pseudo_parent"))) return;
+            }
+        }
+
         // First step, mount and position the nodes which are not mounted yet
         let notMountedNodes = expansion.nodes.filter(node => !node.mounted);
         if (this.constraintRulesLoaded && this.areaManipulator.childParentLayoutConstraints.length > 0) notMountedNodes = notMountedNodes.filter(node => !node.isMountedInHierarchy);
@@ -119,7 +126,7 @@ export default class ColaLayout extends Layout {
         let classesToClusterTogetherID = 0;
         let nodesToClusterByClass: Node[] = [];
         
-        /** group not mounted nodes in case expansion has more than expansionGroupLimit nodes */
+        // group not mounted nodes in case expansion has more than expansionGroupLimit nodes
         const groupNotMountedNodes = nodes => {
             group = this.graph.createGroup();
             for (let node of nodes) {
@@ -164,7 +171,7 @@ export default class ColaLayout extends Layout {
                     if (this.areaManipulator.classesToClusterTogether.length > 0) {
                         while (nodesToClusterByClass.length === 0 && classesToClusterTogetherID < this.areaManipulator.classesToClusterTogether.length) {
                             notMountedNodes.forEach(node => {
-                                if ((node instanceof NodeGroup) && (this.areaManipulator.isSubset(node.nocache_nonhierarchical_classesOfNodes, this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID]) || this.areaManipulator.isSubset(this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID], node.nocache_nonhierarchical_classesOfNodes))) {
+                                if ((node instanceof NodeGroup) && (this.areaManipulator.isSubset(node.nocache_nonhierarchicalClassesOfNodes, this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID]) || this.areaManipulator.isSubset(this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID], node.nocache_nonhierarchicalClassesOfNodes))) {
                                     nodesToClusterByClass.push(node);
                                 } else if (this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID].find(cl => node.classes.includes(cl))) {
                                     nodesToClusterByClass.push(node);

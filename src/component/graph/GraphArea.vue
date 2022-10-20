@@ -192,16 +192,16 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		Cytoscape.use(popper);
 
 		this.cy = Cytoscape({
-      wheelSensitivity: WHEEL_SENSITIVITY
-    });
+			wheelSensitivity: WHEEL_SENSITIVITY
+    	});
 
 		this.stylesheetUpdated();
 	}
 
 	public mountToElement() {
 		this.cy = Cytoscape({
-      wheelSensitivity: WHEEL_SENSITIVITY
-    });
+			wheelSensitivity: WHEEL_SENSITIVITY
+		});
 		this.stylesheetUpdated();
 		this.cy.mount(<Element>this.$refs.graphd);
 	}
