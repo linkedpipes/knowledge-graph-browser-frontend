@@ -34,7 +34,7 @@ export default class GraphElementEdge extends Vue {
     mounted() {
         // @ts-ignore
         this.cy = this.$parent.cy;
-        if (!(this.edge.target.hierarchicalClass === this.edge.source.hierarchicalClass)) {
+        if (!(this.edge.target.hierarchicalClass === this.edge.source.hierarchicalClass) || this.edge.target.hierarchicalClass === undefined || this.edge.target.hierarchicalClass === undefined) {
             this.element = <Cytoscape.EdgeSingular>this.cy.add({
                 // @ts-ignore bad types
                 group: 'edges',
