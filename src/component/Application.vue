@@ -12,7 +12,9 @@
           :area-manipulator="areaManipulator"
           :layout-manager="layouts"
           :mode-compact="modeCompact"
+          :mode-group-compact="modeGroupCompact"
           @compact-mode-change="modeCompact = $event"
+          @group-compact-mode-change = "modeGroupCompact = $event"
           @new-manipulator="areaManipulator = $event"
       />
       <side-panel
@@ -359,6 +361,7 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
   navDrawerTab = null;
 
   modeCompact: boolean = false;
+  modeGroupCompact: boolean = false;
 
   /**
    * Class responsible for communication with server.
@@ -514,11 +517,11 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
           this.layouts.currentLayout.constraintRulesLoaded = false;
       }
 
-      if (this.layouts.currentLayout.constraintRulesLoaded && (this.areaManipulator.hierarchicalGroupsToCluster.length === 0) && (this.areaManipulator.visualGroups.length === 0) && (this.areaManipulator.classesToClusterTogether.length === 0) && (this.areaManipulator.childParentLayoutConstraints.length === 0)) {
+      if (this.layouts.currentLayout.constraintRulesLoaded && (this.areaManipulator.groupsToCluster.length === 0) && (this.areaManipulator.visualGroups.length === 0) && (this.areaManipulator.classesToClusterTogether.length === 0) && (this.areaManipulator.hierarchicalGroups.length === 0)) {
           for (let constraint of this.areaManipulator.constraintRules.constraints) {
-              if (constraint.type === "hierarchical-groups-to-cluster" && Array.isArray(constraint.properties["classesToApplyConstraint"])) {
+              if (constraint.type === "groups-to-cluster" && Array.isArray(constraint.properties["classesToApplyConstraint"])) {
                 if (constraint.properties["classesToApplyConstraint"].length === 1) {
-                  this.areaManipulator.hierarchicalGroupsToCluster.push(constraint.properties["classesToApplyConstraint"][0].slice(1))
+                  this.areaManipulator.groupsToCluster.push(constraint.properties["classesToApplyConstraint"][0].slice(1))
                 } else {
                   console.error("Each \"hierarchical groups to cluster\" constraint must refer to only one class.");
                 }
@@ -537,8 +540,8 @@ export default class Application extends Mixins(ApplicationLoadStoreMixin) {
                 })
                 this.areaManipulator.classesToClusterTogether.push(classesToApplyConstraint);
               }
-              if (constraint.type === "child-parent-relation") {
-                this.areaManipulator.childParentLayoutConstraints.push(constraint.properties);
+              if (constraint.type === "hierarchical-groups") {
+                this.areaManipulator.hierarchicalGroups.push(constraint.properties);
               }
           }
       }

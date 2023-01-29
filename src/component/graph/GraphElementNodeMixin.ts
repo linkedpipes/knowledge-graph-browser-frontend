@@ -4,6 +4,8 @@ import clone from "clone";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import NodeCommon from "../../graph/NodeCommon";
 import {mdiPinOutline} from "@mdi/js";
+import NodeGroup from "@/graph/NodeGroup";
+import "./hover.scss"
 
 @Component
 export default class GraphElementNodeMixin extends Vue {
@@ -37,11 +39,16 @@ export default class GraphElementNodeMixin extends Vue {
         if (this.node.selected) {
             this.element.select();
             // make parent node selectable
-            if (this.areaManipulator.childParentLayoutConstraints.length > 0) {
+            if (this.areaManipulator.hierarchicalGroups.length > 0) {
                 let node = this.node;
                 while (node.parent) {
                     node = node.parent;
-                    node.element.element.selectify();
+                    node.element?.element.selectify();
+                }
+                node = this.node;
+                while (node.groupCompactParent) {
+                    node = node.groupCompactParent;
+                    node.element?.element.selectify();
                 }
             }
         } else {
@@ -50,7 +57,8 @@ export default class GraphElementNodeMixin extends Vue {
     }
 
     /** Set up parent for all children in case expanded node is a parent node */ 
-    private setParent(): void {
+    @Watch('node.children')
+    public setChildren(): void {
         let cy = this.areaManipulator.cy;
         if (this.node.children?.length > 0) {
             for (let child of this.node.children) {
@@ -59,7 +67,6 @@ export default class GraphElementNodeMixin extends Vue {
                     cy.getElementById(child.identifier).move({
                         parent: parent
                     });
-                    child.element.element.data().parent = this.node.identifier;
                 }
             }
         }
@@ -95,26 +102,63 @@ export default class GraphElementNodeMixin extends Vue {
 
         this.registerElement();
 
-        if (this.areaManipulator.childParentLayoutConstraints.length > 0) this.setParent();
+        if (this.areaManipulator.hierarchicalGroups.length > 0) this.setChildren();
 
         this.element.scratch("_component", this);
 
         this.element.on("select", () => {
-            if (this.areaManipulator.childParentLayoutConstraints.length > 0) {
+            if (this.areaManipulator.hierarchicalGroups.length > 0) {
                 if (this.node.element.element.selectable()) this.node.selected = true;
+                this.node.graph.unselectNodesHiddenInHierarchy();
                 // set parent node unselectable when selecting only a child, because when selecting a child node, parent node is selected as well
                 let node = this.node;
                 while (node.parent) {
                     node = node.parent;
-                    node.element.element.unselectify();
+                    node.element?.element.unselectify();
+                }
+                node = this.node;
+                while (node.groupCompactParent) {
+                    node = node.groupCompactParent;
+                    node.element?.element.unselectify();
                 }
             } else {
                 this.node.selected = true;
             }
         });
         
-        this.element.on("unselect", () => this.node.selected = false);
+        this.element.on("unselect", () => 
+            this.node.selected = false
+        );
 
+        if (this.node instanceof NodeGroup) {
+            let title = this.node.listOfNodesAsTitle; 
+            this.element.unbind("mouseover");
+            this.element.bind("mouseover", (event) => {
+                if (!event.target.popperRefObj) {
+                    event.target.popperRefObj = event.target.popper({
+                        content: () => {
+                            let content = document.createElement("div");
+    
+                            content.classList.add("hover");
+    
+                            content.innerHTML = title;
+    
+                            document.body.appendChild(content);
+                            return content;
+                        },
+                    });
+                }
+            });
+
+            this.element.unbind("mouseout");
+            this.element.bind("mouseout", (event) => {
+                if (event.target.popperRefObj) {
+                    event.target.popperRefObj.options.modifiers.removeOnDestroy = true;
+                    event.target.popperRefObj.destroy();
+                    event.target.popperRefObj = null;
+                }
+            });
+        }
         this.showPopperChanged();
         this.nodeLockingSupportedChanged();
 
@@ -131,14 +175,27 @@ export default class GraphElementNodeMixin extends Vue {
     //#region Compact mode
 
     /**
-     * Compact mode is a mode where selected nodes with all its neighbours are layouted independently of others
+     * Compact mode is a mode where selected nodes with all its neighbors are layouted independently of others
      * */
     @Prop(Boolean) protected modeCompact !: boolean;
 
+    /**
+     * Group compact mode allows you to explore internals of a group without cluttering the graph 
+     */
+    @Prop(Boolean) protected modeGroupCompact !: boolean;
+
     private originalPositionBeforeCompact: Position = null;
 
+    private get groupCompactModeLocked(): boolean {
+        return this.modeGroupCompact && (this.node.groupCompactChildren.length == 0) && (this.node.groupCompactParent == null);
+    }
+
+    private get groupCompactModeUnlocked(): boolean {
+        return this.modeGroupCompact && (this.node.groupCompactChildren.length > 0 || this.node.groupCompactParent != null);
+    }
+
     private get compactModeLocked(): boolean {
-        return this.modeCompact && (!this.node.selected && !this.node.neighbourSelected);
+        return this.modeCompact && !this.node.selected && !this.node.neighbourSelected;
     }
 
     private get compactModeUnlocked(): boolean {
@@ -146,13 +203,15 @@ export default class GraphElementNodeMixin extends Vue {
     }
 
     @Watch('compactModeLocked')
+    @Watch('groupCompactModeLocked')
     private compactModeLockedChanged() {
-        this.element.toggleClass("__compact_inactive", this.compactModeLocked);
+        this.element?.toggleClass("__compact_inactive", this.compactModeLocked || this.groupCompactModeLocked);
     }
 
     @Watch('compactModeUnlocked')
+    @Watch('groupCompactModeUnlocked')
     private compactModeUnlockedChanged() {
-        if (this.compactModeUnlocked) {
+        if (this.compactModeUnlocked || this.groupCompactModeUnlocked) {
             // Mode compact started
             this.originalPositionBeforeCompact = clone(this.element.position());
         } else {
@@ -271,8 +330,9 @@ export default class GraphElementNodeMixin extends Vue {
 
     @Watch('nodeLockingSupported')
     @Watch('modeCompact')
+    @Watch('modeGroupCompact')
     private nodeLockingSupportedChanged() {
-        if (this.nodeLockingSupported && !this.modeCompact) {
+        if (this.nodeLockingSupported && !this.modeCompact && !this.modeGroupCompact) {
             // Right-click
             this.element?.on("cxttap", this.changeLocked);
             // On moving end, lock the node
@@ -335,7 +395,6 @@ export default class GraphElementNodeMixin extends Vue {
     private neighbourSelectedChanged() {
         this.element?.toggleClass("__active", this.node.neighbourSelected || this.explicitlyActive || this.node.selected);
     }
-
     /**
      * Functions return ready class list which can be used to pass to cytoscape
      */
@@ -351,8 +410,12 @@ export default class GraphElementNodeMixin extends Vue {
             if (this.hiddenDisplayAnimation === null) cls.push("__hidden_display");
         }
 
-        if (this.compactModeLocked) {
+        if (this.compactModeLocked || this.groupCompactModeLocked) {
             cls.push("__compact_inactive");
+        }
+
+        if (this.node.children[0]?.isUnmountedAndHiddenInHierarchy) {
+            cls.push("__nested_node");
         }
 
         return cls;

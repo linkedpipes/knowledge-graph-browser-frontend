@@ -80,7 +80,6 @@ import {
     mdiPinOutline
 } from '@mdi/js';
 import NodeGroupedList from "./components/NodeGroupedList.vue";
-import {Graph} from "../../graph/Graph";
 import GraphManipulator from "../../graph/GraphManipulator";
 import PanelTemplate from "./components/PanelTemplate.vue";
 import PanelActionButton from "./components/PanelActionButton.vue";
@@ -118,19 +117,19 @@ export default class ListPanel extends Vue {
     }
 
     public groupManually() {
-        let nodesToClusterByHierarchicalGroup: NodeCommon[] = [];
+        let nodesToClusterByGroup: NodeCommon[] = [];
 		let nodesToClusterByLevel: NodeCommon[] = [];
 		let nodesToClusterByParent: NodeCommon[] = [];
         let nodesToClusterByClass: NodeCommon[] = [];
         let classesToClusterTogetherID = 0;
         let nodeClass = "";
 
-        if (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded) {
+        if (this.areaManipulator?.layoutManager?.currentLayout?.constraintRulesLoaded) {
 
             for (let node of this.elements) {
                 if (node.mounted) {
-                    if (node.hierarchicalClass === this.elements[0].hierarchicalClass) {
-                        nodesToClusterByHierarchicalGroup.push(node);
+                    if (node.hierarchicalClass === this.elements[0].hierarchicalClass && node.visualGroupClass === this.elements[0].visualGroupClass) {
+                        nodesToClusterByGroup.push(node);
                     }
 
                     if (node.hierarchicalLevel === this.elements[0].hierarchicalLevel) {
@@ -154,8 +153,8 @@ export default class ListPanel extends Vue {
                 
             }
 
-            if (nodesToClusterByHierarchicalGroup.length !== this.elements.length) {
-                alert("It is not possible to group nodes placed in different hierarchical groups. Please select nodes in the same hierarchical group.");
+            if (nodesToClusterByGroup.length !== this.elements.length) {
+                alert("It is not possible to group nodes placed in different hierarchical/visual groups. Please select nodes in the same hierarchical/visual group.");
                 return;
             }
 
@@ -172,7 +171,7 @@ export default class ListPanel extends Vue {
             if (this.areaManipulator.classesToClusterTogether.length > 0) {
                 while (nodesToClusterByClass.length === 0 && classesToClusterTogetherID < this.areaManipulator.classesToClusterTogether.length) {
                     this.elements.forEach(node => {
-                        if ((node instanceof NodeGroup) && (this.areaManipulator.isSubset(node.nocache_nonhierarchicalClassesOfNodes, this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID]) || this.areaManipulator.isSubset(this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID], node.nocache_nonhierarchicalClassesOfNodes))) {
+                        if ((node instanceof NodeGroup) && (this.areaManipulator.isSubset(node.nonHierarchicalOrVisualGroupClassesOfNodes, this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID]) || this.areaManipulator.isSubset(this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID], node.nonHierarchicalOrVisualGroupClassesOfNodes))) {
                             nodesToClusterByClass.push(node);
                         } else if (this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID].find(cl => node.classes.includes(cl))) {
                             nodesToClusterByClass.push(node);
@@ -188,7 +187,7 @@ export default class ListPanel extends Vue {
                     if (!nodeClass) {
                         if (node.classes.length > 1) {
                             for (let nodeAnotherClass of node.classes) {
-                                if (nodeAnotherClass !== node.hierarchicalClass) {
+                                if (nodeAnotherClass !== node.hierarchicalClass && nodeAnotherClass !== node.visualGroupClass) {
                                     nodeClass = nodeAnotherClass;
                                 }
                             }
@@ -252,7 +251,7 @@ export default class ListPanel extends Vue {
     }
 
     remove() {
-        let allGroupsNodes: Node[] = [];
+        let allGroupsNodes: NodeCommon[] = [];
 
         for (const node of this.nodes) {
             allGroupsNodes.push(node);

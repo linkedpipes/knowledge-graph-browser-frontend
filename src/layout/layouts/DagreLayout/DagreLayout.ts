@@ -18,6 +18,7 @@ export interface DagreLayoutOptions extends LayoutsCommonGroupSettings {
 
 export default class DagreLayout extends Layout {
     public readonly supportsCompactMode = true;
+    public readonly supportsGroupCompactMode = true;
     public readonly supportsHierarchicalView: boolean = true;
 
     public constructor() {
@@ -41,12 +42,6 @@ export default class DagreLayout extends Layout {
     }
 
     public async onExpansion(expansion: Expansion) {
-        // if the expansion is hierarchical and at least one node of such hierarchical group exists, then expanded nodes should not be shown
-        if (!expansion.hierarchical && this.constraintRulesLoaded && this.areaManipulator.childParentLayoutConstraints.length > 0) {
-            for (let hierarchicalGroup of this.areaManipulator.hierarchicalGroupsToCluster) {
-                if (expansion.nodes[0]?.classes.includes(hierarchicalGroup) && this.graph.nocache_nodesVisual.some(node => node.hierarchicalClass === hierarchicalGroup && !node.parent?.identifier.startsWith("pseudo_parent"))) return;
-            }
-        }
         expansion.nodes.forEach(node => node.mounted = true);
         await Vue.nextTick();
         this.run();
@@ -70,12 +65,6 @@ export default class DagreLayout extends Layout {
         }).run();
     }
 
-    /**
-     * Contains elements in the compact mode or null if the compact mode is turned off.
-     * @non-reactive
-     */
-    private compactMode: cytoscape.Collection | null;
-
     private isCompactModeActive(): boolean {
         return !!this.compactMode;
     }
@@ -98,18 +87,18 @@ export default class DagreLayout extends Layout {
             this.compactMode = null;
         } else {
             this.compactMode = this.areaManipulator.cy.collection();
-
             for (let node of nodes) {
                 this.compactMode = this.compactMode.union(node.element.element);
             }
 
-            for (let edge of edges) {
-                this.compactMode = this.compactMode.union(edge.element.element);
+            if (edges != null) {
+                for (let edge of edges) {
+                    this.compactMode = this.compactMode.union(edge.element.element);
+                }
             }
-
+            
             // We have to wait one tick to save nodes position
             await Vue.nextTick();
-            //if (!this.isActive) return;
 
             // Run layout
             this.run();
@@ -120,6 +109,7 @@ export default class DagreLayout extends Layout {
     private setAreaForCompact(isCompact: boolean) {
         this.areaManipulator.cy.userPanningEnabled(!isCompact);
         this.areaManipulator.cy.userZoomingEnabled(!isCompact);
+        this.areaManipulator.cy.zoomingEnabled(!isCompact);
         this.areaManipulator.cy.boxSelectionEnabled(!isCompact);
         if (isCompact) {
             this.areaManipulator.cy.elements().ungrabify();

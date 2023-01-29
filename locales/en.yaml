@@ -46,6 +46,9 @@ side_panel:
       ffuf: The node is hidden both by filter and user. To show it, change filter options and visibility of the node.
     part_of_group: This node is part of a group with total {n} nodes.
     go_to_group: go to group
+    parent_node: This node is a child of a node
+    group_parent_node: This group is a child of a node
+    go_to_parent: go to parent 
     different_configuration: This node has been loaded under the {configuration-name} configuration. Refresh this node to use the new configuration.
   list_panel:
     title: List of selected nodes
@@ -55,7 +58,9 @@ side_panel:
     title: Hidden nodes
     description: This panel shows nodes currently not visible in the graph. If the node is hidden by a user, red eye icon is shown. By clicking on the eye, you can change its user visibility. If the node is hidden by a filter, the filter icon is shown.
   node_group:
-    title: Group of single nodes | Group of {n} nodes
+    title: Group of single nodes | Group of {n} resources
+    detail: 'Total number of all nodes: {n}'
+    detail_hint: The number of all end nodes in all (sub)groups, i.e (sub)groups itself are not counted
 
   # Component for showing a list of nodes in a group
   node_grouped_list:
@@ -87,6 +92,8 @@ side_panel:
   unlock_for_layouts_desc: Unlock node's position so it can be layouted
   break_group: Break
   break_group_desc: Breaks the group so all nodes from the group become visible in the graph
+  rename_group: Rename
+  rename_group_desc: Set a new name for the group
   group: Group
   group_desc: Replaces all the nodes with a single node
   remove: Remove
@@ -98,6 +105,11 @@ side_panel:
   leave: Leave group
   leave_desc: This separates the node from its group and shows it in the graph.
 
+rename_group_dialog:
+  title: Rename a node
+  input: New name 
+  cancel: Cancel
+  rename: Rename
 
 # Dialog to add new nodes
 add_node_dialog:
@@ -221,6 +233,9 @@ layout_dialog:
 
 graph:
   groupNode: single node | {n} resources
+  fit: Fit
+  compact: Compact mode
+  group_compact: Group compact mode
 
 configuration_selection:
   meta_configuration:
@@ -275,9 +290,21 @@ load_dialog:
 any_data_value:
   open_node: Show node
 
-scaling:
-  scaling_options: Scaling options
-  grouping: Grouping of clusters
-  zooming: Zoom
+zooming:
+  zooming_options: Zoom options
+  global_grouping: Global grouping of clusters
+  global_grouping_hint: If you select global and local grouping of clusters at the same time, deselect all nodes for global grouping of clusters applications
+  local_grouping: Local grouping of clusters
+  local_grouping_hint: Select the node to which you want to apply local grouping of clusters
+  zooming: Zoom In / Zoom Out
+  zoom_in: Zoom In
+  zoom_out: Zoom Out
 hierarchy:
   hierarchical_class: Hierarchical class
+  hint: 'Hint: Choose any type of cluster grouping as well as zoom in/out to take advantage of the mapping platforms features'
+visual_group:
+  visual_group_class: Visual class
+
+group_compact:
+  view_availability: View expansions are not available in group compact mode  
+  enabled: Group compact mode is enabled

@@ -5,41 +5,59 @@
 		<v-toolbar flat dense floating class="ma-3 toolbar" :style="leftStyle">
 			<search-component :graph-searcher="graphSearcher" @searched="manipulator.locateOrTryFetchNode($event)"></search-component>
 		</v-toolbar>
-		<v-main v-if="layoutManager.currentLayout.constraintRulesLoaded && layoutManager.currentLayout.supportsHierarchicalView" title='Hint: Check both to cluster and zoom at the same time' class="checkbox" :disabled="modeCompact" :style="rightStyle">
+		<v-main v-if="layoutManager.currentLayout.constraintRulesLoaded && layoutManager.currentLayout.supportsHierarchicalView && !modeCompact && !modeGroupCompact" :title="$t('hierarchy.hint')" class="checkbox" :style="rightStyle">
 			<v-container>
-				<p>{{ $tc('scaling.scaling_options', 1) }}</p>
-				<v-checkbox
-					class="ma-0 pa-0"
-					:label="$tc('scaling.grouping', 1)"
-					@click = "groupingOfClustersEvent()"
-				></v-checkbox>
-				<v-checkbox
-					class="ma-0 pa-0"
-					:label="$tc('scaling.zooming', 1)"
-					:input-value="true"
-					@click = "zoomingEvent()"
-				></v-checkbox>
+				<p>{{ $tc('zooming.zooming_options', 1) }}</p>
+				<v-main :title="$t('zooming.global_grouping_hint')">
+					<v-checkbox
+						class="ma-0 pa-0"
+						:label="$tc('zooming.global_grouping', 1)"
+						
+						@click = "groupingOfClustersEvent(true)"
+					></v-checkbox>
+				</v-main>
+				<v-main :title="$t('zooming.local_grouping_hint')">
+					<v-checkbox
+						class="ma-0 pa-0"
+						:label="$tc('zooming.local_grouping', 1)"
+						:title="$t('zooming.local_grouping_hint')"
+						@click = "groupingOfClustersEvent(false)"
+					></v-checkbox>
+				</v-main>
+				<v-main title="">
+					<v-checkbox
+						class="ma-0 pa-0"
+						:label="$tc('zooming.zooming', 1)"
+						:input-value="true"
+						@click = "zoomingEvent()"
+					></v-checkbox>
+				</v-main>
 			</v-container>
 		</v-main>
 		<div class="my-3 mx-5 buttons v-toolbar" :style="rightStyle">
 			<div class="my-2">
-				<v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact" @click="areaManipulator.zoomIn()">
+				<v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact || modeGroupCompact" :title="$tc('zooming.zoom_in')" @click="areaManipulator.zoomIn()">
 					<v-icon>{{ icons.zoomIn }}</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact" @click="areaManipulator.zoomOut()">
+				<v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact || modeGroupCompact" :title="$tc('zooming.zoom_out')" @click="areaManipulator.zoomOut()">
 					<v-icon>{{ icons.zoomOut }}</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2">
-				<v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact" @click="areaManipulator.fit()">
+				<v-btn color="primary" fab small :dark="!modeCompact" :disabled="modeCompact || modeGroupCompact" :title="$tc('graph.fit')" @click="areaManipulator.fit()">
 					<v-icon>{{ icons.fit }}</v-icon>
 				</v-btn>
 			</div>
 			<div class="my-2" v-if="layoutManager.currentLayout.supportsCompactMode">
-				<v-btn color="primary" fab small :dark="isNodeSelected" :disabled="!isNodeSelected" @click="compactModeChange(!modeCompact)">
+				<v-btn color="primary" fab small :dark="isNodeSelected" :disabled="!isNodeSelected || modeGroupCompact" :title="$tc('graph.compact')" @click="compactModeChange(!modeCompact)">
 					<v-icon>{{ icons.compactMode[modeCompact ? 1 : 0] }}</v-icon>
+				</v-btn>
+			</div>
+			<div class="my-2" v-if="layoutManager.currentLayout.supportsGroupCompactMode && layoutManager.currentLayout.supportsHierarchicalView && layoutManager.currentLayout.constraintRulesLoaded">
+				<v-btn color="primary" fab small :dark="isGroupSelected || modeGroupCompact" :disabled="(!isGroupSelected && !modeGroupCompact) || modeCompact" :title="$tc('graph.group_compact')" @click="groupCompactModeChange(!modeGroupCompact)">
+					<v-icon>{{ icons.groupCompactMode[modeGroupCompact ? 1 : 0] }}</v-icon>
 				</v-btn>
 			</div>
 			<component v-if="layoutManager.currentLayoutData.buttons" :is="layoutManager.currentLayoutData.buttons" :layout="layoutManager.currentLayout" />
@@ -54,6 +72,7 @@
 			:node-locking-supported="layoutManager.currentLayout.supportsNodeLocking"
 			:explicitly-active="!isNodeSelected"
 			:mode-compact="modeCompact"
+			:mode-group-compact="modeGroupCompact"
 		/>
 		<graph-element-node-group
 			v-for="group in graph.groups"
@@ -65,6 +84,7 @@
 			:node-locking-supported="layoutManager.currentLayout.supportsNodeLocking"
 			:explicitly-active="!isNodeSelected"
 			:mode-compact="modeCompact"
+			:mode-group-compact="modeGroupCompact"
 		/>
 		<graph-element-edge
 			v-for="edge in graph.edges"
@@ -75,12 +95,12 @@
             :mode-compact="modeCompact"
 		/>
 		<graph-element-edge
-				v-for="edge in groupEdges"
-				v-if="edge.source.mounted && edge.target.mounted"
-				:key="edge.identifier.replace(/\./, '_')"
-				:edge="edge"
-				:explicitly-active="!isNodeSelected"
-				:mode-compact="modeCompact"
+			v-for="edge in groupEdges"
+			v-if="edge.source.mounted && edge.target.mounted"
+			:key="edge.identifier.replace(/\./, '_')"
+			:edge="edge"
+			:explicitly-active="!isNodeSelected"
+			:mode-compact="modeCompact"
 		/>
 	</div>
 </template>
@@ -93,7 +113,7 @@ import Cytoscape from "cytoscape";
 import {Emit, Mixins, Prop, Watch} from "vue-property-decorator";
 import {ResponseStylesheet} from "../../remote-server/ResponseInterfaces";
 import {Graph} from "../../graph/Graph";
-import {mdiPlus, mdiMinus, mdiArrowExpandAll, mdiChartBubble, mdiArrowDecisionOutline} from '@mdi/js';
+import {mdiPlus, mdiMinus, mdiArrowExpandAll, mdiChartBubble, mdiArrowDecisionOutline, mdiMagnifyScan} from '@mdi/js';
 import SearchComponent from "../SearchComponent.vue";
 import GraphAreaManipulator from "../../graph/GraphAreaManipulator";
 import ViewOptions from "../../graph/ViewOptions";
@@ -108,6 +128,9 @@ import GraphElementNodeGroup from "./GraphElementNodeGroup.vue";
 import GroupEdge from "../../graph/GroupEdge";
 import NodeCommon from "../../graph/NodeCommon";
 import EdgeCommon from "../../graph/EdgeCommon";
+import {Node} from "@/graph/Node"
+import NodeGroup from "@/graph/NodeGroup";
+import Vue from "vue";
 
 const WHEEL_SENSITIVITY = 0.2;
 
@@ -136,6 +159,15 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	@Prop(Boolean) private modeCompact !: boolean;
 
 	/**
+	 * Group compact mode allows you to explore nodes inside a group independently of others
+	 * Available only when hierarchical constraint rules are loaded
+	 * */
+	@Prop(Boolean) public modeGroupCompact !: boolean;
+
+	// Remembers all nodes that were selected when compact mode was enabled. Necessary to restore the parent.
+	private nodesForCompact: NodeCommon[] = [];
+
+	/**
 	 * How much of the graph area is covered by panels. This array is readonly so it could be passed by reference.
 	 * top, right, bottom, left
 	 * Currently only right and left is supported
@@ -147,7 +179,8 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		zoomIn: mdiPlus,
 		zoomOut: mdiMinus,
 		fit: mdiArrowExpandAll,
-		compactMode: [mdiArrowDecisionOutline, mdiChartBubble]
+		compactMode: [mdiArrowDecisionOutline, mdiChartBubble],
+		groupCompactMode: [mdiMagnifyScan, mdiChartBubble]
 	}
 
 	/**
@@ -178,7 +211,9 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 		let edges: GroupEdge[] = [];
 
 		for (let group of this.graph.groups) {
-			edges = [...edges, ...group.visibleGroupEdges];
+			if (group.mounted) {
+				edges = [...edges, ...group.visibleGroupEdges];
+			}
 		}
 
 		return edges;
@@ -247,14 +282,22 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	 * Handles grouping of clusters event \
 	 * For more information see https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/user_documentation.md#checkbox-1 
 	 */
-	public groupingOfClustersEvent() {
-		
-		if (this.areaManipulator.isGroupingOfClustersChecked) {
-			this.areaManipulator.isGroupingOfClustersChecked = false;
+	public groupingOfClustersEvent(global: boolean = true) {
+		if (global) {
+			if (this.areaManipulator.isGlobalGroupingOfClustersChecked) {
+				this.areaManipulator.isGlobalGroupingOfClustersChecked = false;
+			}
+			else {
+				this.areaManipulator.isGlobalGroupingOfClustersChecked = true;
+			}	
+		} else {
+			if (this.areaManipulator.isLocalGroupingOfClustersChecked) {
+				this.areaManipulator.isLocalGroupingOfClustersChecked = false;
+			}
+			else {
+				this.areaManipulator.isLocalGroupingOfClustersChecked = true;
+			}	
 		}
-		else {
-			this.areaManipulator.isGroupingOfClustersChecked = true;
-		}	
 
 	}
 	// #endregion
@@ -263,19 +306,71 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	modeCompactChanged() {
 		this.cy.userPanningEnabled(!this.modeCompact);
 		this.cy.userZoomingEnabled(!this.modeCompact);
+		this.cy.zoomingEnabled(!this.modeCompact);
 		this.cy.boxSelectionEnabled(!this.modeCompact);
+
+		if (this.layoutManager.currentLayout.constraintRulesLoaded && this.layoutManager.currentLayout.supportsHierarchicalView) {
+			if (this.modeCompact) {
+				this.areaManipulator.isZoomingChecked = false;
+				this.areaManipulator.isGlobalGroupingOfClustersChecked = false;
+				this.areaManipulator.isLocalGroupingOfClustersChecked = false;
+	
+			} else {
+				this.areaManipulator.isZoomingChecked = true;
+	
+				// Restore parent and children if existed
+				this.nodesForCompact.forEach(node => { 
+					node.element.setChildren();
+					this.restoreParent(node);
+				});
+				this.nodesForCompact = [];
+			}
+		}
 	}
 
+	@Watch('modeGroupCompact')
+	modeGroupCompactChanged() {
+		this.cy.userPanningEnabled(!this.modeGroupCompact);
+		this.cy.userZoomingEnabled(!this.modeGroupCompact);
+		this.cy.zoomingEnabled(!this.modeGroupCompact);
+		this.cy.boxSelectionEnabled(!this.modeGroupCompact);
+
+		// only root group nodes -- they were selected before the transition to the group compact mode was performed 
+		let selectedGroups = this.graph.groups.filter(group => group.selected);
+		if (selectedGroups.length) {
+			this.releaseParent(selectedGroups);
+		}
+
+		if (this.modeGroupCompact) {
+			this.areaManipulator.isZoomingChecked = false;
+    		this.areaManipulator.isGlobalGroupingOfClustersChecked = false;
+    		this.areaManipulator.isLocalGroupingOfClustersChecked = false;
+		} else {
+			this.areaManipulator.isZoomingChecked = true;
+			let rootGroups = this.graph.groups.filter(group => !group.groupCompactParent && (group.groupCompactChildren.length > 0));
+			rootGroups.forEach(group => {
+				this.compactUnlockRecursively(group);
+				// restore parent
+				this.restoreParent(group);
+			});
+		}
+	}
+
+	/**
+	 * Data changes tracking fot both compact and group compact modes
+	 */
     @Watch('dataForCompactMode')
     private dataForCompactModeChanged() {
-	    let [nodes, edges] = this.dataForCompactMode;
+
+		let [nodes, edges] = this.dataForCompactMode;
 
 	    if (nodes && !nodes.length) {
 	    	this.compactModeChange(false);
+			this.groupCompactModeChange(false);
 	    	return;
 		}
 
-        this.layoutManager.currentLayout.onCompactMode(nodes, edges);
+		this.layoutManager.currentLayout.onCompactMode(nodes, edges);
 
         if (nodes) {
 			this.areaManipulator.fitFollowSet(nodes);
@@ -287,6 +382,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
     @Watch('layoutManager.currentLayout')
     private currentLayoutChanged() {
 		this.compactModeChange(false);
+		this.groupCompactModeChange(false);
 	}
 
     /**
@@ -297,15 +393,130 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	    if (this.modeCompact) {
 	        let nodes: NodeCommon[] = this.graph.nodesVisual.filter(node => (node.selected || node.neighbourSelected) && node.element);
 	        let edges: EdgeCommon[] = this.graph.edgesVisual.filter(edge => (edge.source.selected || edge.target.selected) && edge.element);
+			
+			if (this.layoutManager.currentLayout.supportsHierarchicalView && this.layoutManager.currentLayout.constraintRulesLoaded && nodes.length) {
+				this.nodesForCompact = nodes;
+				this.releaseParent(nodes);
+				// release children
+				nodes.forEach(node => {
+					if (node.children?.length > 0) {
+						for (let child of node.children) {
+							this.areaManipulator.cy.getElementById(child.identifier).move({
+								parent: null
+							});
+						}
+					} 
+				})
+			}
 
-            return [nodes, edges];
-        } else {
-	        return [null, null];
-        }
+			return [nodes, edges];
+        } else if (this.modeGroupCompact) {
+			let groups: NodeGroup[] = this.graph.groups.filter(group => (group.selected) && group.element);
+			let nodes: NodeCommon[] = this.graph.nodesVisual.filter(node => node.selected && node.element);;
+			if (groups.length > 0) {
+				nodes = [];
+				groups.forEach(group => {
+					if (group.groupCompactParent)  {
+						group.groupCompactParent.groupCompactChildren.forEach(innerGroup => {
+							if (innerGroup != group && innerGroup instanceof NodeGroup) this.compactUnlockRecursively(innerGroup);
+						})
+					}
+					if (group.groupCompactChildren.length > 0) {
+						group.groupCompactChildren.forEach(child =>{
+							if (child instanceof NodeGroup) this.compactUnlockRecursively(child);	
+						})
+					} else {
+						group.nodes.forEach(node => { 
+							// this.groupCompactNodesBuffer.push(node); 
+							group.groupCompactChildren.push(node);
+							nodes.push(node); 
+							node.mounted = true; 
+							node.groupCompactBelongsToGroupCache = node.belongsToGroup; 
+							node.belongsToGroup = null;
+						});
+					}
+
+					// Make a group as new "pseudo-parent", trick here is that after degroup, node will be mounted 
+					// and registered again with correct parent, because it will inherit parent from group
+					Vue.nextTick(() => {
+						for (let child of group.nodes) {
+							if (child.element) {
+								// we can safely set new parent (group) both for element and for object
+								let newParent = this.areaManipulator.cy.getElementById(group.identifier).id();
+								this.areaManipulator.cy.getElementById(child.identifier).move({
+									parent: newParent
+								});
+								child.groupCompactParent = group;
+							}
+						}
+					});
+				})
+	
+				this.layoutManager.currentLayout.onGroupCompact();
+	
+			}
+			return [[...nodes, ...groups], null];
+		}
+
+		return [null, null];
+
     }
 
-    @Emit()
-	private compactModeChange(val: boolean) { return val; }
+	/**
+	 * This function releases parent of each node from the given list.  
+	 * @param nodes list of nodes to release the parent
+	 */
+	private releaseParent(nodes: NodeCommon[]) {
+		nodes.forEach(node => {
+			if (node.parent) {
+				this.areaManipulator.cy.getElementById(node.identifier).move({
+					parent: null
+				});
+			}
+		})
+	}
+
+	/**
+	 * This function restores the node's parent
+	 * @param node
+	 */
+	private restoreParent(node: NodeCommon) {
+		if (node.parent) {
+			let restoredParent = this.areaManipulator.cy.getElementById(node.parent.identifier).id(); 
+			this.areaManipulator.cy.getElementById(node.identifier).move({
+				parent: restoredParent
+			});
+		}
+	}
+
+	/**
+	 * This function collapses group's internals into the group.
+	 * The goal is to return to the state before the group compact mode was enabled.
+	 * @param group The group on which to unlock the group compact mode
+	 */
+	private compactUnlockRecursively(group: NodeGroup) {
+		if (group.groupCompactChildren.length > 0) {
+			group.groupCompactChildren.forEach(child => {
+				if (child instanceof NodeGroup) this.compactUnlockRecursively(child);
+				child.belongsToGroup = child.groupCompactBelongsToGroupCache;
+				child.groupCompactBelongsToGroupCache = null;
+				child.groupCompactParent = null;
+				child.selected = false;
+				if (child instanceof NodeGroup) child.mounted = false;
+			})
+			group.groupCompactChildren = [];
+		}
+	}
+
+	@Emit()
+	private compactModeChange(val: boolean) { 
+		return val; 
+	}
+
+	@Emit()
+	private groupCompactModeChange(val: boolean) { 
+		return val; 
+	}
 
 	/**
 	 * Computes whether there is at least one node in the graph which is selected and visible.
@@ -318,7 +529,14 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 				return true;
 			}
 		}
+		
+		return this.isGroupSelected;
+	}
 
+	/**
+	 * Computes whether there is at least one group in the graph which is selected and visible.
+	 */
+	private get isGroupSelected():boolean {
 		for (let group of this.graph.groups) {
 			if (group.mounted && group.selected) {
 				return true;
@@ -335,8 +553,6 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	mounted() {
 		// Mount Cytoscape instance to HTML element
 		this.cy.mount(<Element>this.$refs.graphd);
-		//this.mountToElement();
-
 		// Double-click handeling
 		let doubleClickDelayMs = 350;
 		let previousTapStamp = 0;
@@ -344,6 +560,8 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 			let currentTapStamp = event.timeStamp;
 			let msFromLastTap = currentTapStamp - previousTapStamp;
 			previousTapStamp = currentTapStamp;
+
+			if (this.layoutManager.currentLayout.constraintRulesLoaded && this.layoutManager.currentLayout.supportsHierarchicalView && (this.modeCompact || this.modeGroupCompact)) return;
 
 			if (msFromLastTap < doubleClickDelayMs) {
 				(<GraphElementNode>event.target.scratch("_component")).onDoubleClicked();

@@ -17,6 +17,8 @@ export interface CircleLayoutOptions extends LayoutsCommonGroupSettings {
 export default class CircleLayout extends Layout {
     
     public readonly supportsHierarchicalView: boolean = true;
+    public readonly supportsCompactMode: boolean = false;
+    public readonly supportsGroupCompactMode: boolean = false;
     
     /**
      * Options for this layout which can be modified by a user
@@ -28,16 +30,9 @@ export default class CircleLayout extends Layout {
     }
 
     async onExpansion(expansion: Expansion) {
-        // if the expansion is hierarchical and at least one node of such hierarchical group exists, then expanded nodes should not be shown
-        if (!expansion.hierarchical && this.constraintRulesLoaded && this.areaManipulator.childParentLayoutConstraints.length > 0) {
-            for (let hierarchicalGroup of this.areaManipulator.hierarchicalGroupsToCluster) {
-                if (expansion.nodes[0]?.classes.includes(hierarchicalGroup) && this.graph.nocache_nodesVisual.some(node => node.hierarchicalClass === hierarchicalGroup && !node.parent?.identifier.startsWith("pseudo_parent"))) return;
-            }
-        }
-
         // First step, mount and position the nodes which are not mounted yet
         let notMountedNodes = expansion.nodes.filter(node => !node.mounted);
-        if (this.constraintRulesLoaded && this.areaManipulator.childParentLayoutConstraints.length > 0) notMountedNodes = notMountedNodes.filter(node => !node.isMountedInHierarchy);
+        if (this.constraintRulesLoaded && this.areaManipulator.hierarchicalGroups.length > 0) notMountedNodes = notMountedNodes.filter(node => !node.isUnmountedAndHiddenInHierarchy);
         let position = expansion.parentNode.selfOrGroup.element?.element?.position();
 
         this.executeLayout(notMountedNodes, position);

@@ -25,17 +25,28 @@
                         <v-btn v-if="splitGroupButton" @click="groupSplitGroup(group)">{{ $t('side_panel.node_grouped_list.split_group') }}</v-btn>
                     </div>
 
+                    <v-text-field v-model="searchValue" label="Search node" clearable color="silver">
+                        <v-icon slot="prepend"> {{ icons.zoomIcon }}</v-icon>
+                    </v-text-field>
+
                     <v-simple-table dense>
                         <template v-slot:default>
                             <tbody>
-                            <tr v-for="node in group.nodes" :key="node.IRI">
-                                <td class="table-node-actions">
-                                    <link-component :href="node.IRI" />
-                                    <v-btn v-if="modeHiddenNodes" icon text x-small @click="node.visible = !node.visible"><v-icon small :color="node.visible ? 'grey lighten-3' : 'primary'">{{ icons.visibility[node.visible ? 1 : 0] }}</v-icon></v-btn>
-                                    <v-icon v-if="modeHiddenNodes" small :color="node.shownByFilters ? 'grey lighten-3' : 'primary'">{{ icons.filter[node.shownByFilters ? 1 : 0] }}</v-icon>
+                            <tr v-for="node in filterNodes(group.nodes)" :key="node.identifier">
+                                
+                                <td>
+                                    <div v-if="isNode(node)" class="table-node-actions">
+                                        <v-icon v-if="modeHiddenNodes" small :color="node.shownByFilters ? 'grey lighten-3' : 'primary'">{{ icons.filter[node.shownByFilters ? 1 : 0] }}</v-icon>
+                                        <v-btn v-if="modeHiddenNodes" icon text x-small @click="node.visible = !node.visible"><v-icon small :color="node.visible ? 'grey lighten-3' : 'primary'">{{ icons.visibility[node.visible ? 1 : 0] }}</v-icon></v-btn>
+                                        <link-component :href="node.identifier" />
+                                    </div>
+                                    <div v-else>
+                                        <v-icon>{{ icons.group }}</v-icon>
+                                    </div>
                                 </td>
-                                <td class="table-node-name" @click="nodeSelected(node)" :title="node.currentView && node.currentView.preview ? node.currentView.preview.label : null">
-                                    {{ node.currentView && node.currentView.preview ? node.currentView.preview.label : "-" }}
+                                <td class="table-node-name" @click="nodeSelected(node)" :title="getLabel(node)">
+                                    {{ getLabel(node) }}
+                                    
                                 </td>
                             </tr>
                             </tbody>
@@ -56,17 +67,19 @@
     import {Component, Emit, Prop, Watch} from "vue-property-decorator";
     import Vue from "vue";
     import {Node, NodeType} from "../../../graph/Node";
-    import {mdiEye, mdiEyeOff, mdiFilter, mdiFilterOutline} from "@mdi/js";
+    import {mdiEye, mdiEyeOff, mdiFilter, mdiFilterOutline, mdiGroup, mdiMagnify} from "@mdi/js";
     import LinkComponent from "../../helper/LinkComponent.vue";
     import GraphManipulator from "../../../graph/GraphManipulator";
+    import NodeCommon from "@/graph/NodeCommon";
+    import NodeGroup from "@/graph/NodeGroup";
 
     interface NodeTypeGroup {
         type: NodeType;
-        nodes: Node[];
+        nodes: NodeCommon[];
     }
 
     @Component({
-        components: {LinkComponent}
+        components: { LinkComponent }
     })
     export default class NodeGroupedList extends Vue {
         @Prop() groups: NodeTypeGroup[];
@@ -82,29 +95,87 @@
         @Prop(Boolean) breakGroupButton!: boolean;
         @Prop(Boolean) splitGroupButton!: boolean;
 
+
         private readonly icons = {
             visibility: [mdiEyeOff, mdiEye],
             filter: [mdiFilterOutline, mdiFilter],
+            zoomIcon: mdiMagnify,
+            group: mdiGroup,
         }
 
         private fetchTypesLoading = false;
-        private async fetchTypes(nodes: Node[]) {
+        private async fetchTypes(nodes: NodeCommon[]) {
             this.fetchTypesLoading = true;
             let promises = []
             for (let node of nodes) {
-                promises.push(node.useDefaultView());
+                if (node instanceof Node) promises.push(node.useDefaultView());
             }
 
             await Promise.all(promises);
             this.fetchTypesLoading = false;
         }
+
+        private searchValue: String = "";
+        private filterNodes(nodes: NodeCommon[]) {
+            // nodes = nodes.filter(node => node instanceof Node);
+
+            nodes = nodes.sort((n1,n2) => {
+                let label1: string = "";
+                let label2: string = "";
+
+                if (n1 instanceof Node) label1 = n1.currentView?.preview?.label; 
+                else if (n1 instanceof NodeGroup) label1 = n1.getName;
+
+                if (n2 instanceof Node) label2 = n2.currentView?.preview?.label; 
+                else if (n2 instanceof NodeGroup) label2 = n2.getName;
+
+                if ( label1 > label2 ) {
+                    return 1;
+                }
+
+                if ( label1 < label2 ) {
+                    return -1;
+                }
+
+                return 0;
+            });
+
+            let filteredNodes = nodes;
+            if (this.searchValue != "" && this.searchValue) {
+                filteredNodes = nodes.filter(node => { 
+                    if (node instanceof Node) return node.currentView?.preview?.label.toLowerCase().includes(this.searchValue.toLowerCase());
+                    else if (node instanceof NodeGroup) return node.getName.toLowerCase().includes(this.searchValue.toLowerCase());
+                })
+            }
+
+            return filteredNodes;
+        }
+        
+        private getNodes(node: NodeCommon) {
+            if (node instanceof NodeGroup) {
+                return node.nodes;
+            } else if (node.children?.length > 0) {
+                return node.children;
+            }
+        }
+        
+        private isNode(node: NodeCommon) {
+            return (node instanceof Node)
+        }
+
+        private getLabel(node: NodeCommon) {
+            if (node instanceof Node) return node.currentView?.preview ? node.currentView.preview.label : "-";
+            if (node instanceof NodeGroup) return node.getName;
+
+        }
+
         @Watch('groups')
         private groupsUpdated() {
             this.fetchTypesLoading = false;
         }
 
         @Emit('nodeSelected')
-        private nodeSelected(node: Node) {
+        private nodeSelected(node: NodeCommon) {
             return node;
         }
 
@@ -149,8 +220,7 @@
         text-overflow: ellipsis;
         overflow: hidden;
         max-width: 1px;
-
-        width: 100%;
+        width: 88%;
     }
 
     .table-node-actions {

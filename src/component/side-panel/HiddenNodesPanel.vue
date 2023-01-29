@@ -40,6 +40,7 @@
     import GraphManipulator from "../../graph/GraphManipulator";
     import PanelTemplate from "./components/PanelTemplate.vue";
     import PanelActionButton from "./components/PanelActionButton.vue";
+    import NodeCommon from '@/graph/NodeCommon';
 
     interface NodeTypeGroup {
         type: NodeType;
@@ -80,7 +81,7 @@
         /**
          * Deselects all the nodes except one
          */
-        private nodeSelected(selectedNode: Node) {
+        private nodeSelected(selectedNode: NodeCommon) {
             selectedNode.selectExclusively();
             this.closePanel();
         }

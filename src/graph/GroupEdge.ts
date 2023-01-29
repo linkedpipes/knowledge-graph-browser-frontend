@@ -12,10 +12,6 @@ import NodeGroup from "./NodeGroup";
 export default class GroupEdge extends EdgeCommon {
     public readonly source: NodeCommon = null;
     public readonly target: NodeCommon = null;
-    public readonly type: EdgeType = null;
-
-    public classes: string[] = [];
-    public element: GraphElementEdge = null;
 
     constructor(source: typeof GroupEdge.prototype.source, target: typeof GroupEdge.prototype.target, type: EdgeType) {
         super();

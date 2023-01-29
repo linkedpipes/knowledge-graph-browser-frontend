@@ -1,12 +1,18 @@
 /**
  * NodeGroup represents sub graph as single node in the graph.
  */
-import {Node} from "./Node";
+import {Node, NodeType} from "./Node";
 import NodeCommon from "./NodeCommon";
 import ObjectSave from "../file-save/ObjectSave";
 import GraphElementNodeGroup from "../component/graph/GraphElementNodeGroup.vue";
 import GroupEdge from "./GroupEdge";
 import NodeGroupVuex from "./component/NodeGroupVuex";
+import { Edge } from "./Edge";
+
+export interface NodeInAndOutEdges {
+    inEdges: Edge[];
+    outEdges: Edge[];
+}
 
 export default class NodeGroup extends NodeCommon implements ObjectSave {
     public vuexComponent: NodeGroupVuex;
@@ -36,15 +42,22 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      * @inheritDoc
      */
     public get selfOrGroup(): NodeGroup {
-        return this;
+        return this.belongsToGroup ?? this;
     }
+
+    get shownByFilters(): boolean { return false; }
 
     /**
      * List of nodes in this group.
      *
      * Each node must be maximally in one group and the relation should be bidirectional
      */
-    nodes: Node[] = [];
+    nodes: NodeCommon[] = [];
+
+    /** List of all nodes located in this group (considering group hierarchy). Needed for dynamic groupEdge creation. */
+    leafNodes: Node[] = [];
+
+    name: string = "";
 
     /** Classes of nodes different from hierarchical class. Needed for clustering */
     private classesOfNodes: string[] = [];
@@ -54,16 +67,32 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      * @param node
      * @param overrideExistingGroup Ignore existence in other group
      */
-    public addNode(node: Node, overrideExistingGroup: boolean = false) {
+    public addNode(node: NodeCommon, overrideExistingGroup: boolean = false) {
         console.assert(!node.belongsToGroup || overrideExistingGroup, "Unable to add node", node, "into group", this, "because is already in", node.belongsToGroup);
 
         if (!node.belongsToGroup || overrideExistingGroup) {
             node.belongsToGroup = this;
             this.nodes.push(node);
+            // in common case this.leafNodes == this.nodes
+            if (node instanceof Node && !this.leafNodes.find(leafNode => leafNode == node))
+            {
+                this.leafNodes.push(node);
+                node.topmostGroupAncestor = this;
+            }
+            if (node instanceof NodeGroup) {
+                node.leafNodes.forEach(leafNode1 => 
+                    { 
+                        if (!this.leafNodes.find(leafNode2 => leafNode1 == leafNode2)) {
+                            this.leafNodes.push(leafNode1);
+                            leafNode1.topmostGroupAncestor = this;
+                        }
+                    });
+                    
+            }
         }
 
         node.classes.filter(cls => {
-            if (cls !== node.hierarchicalClass) {
+            if (cls !== node.hierarchicalClass && cls !== node.visualGroupClass) {
                 if (!this.classesOfNodes.includes(cls)) {
                     this.classesOfNodes.push(cls);
                 }
@@ -76,8 +105,8 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      * Completely removes NodeGroup with all Nodes from the graph.
      * Safe to call anytime.
      */
-    public remove() {
-        this.nodes.forEach(node => node.remove());
+    public remove(isGroupRemoval: boolean = true) {
+        this.nodes.forEach(node => node.remove(isGroupRemoval));
         
         if (this.parent) {
             if (this.parent.children?.indexOf(this) > -1) {
@@ -93,6 +122,7 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         }
 
         this.selected = false;
+        this.nodes = []
         this.graph.removeGroupIgnoreNodes(this);
     }
 
@@ -102,9 +132,19 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      */
     public checkForNodes() {
         if (this.nodes.length === 1) {
-            this.nodes[0].belongsToGroup = null;
-            this.nodes[0].onMountPosition = this.element?.element?.position() ? [this.element?.element?.position().x, this.element?.element?.position().y] : this.onMountPosition;
-            this.nodes[0].mounted = true;
+            if (this.belongsToGroup) { 
+                this.nodes[0].belongsToGroup = this.belongsToGroup;    
+                this.belongsToGroup.addNode(this.nodes[0], true);
+                this.belongsToGroup.nodes.splice(
+                    this.belongsToGroup.nodes.indexOf(this), 1
+                    );
+                this.belongsToGroup = null;
+            }
+            else {
+                this.nodes[0].belongsToGroup = null;                
+                this.nodes[0].onMountPosition = this.element?.element?.position() ? [this.element?.element?.position().x, this.element?.element?.position().y] : this.onMountPosition;
+                this.nodes[0].mounted = true;
+            }
         }
         if (this.nodes.length <= 1) {
             this.graph.removeGroupIgnoreNodes(this);
@@ -130,8 +170,8 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         return this.vuexComponent?.classes ?? this.nocache_classes;
     }
 
-    public get nocache_nonhierarchicalClassesOfNodes(): string[] {
-        return this.classesOfNodes.filter(cls => cls !== this.hierarchicalClass);
+    public get nonHierarchicalOrVisualGroupClassesOfNodes(): string[] {
+        return this.classesOfNodes.filter(cls => cls !== this.hierarchicalClass && cls !== this.visualGroupClass);
     }
 
     /**
@@ -169,25 +209,30 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         }>> = new Map();
 
         // *For every node in this group*
-        for (let sourceNode of this.nodes) {
+        for (let sourceNode of this.leafNodes) {
             if (!sourceNode.isVisible) continue;
 
             // *For every edge (and therefore neighbour) of the node*
             for (let edge of sourceNode.edges) {
 
                 let targetNode: NodeCommon;
+                
                 if (outNotIn) {
-                    targetNode = edge.target.selfOrGroup;
+                    targetNode = edge.target.selfOrTopmostGroupAncestor;
 
-                    if (
-                        targetNode instanceof NodeGroup && (
-                            !edge.target.isVisible ||
-                            targetNode == this
-                        )
-                    ) continue;
+                    if (targetNode instanceof NodeGroup && (!edge.target.isVisible || targetNode == this)) 
+                    {
+                        continue;
+                    }
+                    
                 } else {
-                    targetNode = edge.source.selfOrGroup;
-
+                    targetNode = edge.source.selfOrTopmostGroupAncestor;
+                    
+                    if (targetNode instanceof NodeGroup && (!edge.source.isVisible || targetNode == this)) 
+                    {
+                        continue;
+                    }
+                    
                     // XOR
                     if (((targetNode instanceof NodeGroup) && !exclusivelyTargetIsGroup) || ((targetNode instanceof Node) && exclusivelyTargetIsGroup)) continue;
                 }
@@ -198,7 +243,6 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
                 ) continue;
 
                 // target node
-
                 if (!targetTypeGroupEdge.has(targetNode.identifier)) {
                     targetTypeGroupEdge.set(targetNode.identifier, new Map());
                 }
@@ -206,7 +250,6 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
                 let typeGroupEdge = targetTypeGroupEdge.get(targetNode.identifier);
 
                 // target node + edge
-
                 if (!typeGroupEdge.has(edge.type.iri)) {
                     let newEdge: GroupEdge;
                     if (outNotIn) {
@@ -261,12 +304,84 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         return edges;
     }
 
+    private allEdgesFromAllNonGroupNodesRecursively(node: NodeCommon): NodeInAndOutEdges {
+        let allEdges: NodeInAndOutEdges = {
+            inEdges: [],
+            outEdges: []
+        };
+        
+        if (node instanceof NodeGroup) {
+            for (let innerNode of node.nodes) {
+                let innerEdges = this.allEdgesFromAllNonGroupNodesRecursively(innerNode);
+                innerEdges.inEdges.forEach(edge => allEdges.inEdges.push(edge));
+                innerEdges.outEdges.forEach(edge => allEdges.outEdges.push(edge))
+            }
+        } else if (node instanceof Node) {
+            node.edges.forEach(edge => { 
+                if (node.identifier === edge.source.identifier) allEdges.outEdges.push(edge);
+                else if (node.identifier === edge.target.identifier) allEdges.inEdges.push(edge);
+            });
+        }
+        return allEdges 
+    }
+
+    public get getAllEdgesFromAllNonGroupNodes(): NodeInAndOutEdges {
+        return this.allEdgesFromAllNonGroupNodesRecursively(this);
+    }
+
+    public get mostFrequentType(): NodeType {
+        let frequencyTable = new Map<string, number>()
+
+        let maxFrequency = 1
+        let mostFrequent: NodeType;
+
+        let computeMostFrequent = function(node: NodeGroup) {
+            node.nodes.forEach(node => { 
+                if (node instanceof Node) updateFrequencyTable(node);
+                else if (node instanceof NodeGroup) computeMostFrequent(node);
+            });
+        }
+
+        let updateFrequencyTable = function(node: Node) {
+            
+            if (frequencyTable.has(node.currentView?.preview?.type.label)) {
+                let counter = frequencyTable.get(node.lastPreview?.type.label) + 1
+                frequencyTable.set(node.currentView?.preview?.type.label, counter);
+                if (counter >= maxFrequency){
+                    maxFrequency = counter;
+                    mostFrequent = node.currentView?.preview?.type;
+                }
+            } else {
+                frequencyTable.set(node.currentView?.preview?.type.label, 1);
+            }
+        }
+        
+        computeMostFrequent(this);
+
+        return mostFrequent;
+    }
+
+    public get listOfNodesAsTitle() {
+        let labelConcat = "";
+        this.leafNodes.forEach(node => {
+            labelConcat = labelConcat + node.currentView.preview.label + ", "; 
+        })
+        labelConcat = labelConcat.slice(0, labelConcat.length - 2);
+
+        return labelConcat;
+    }
+
+    get getName() {
+        
+        if (this.name == "") return "(" + this.leafNodes.length + ") " + this.mostFrequentType?.label;
+        else return "(" + this.leafNodes.length + ") " + this.name;
+    }
     /**
      * Returns all visible `GroupEdge` associated with this `NodeGroup` **except** those having as a source other
      * `NodeGroup` to avoid duplicity. These edges are used to draw edges from and to grouped nodes in the graph.
      */
     get nocache_visibleGroupEdges(): GroupEdge[] {
-        return [...this.getGroupEdgesInDirection(false), ...this.getGroupEdgesInDirection(true)];
+        return [...this.getGroupEdgesInDirection(true), ...this.getGroupEdgesInDirection(false)];
     }
 
     get visibleGroupEdges(): GroupEdge[] {

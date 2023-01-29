@@ -16,6 +16,7 @@ export interface ResponseViewSets {
     views: {
         iri: string;
         label: string;
+        viewDescription: string;
     }[];
 }
 

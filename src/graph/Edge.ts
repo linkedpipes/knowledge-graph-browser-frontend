@@ -22,16 +22,6 @@ export class Edge extends EdgeCommon implements ObjectSave {
 
     source: Node;
     target: Node;
-    type: EdgeType;
-    classes: string[] = [];
-
-    element: GraphElementEdge = null;
-
-    /** 
-     * Indicates whether an edge is moved from a child node to a parent node (when a child gets hidden). \
-     * For more information, see https://github.com/Razyapoo/KGBClusteringDocumentation/blob/main/technical_documentation.md#extension-of-the-graphareamanipulatorts
-    */ 
-    isEdgeFromChild: boolean = false;
 
     constructor (source: Node, target: Node, type: EdgeType, graph: Graph) {
         super();

@@ -39,11 +39,11 @@ export interface ColaLayoutOptions extends LayoutsCommonGroupSettings {
 export default class ColaLayout extends Layout {
     public readonly supportsNodeLocking = true;
     public readonly supportsCompactMode = true;
+    public readonly supportsGroupCompactMode = true;
     public readonly supportsHierarchicalView: boolean = true;
 
     private layoutAnimation: Layouts;
     private isActive: boolean = false;
-
     /**
      * Options for this layout which can be modified by a user
      */
@@ -55,7 +55,7 @@ export default class ColaLayout extends Layout {
         nodeSpacing: 10,
 
         groupExpansion: true,
-        expansionGroupLimit: 10,
+        expansionGroupLimit: 70,
     }
 
     activate() {
@@ -70,7 +70,7 @@ export default class ColaLayout extends Layout {
     }
 
     onDrag(isStartNotEnd: boolean) {
-        if (this.options.doLayoutAfterReposition && (!isStartNotEnd || (this.options.animate && !this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded))) {
+        if (this.options.doLayoutAfterReposition && (!isStartNotEnd || (this.options.animate && !this.areaManipulator?.layoutManager?.currentLayout?.constraintRulesLoaded))) {
             this.executeLayout(this.getCollectionToAnimate());
         }
     };
@@ -85,7 +85,7 @@ export default class ColaLayout extends Layout {
      * @param nodes nodes to position
      * @param position parent node position
      */
-    private circleLayout(nodes: Node[], position: Position) {
+    private circleLayout(nodes: NodeCommon[], position: Position) {
         const distance = 100; // Minimal distance between nodes in px, ignoring bounding boxes
 
         let circNum = 0; // Actual circle number
@@ -103,23 +103,18 @@ export default class ColaLayout extends Layout {
                 position.x + distance * circNum * Math.cos(2*Math.PI*phi/circumference),
                 position.y + distance * circNum * Math.sin(2*Math.PI*phi/circumference)
             ];
-            node.mounted = true;
+            if (!node.belongsToGroup && !node.isUnmountedAndHiddenInHierarchy) 
+                node.mounted = true;
 
             phi++; i++;
         }
     }
 
     async onExpansion(expansion: Expansion) {
-        // if the expansion is hierarchical and at least one node of such hierarchical group exists, then expanded nodes should not be shown
-        if (!expansion.hierarchical && this.constraintRulesLoaded && this.areaManipulator.childParentLayoutConstraints.length > 0) {
-            for (let hierarchicalGroup of this.areaManipulator.hierarchicalGroupsToCluster) {
-                if (expansion.nodes[0]?.classes.includes(hierarchicalGroup) && this.graph.nocache_nodesVisual.some(node => node.hierarchicalClass === hierarchicalGroup && !node.parent?.identifier.startsWith("pseudo_parent"))) return;
-            }
-        }
 
         // First step, mount and position the nodes which are not mounted yet
         let notMountedNodes = expansion.nodes.filter(node => !node.mounted);
-        if (this.constraintRulesLoaded && this.areaManipulator.childParentLayoutConstraints.length > 0) notMountedNodes = notMountedNodes.filter(node => !node.isMountedInHierarchy);
+        if (this.constraintRulesLoaded && this.areaManipulator.hierarchicalGroups.length > 0) notMountedNodes = notMountedNodes.filter(node => !node.isUnmountedAndHiddenInHierarchy);
         let currentPosition = expansion.parentNode.selfOrGroup.element.element.position();
         let group: NodeGroup = null;
 
@@ -132,7 +127,7 @@ export default class ColaLayout extends Layout {
             for (let node of nodes) {
                 node.mounted = true;
                 group.addNode(node);
-                if (this.areaManipulator.childParentLayoutConstraints.length > 0) {
+                if (this.areaManipulator.hierarchicalGroups.length > 0) {
                     if (node.parent) {
                         if (!group.parent) {
                             group.parent = node.parent;
@@ -151,6 +146,10 @@ export default class ColaLayout extends Layout {
     
                     if (!group.hierarchicalClass && node.hierarchicalClass) {
                         group.hierarchicalClass = node.hierarchicalClass;
+                    }
+
+                    if (!group.visualGroupClass && node.visualGroupClass) {
+                        group.visualGroupClass = node.visualGroupClass;
                     }
                 }
             }
@@ -171,7 +170,7 @@ export default class ColaLayout extends Layout {
                     if (this.areaManipulator.classesToClusterTogether.length > 0) {
                         while (nodesToClusterByClass.length === 0 && classesToClusterTogetherID < this.areaManipulator.classesToClusterTogether.length) {
                             notMountedNodes.forEach(node => {
-                                if ((node instanceof NodeGroup) && (this.areaManipulator.isSubset(node.nocache_nonhierarchicalClassesOfNodes, this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID]) || this.areaManipulator.isSubset(this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID], node.nocache_nonhierarchicalClassesOfNodes))) {
+                                if ((node instanceof NodeGroup) && (this.areaManipulator.isSubset(node.nonHierarchicalOrVisualGroupClassesOfNodes, this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID]) || this.areaManipulator.isSubset(this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID], node.nonHierarchicalOrVisualGroupClassesOfNodes))) {
                                     nodesToClusterByClass.push(node);
                                 } else if (this.areaManipulator.classesToClusterTogether[classesToClusterTogetherID].find(cl => node.classes.includes(cl))) {
                                     nodesToClusterByClass.push(node);
@@ -187,7 +186,7 @@ export default class ColaLayout extends Layout {
                             if (!nodeClass) {
                                 if (node.classes.length > 1) {
                                     for (let nodeAnotherClass of node.classes) {
-                                        if (nodeAnotherClass !== node.hierarchicalClass) {
+                                        if (nodeAnotherClass !== node.hierarchicalClass && nodeAnotherClass !== node.visualGroupClass) {
                                             nodeClass = nodeAnotherClass;
                                         }
                                     }
@@ -249,7 +248,7 @@ export default class ColaLayout extends Layout {
         this.executeLayout(this.areaManipulator.cy.elements(), explicitlyFixed);
     }
 
-    async onGroupBroken(nodes: Node[], group: NodeGroup) {
+    async onGroupBroken(nodes: NodeCommon[], group: NodeGroup) {
         super.onGroupBroken(nodes, group);
         this.circleLayout(nodes, group.element?.element?.position() ?? this.areaManipulator.getCenterPosition());
 
@@ -260,11 +259,12 @@ export default class ColaLayout extends Layout {
         this.executeLayout(this.areaManipulator.cy.elements());
     }
 
-    /**
-     * Contains elements in the compact mode or null if the compact mode is turned off.
-     * @non-reactive
-     */
-    private compactMode: cytoscape.Collection | null;
+    async onGroupCompact() {
+        await Vue.nextTick();
+        if (!this.isActive) return;
+
+        this.executeLayout(this.areaManipulator.cy.elements());
+    }
 
     private isCompactModeActive(): boolean {
         return !!this.compactMode;
@@ -272,6 +272,7 @@ export default class ColaLayout extends Layout {
 
     /**
      * @inheritDoc
+     * collect data for both compact and group compact modes
      */
     onCompactMode(nodes: NodeCommon[] | null, edges: EdgeCommon[] | null) {
         if (nodes === null && edges === null) {
@@ -285,24 +286,29 @@ export default class ColaLayout extends Layout {
                 this.stopLayout();
                 this.setAreaForCompact(true);
             }
+            
+            // Vue.nextTick(() => {
             this.compactMode = this.areaManipulator.cy.collection();
-
             for (let node of nodes) {
-                this.compactMode = this.compactMode.union(node.element.element);
+                this.compactMode = this.compactMode.union(node.element?.element);
             }
-
-            for (let edge of edges) {
-                this.compactMode = this.compactMode.union(edge.element.element);
+            
+            if (edges !== null) {
+                for (let edge of edges) {
+                    this.compactMode = this.compactMode.union(edge.element?.element);
+                }
             }
 
             // Run layout
             this.executeLayout(this.getCollectionToAnimate());
+            // })
         }
     }
 
     private setAreaForCompact(isCompact: boolean) {
         this.areaManipulator.cy.userPanningEnabled(!isCompact);
         this.areaManipulator.cy.userZoomingEnabled(!isCompact);
+        this.areaManipulator.cy.zoomingEnabled(!isCompact);
         this.areaManipulator.cy.boxSelectionEnabled(!isCompact);
     }
 

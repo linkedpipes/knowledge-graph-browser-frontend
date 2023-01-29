@@ -61,29 +61,16 @@ export class Graph implements ObjectSave {
     }
 
     /** returns unmounted nodes and groups */
-    public get nocache_nodesUnmounted(): NodeCommon[] {
+    public get nocache_nodesHiddenInHierarchy(): NodeCommon[] {
         let nodes: NodeCommon[] = [];
         for (let iri in this.nodes) {
             let node = this.nodes[iri];
-            if (!node.mounted && !node.belongsToGroup) {
+            if (node.isUnmountedAndHiddenInHierarchy) {
                 nodes.push(node);
             }
         }
 
-        return [...nodes, ...this.groups.filter(group => !group.mounted)];
-    }
-
-    /** returns mounted nodes only */ 
-    public get mountedNodes(): Node[] {
-        let nodes: Node[] = [];
-        for (let iri in this.nodes) {
-            let node = this.nodes[iri];
-            if (node.mounted && !node.belongsToGroup) {
-                nodes.push(node);
-            }
-        }
-
-        return nodes;
+        return [...nodes, ...this.groups.filter(group => group.isUnmountedAndHiddenInHierarchy)];
     }
     
     public get nodesVisual(): NodeCommon[] {
@@ -303,6 +290,16 @@ export class Graph implements ObjectSave {
         }
 
         return node;
+    }
+
+    public unselectNodesHiddenInHierarchy() {
+        for (let IRI in this.nodes) {
+            let node = this.nodes[IRI];
+            if (node.isUnmountedAndHiddenInHierarchy) node.selected = false;
+        }
+        this.groups.forEach(g => {
+            if (g.isUnmountedAndHiddenInHierarchy) g.selected = false;
+        });
     }
 
     //#region Object save methods

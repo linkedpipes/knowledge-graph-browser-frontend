@@ -83,7 +83,8 @@ export default class SidePanel extends Vue {
     }
 
     get selectedGroups(): NodeGroup[] {
-        return this.graph?.groups.filter(group => group.selected && group.mounted);
+        if (this.areaManipulator?.layoutManager?.currentLayout?.constraintRulesLoaded && this.areaManipulator?.layoutManager?.currentLayout?.supportsHierarchicalView) return this.graph?.groups.filter(group => group.selected);
+        else return this.graph?.groups.filter(group => group.selected && group.mounted);
     }
 
     mounted () {

@@ -47,7 +47,7 @@ import 'vuetify/src/components/VBtnToggle/VBtnToggle.sass';
                 flex-wrap: wrap;
 
                 ::v-deep .v-btn {
-                    min-width: 20% !important;
+                    min-width: 25% !important;
                 }
             }
         }

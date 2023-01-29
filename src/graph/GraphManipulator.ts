@@ -23,6 +23,7 @@ export default class GraphManipulator {
 
     selectOnly(node: Node) {
         Object.values(this.graph.nodes).forEach(node => {node.selected = false});
+        if (this.area?.layoutManager?.currentLayout?.supportsHierarchicalView && this.area?.layoutManager?.currentLayout?.constraintRulesLoaded) Object.values(this.graph.groups).forEach(group => {group.selected = false});
         if (node) node.selected = true;
     }
 
@@ -42,7 +43,7 @@ export default class GraphManipulator {
             }
         }
 
-        if (!node.mounted) {
+        if (!node.mounted && !node.isUnmountedAndHiddenInHierarchy) {
             node.mounted = true;
             await Vue.nextTick();
             node.element.element.position(this.area.getCenterPosition());
@@ -57,7 +58,7 @@ export default class GraphManipulator {
         // Show if hidden
         if (node.shownByFilters) {
             node.visible = true;
-            Vue.nextTick(() => this.area.fit(node)); // It must be done in the next tick so the side panel has time to open
+            Vue.nextTick(() => this.area?.fit(node)); // It must be done in the next tick so the side panel has time to open
         }
 
         return true;
@@ -112,16 +113,16 @@ export default class GraphManipulator {
                 position_count++;
             }
 
-            if (node instanceof NodeGroup) {
-                for (let inNode of node.nodes) {
-                    nodeGroup.addNode(inNode, true);
+            if (this.area.hierarchicalGroups.length > 0 && this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
+                
+                if (node instanceof NodeGroup) {
+                    nodeGroup.addNode(node);
+                    node.mounted = false;
+                } else if (node instanceof Node) {
+                    node.mounted = false;
+                    nodeGroup.addNode(node);
                 }
-                this.graph.removeGroupIgnoreNodes(node);
-            } else if (node instanceof Node) {
-                nodeGroup.addNode(node);
-            }
 
-            if (this.area.childParentLayoutConstraints.length > 0 && this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
                 // find a parent for group node
                 // and delete node from its parent children list, because 
                 // a new group containing this node will be a new child of a parent
@@ -140,9 +141,22 @@ export default class GraphManipulator {
                 if (!nodeGroup.hierarchicalClass && node.hierarchicalClass) {
                     nodeGroup.hierarchicalClass = node.hierarchicalClass;
                 }
+
+                if (!nodeGroup.visualGroupClass && node.visualGroupClass) {
+                    nodeGroup.visualGroupClass = node.visualGroupClass;
+                }
                 
                 if (!nodeGroup.hierarchicalLevel && node.hierarchicalLevel) {
                     nodeGroup.hierarchicalLevel = node.hierarchicalLevel;
+                }
+            } else {
+                if (node instanceof NodeGroup) {
+                    for (let inNode of node.nodes) {
+                        nodeGroup.addNode(inNode, true);
+                    }
+                    this.graph.removeGroupIgnoreNodes(node);
+                } else if (node instanceof Node) {
+                    nodeGroup.addNode(node);
                 }
             }
 
@@ -151,10 +165,10 @@ export default class GraphManipulator {
         
         nodeGroup.onMountPosition = [position_add.x / position_count, position_add.y / position_count];
         nodeGroup.mounted = true;
-        nodeGroup.selected = true;
+        if (!(this.area.hierarchicalGroups.length > 0 && this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded)) nodeGroup.selected = true;
 
         // In the next tick run the layout
-        Vue.nextTick(() => this.area.layoutManager.currentLayout.run());
+        Vue.nextTick(() => this.area?.layoutManager?.currentLayout?.run());
     }
 
     /**
@@ -162,69 +176,148 @@ export default class GraphManipulator {
      * @param group
      */
     deGroup(group: NodeGroup) {
+        
         for (let node of group.nodes) {
             if (this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
+                
+                if (group.belongsToGroup) {
+                    node.belongsToGroup = group.belongsToGroup;
+                    node.belongsToGroup.addNode(node, true);
+                }
+                else { 
+                    node.belongsToGroup = null;
+                    node.isUnmountedAndHiddenInHierarchy = group.isUnmountedAndHiddenInHierarchy;
+                    if (!node.isUnmountedAndHiddenInHierarchy) 
+                        node.mounted = true;
+                }
+
                 if (group.parent) {
                     node.parent = group.parent;
-                    node.parent.children.push(node);
+                    if (!node.parent.children.find(child => child.identifier === node.identifier)) {
+                        node.parent.children.push(node);
+                    }
                 }
                 node.hierarchicalClass = group.hierarchicalClass;
+                node.visualGroupClass = group.visualGroupClass;
                 node.hierarchicalLevel = group.hierarchicalLevel;
+            } else {
+                node.belongsToGroup = null;
+                node.mounted = true;
             }
-            node.belongsToGroup = null;
-            node.mounted = true;
-            node.mountedFromGroup = true;
         }
-        if (group.parent && this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
-            group.parent.children.splice(
-                group.parent.children.indexOf(group), 1
-            );
+
+        if (this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
+            if (group.parent) group.parent.children.splice(group.parent.children.indexOf(group), 1);
+            if (group.belongsToGroup) group.belongsToGroup.nodes.splice(group.belongsToGroup.nodes.indexOf(group), 1);
         }
+        
+        group.leafNodes.forEach(node => {
+            this.setNewTopmostGroupAncestor(node);
+        });
+        group.leafNodes = [];
         this.graph.removeGroupIgnoreNodes(group);
         this.area.layoutManager.currentLayout.onGroupBroken(group.nodes, group);
     }
 
-    splitGroup(nodes: Node[], group: NodeGroup) {
+    splitGroup(nodes: NodeCommon[], group: NodeGroup) {
         let newGroup = this.graph.createGroup();
         for (let node of nodes) {
             node.belongsToGroup = newGroup;
             newGroup.addNode(node, true);
+            group.nodes.splice(group.nodes.indexOf(node), 1);
+            if (node instanceof Node) {
+                this.setNewTopmostGroupAncestor(node);
+                group.leafNodes.splice(group.leafNodes.indexOf(node), 1);
+            } else if (node instanceof NodeGroup) {
+                node.nodes.forEach(inGroupNode => {
+                    if (inGroupNode instanceof Node) {
+                        this.setNewTopmostGroupAncestor(inGroupNode);
+                        group.leafNodes.splice(group.leafNodes.indexOf(inGroupNode), 1);
+                    }
+                })
+            }
+            // }
         }
-        group.nodes = group.nodes.filter(node => !nodes.includes(node));
 
         if (this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
             if (group.parent) {
-                group.parent.children.push(newGroup);   
                 newGroup.parent = group.parent;
+                if (!newGroup.parent.children.find(child => child.identifier === newGroup.identifier)) {
+                    newGroup.parent.children.push(newGroup);
+                }
             }
             newGroup.hierarchicalLevel = group.hierarchicalLevel;
             newGroup.hierarchicalClass = group.hierarchicalClass;
+            newGroup.visualGroupClass = group.visualGroupClass;
+            if (group.belongsToGroup) { 
+                newGroup.belongsToGroup = group.belongsToGroup;    
+                newGroup.belongsToGroup.addNode(newGroup, true);
+            }
+        } else {
+            group.nodes = group.nodes.filter(node => !nodes.includes(node));
         }
-
+        
         newGroup.onMountPosition = [group.element?.element?.position().x, group.element?.element?.position().y];
         newGroup.mounted = true;
-        
         group.checkForNodes();
         newGroup.checkForNodes();
         
-        Vue.nextTick(() => this.area.layoutManager.currentLayout.run());
+        Vue.nextTick(() => this.area?.layoutManager?.currentLayout?.run());
     }
 
-    leaveGroup(nodes: Node[], group: NodeGroup) {
+    leaveGroup(nodes: NodeCommon[], group: NodeGroup) {
         for (let node of nodes) {
-            node.belongsToGroup = null;
-            if (this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
+            if (this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded ) {
+                if (group.belongsToGroup) {
+                    node.belongsToGroup = group.belongsToGroup;
+                    node.belongsToGroup.addNode(node, true);
+                }
+                else { 
+                    node.belongsToGroup = null;
+                }
+
                 if (group.parent) {
-                    group.parent.children.push(node);
                     node.parent = group.parent;
+                    if (!node.parent.children.find(child => child.identifier === node.identifier)) {
+                        node.parent.children.push(node);
+                    }
                 }
                 node.hierarchicalLevel = group.hierarchicalLevel;
                 node.hierarchicalClass = group.hierarchicalClass;
+                node.visualGroupClass = group.visualGroupClass;
+
+            } else { 
+                node.belongsToGroup = null;
             }
+            
+            group.nodes.splice(group.nodes.indexOf(node), 1);
+            if (node instanceof Node) {
+                this.setNewTopmostGroupAncestor(node);
+                group.leafNodes.splice(group.leafNodes.indexOf(node), 1);
+            } else if (node instanceof NodeGroup) {
+                node.leafNodes.forEach(leafNode => {
+                    this.setNewTopmostGroupAncestor(leafNode);
+                    group.leafNodes.splice(group.leafNodes.indexOf(leafNode), 1);
+                })
+            }
+            
         }
-        group.nodes = group.nodes.filter(node => !nodes.includes(node));
+        
         group.checkForNodes();
         this.area.layoutManager.currentLayout.onGroupBroken(nodes, group);
+    }
+
+    setNewTopmostGroupAncestor(node: Node) {
+        let topmostGroup = node.selfOrGroup;
+        let tempNode: NodeCommon;
+        tempNode = node;
+        while (topmostGroup != tempNode) {
+            topmostGroup = tempNode;
+            tempNode = tempNode.selfOrGroup;
+        }
+        if (topmostGroup == node) node.topmostGroupAncestor = null;
+        else if (topmostGroup instanceof NodeGroup) node.topmostGroupAncestor = topmostGroup;
+
     }
 
 }

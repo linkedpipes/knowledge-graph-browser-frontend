@@ -50,6 +50,9 @@ side_panel:
         upravte parametry filtru a změňte viditelnost uzlu.
     part_of_group: 'Tento uzel je součástí skupiny obsahující {n} uzlů.'
     go_to_group: přejít ke skupině
+    group_parent_node: Tato skupina je dítětem uzlu
+    parent_node: Tento uzel je dítětem uzlu
+    go_to_parent: přejít k rodiču 
     different_configuration: Tento uzel byl načten pod konfigurací {configuration-name}. Obnovte uzel pro použití nové konfigurace.
   list_panel:
     title: Seznam označených vrcholů
@@ -65,7 +68,9 @@ side_panel:
       vypnutou viditelnost, je u něj zobrazená ikonka oka. Na tuto ikonku je
       možné kliknout pro změnu viditelnosti.
   node_group:
-    title: 'Skupina obsahující jeden uzel | Skupina {n} uzlů'
+    title: 'Skupina obsahující jeden uzel | Skupina {n} vrcholů'
+    detail: 'Celkový počet uzlů: {n}'
+    detail_hint: Počet všech koncových uzlů ve všech (pod)skupinách, tj. (pod)skupiny samotné se nepočítají
   node_grouped_list:
     number_items: '1 vrchol | {n} vrcholy | {n} vrcholů'
     no_nodes: Žádné uzly k zobrazení
@@ -94,6 +99,8 @@ side_panel:
   unlock_for_layouts_desc: Odemkne pozici uzlu vůči layotu | Odemkne pozici uzlů vůči layotu
   break_group: Rozbít
   break_group_desc: 'Rozbije skupinu, takže všechny uzly skupiny budou samostatné'
+  rename_group: Přejmenovat
+  rename_group_desc: Přejmenovat skupinu
   group: Seskupit
   group_desc: 'Nahradí všechny uzly jedním uzlem, který je seskupuje'
   remove: Smazat
@@ -106,6 +113,11 @@ side_panel:
     všechny uzly byly viditelné na obrazovce
   leave: Opustit skupinu
   leave_desc: Oddělí uzel ze skupiny a zobrazí ho v grafu
+rename_group_dialog:
+  title: Přejmenování uzlu
+  input: Nové jméno 
+  cancel: Zrušit
+  rename: Přejmenovat
 add_node_dialog:
   title: Přidání nových vrcholů
   cancel: Zrušit
@@ -258,6 +270,9 @@ layout_dialog:
   close: Zavřít
 graph:
   groupNode: 'jeden uzel | {n} uzly | {n} uzlů'
+  fit: Přizpůsobit
+  compact: Kompaktní režim
+  group_compact: Skupinový kompaktní režim
 configuration_selection:
   meta_configuration:
     title: Výběr konfigurace
@@ -298,6 +313,7 @@ configuration_selection:
   close: Zavřít
   back: Zpět
   go_to_graph: Jít ke grafu
+  
 load_dialog:
   title: Načíst graf
   error: Nepodařilo se načíst graf z URL. Zkontrolujte její správnost.
@@ -308,9 +324,21 @@ load_dialog:
   cancel: Zrušit
 any_data_value:
   open_node: Zobrazit vrchol
-scaling:
-  scaling_options: Možnosti škálování
-  grouping: Seskupování shluků
-  zooming: Zoomování
+zooming:
+  zooming_options: Možnosti zoomování
+  global_grouping: Globální seskupení shluků
+  global_grouping_hint: Pokud vyberete globální a lokální seskupení shluků současně, zrušte výběr všech uzlů pro aplikace globálního seskupení shluků 
+  local_grouping: Lokální seskupení shluků 
+  zooming: Přiblížení / Oddálení
+  local_grouping_hint: Vyberte uzel, na který chcete použit lokální seskupení shluků
+  zoom_in: Přiblížit
+  zoom_out: Oddálit
 hierarchy:
   hierarchical_class: Hierarchická třída
+  hint: 'Vyberte si jakýkoli typ seskupení shluků a také přibližení/oddalení, abyste mohli využívat funkce mapovacích platforem'
+visual_group:
+  visual_group_class: Vizuální třída
+
+group_compact:
+  view_availability: Expanze pohledů nejsou k dispozici ve skupinovém kompaktním režimu
+  enabled: Je zapnutý skupinový kompaktní režim

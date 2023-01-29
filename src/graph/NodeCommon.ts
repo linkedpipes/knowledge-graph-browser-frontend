@@ -4,6 +4,8 @@ import { Node } from "./Node";
 import GraphElementNodeMixin from "../component/graph/GraphElementNodeMixin";
 import GraphElementNode from "../component/graph/GraphElementNode.vue";
 import GraphElementNodeGroup from "../component/graph/GraphElementNodeGroup.vue";
+import NodeGroup from "./NodeGroup";
+import EdgeCommon from "./EdgeCommon";
 
 export default abstract class NodeCommon implements ObjectSave {
     /**
@@ -23,6 +25,11 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     mounted: boolean = false;
 
+    belongsToGroup: NodeGroup | null = null;
+
+    // Need for group compact mode
+    groupCompactBelongsToGroupCache: NodeGroup | null = null;
+    
     /**
      * You can specify the initial position of node.
      * VISUAL GRAPH FEATURE
@@ -35,17 +42,21 @@ export default abstract class NodeCommon implements ObjectSave {
      */
     element: GraphElementNodeMixin | GraphElementNode | GraphElementNodeGroup;
 
+
     /**
      * All incoming and outgoing edges.
      * Used for traversing the graph.
      */
-    connectedEdges: any[] = [];
+    connectedEdges: EdgeCommon[] = [];
 
     /**
      * Node's parent
      */
     parent: Node = null;
 
+    groupCompactParent: NodeGroup = null;
+    groupCompactChildren: NodeCommon[] = [];
+    
     /**
      * Node's children
      */
@@ -54,17 +65,22 @@ export default abstract class NodeCommon implements ObjectSave {
     /** Indicates which hierarchical group the node belongs to. */
     hierarchicalClass: string;
 
+    /** Indicates which visual group the node belongs to. */
+    visualGroupClass: string;
+
     /** Indicates at what hierarchical level the node is located. */
     hierarchicalLevel: number = 0;
 
     /** Indicates whether a node is mounted in hierarchy. In case it is not mounted in a graph area. */
-    isMountedInHierarchy: boolean = false;
+    isUnmountedAndHiddenInHierarchy: boolean = false;
+
+    abstract get shownByFilters(): boolean;
 
     /**
      * Safely removes the element from the graph.
      * This method should properly unregister everything about the node.
      */
-    public abstract remove(): void;
+    public abstract remove(isGroupRemoval?: boolean): void;
 
     /**
      * Unique identifier for both Node and NodeGroup.
@@ -139,4 +155,5 @@ export default abstract class NodeCommon implements ObjectSave {
         this.graph.groups.forEach(g => g.selected = false);
         this.selected = true;
     }
+
 }

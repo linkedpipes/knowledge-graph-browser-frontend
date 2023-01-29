@@ -33,6 +33,11 @@ export class Node extends NodeCommon implements ObjectSave {
     IRI: string;
 
     /**
+     * Topmost group ancestor is the group highest in group hierarchy containing this node. Needed for dynamic groupEdge creation 
+     */
+    topmostGroupAncestor: NodeGroup = null;
+
+    /**
      * @inheritDoc
      */
     public get identifier(): string {
@@ -46,16 +51,9 @@ export class Node extends NodeCommon implements ObjectSave {
         return this.belongsToGroup ?? this;
     }
 
-    /**
-     * To which group does the node belongs to.
-     */
-    belongsToGroup: NodeGroup | null = null;
-
-    /**
-     * Indicates if the node is coming from a group
-     * This is need for hierarchical clustering
-     */
-    mountedFromGroup: boolean = false;
+    public get selfOrTopmostGroupAncestor(): NodeCommon {
+        return this.topmostGroupAncestor ?? this;
+    }
 
     get classes(): string[] {
         return this.currentView?.preview?.classes ?? [];
@@ -94,7 +92,6 @@ export class Node extends NodeCommon implements ObjectSave {
     }
 
     get shownByFilters(): boolean {
-        //return this.nocache_shownByFilters;
         return this.nodeVuexComponent?.shownByFilters ?? this.nocache_shownByFilters;
     }
 
@@ -192,10 +189,10 @@ export class Node extends NodeCommon implements ObjectSave {
      * Hierarchical view: remove descendants nodes recursively or remove the node from its parent's children list \
      * Standard: remove nodes as usual 
      */
-    remove() {
+    remove(isGroupRemoval: boolean = false) {
 
         if (this.children?.length > 0 || this.parent) {
-            this.removeChildrenRecursively(this);
+            this.removeChildrenRecursively(this, isGroupRemoval);
         } else {
             if (this.belongsToGroup) {
                 this.belongsToGroup.nodes = this.belongsToGroup.nodes.filter(node => node !== this);
@@ -210,17 +207,18 @@ export class Node extends NodeCommon implements ObjectSave {
         }
     }
 
-    private removeChildrenRecursively(node: NodeCommon) {
+    private removeChildrenRecursively(node: NodeCommon, isGroupRemoval: boolean) {
             
         if (node.children?.length > 0) {
             while (node.children.length !== 0) {
                 let child = node.children[0];
-                this.removeChildrenRecursively(child);
+                this.removeChildrenRecursively(child, isGroupRemoval);
             }
         }
         
-        if ((node instanceof Node) && node.belongsToGroup) {
+        if ((node instanceof Node) && node.belongsToGroup && !isGroupRemoval) {
             node.belongsToGroup.nodes = node.belongsToGroup.nodes.filter(group_node => group_node !== node);
+            node.belongsToGroup.leafNodes = node.belongsToGroup.leafNodes.filter(group_node => group_node !== node);
             node.belongsToGroup.checkForNodes();
         }
 
@@ -267,6 +265,7 @@ export class Node extends NodeCommon implements ObjectSave {
                 for (let nv of result.views) {
                     let view = this.createView(nv.iri);
                     view.label = nv.label;
+                    view.viewDescription = nv.viewDescription;
 
                     nodeViews[nv.iri] = view;
                 }

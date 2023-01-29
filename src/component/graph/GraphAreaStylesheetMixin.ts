@@ -3,6 +3,10 @@ import {ResponseStylesheet} from "../../remote-server/ResponseInterfaces";
 import ViewOptions from "../../graph/ViewOptions";
 import clone from "clone";
 import cytoscape from "cytoscape";
+import { mdiBlackMesa, mdiCircle } from "@mdi/js";
+import CircleLayout from "@/layout/layouts/CircleLayout/CircleLayout";
+import { wrap } from "module";
+import { relative } from "path";
 
 /**
  * This mixin is responsible for styling a Cytoscape graph. Its input is a stylesheet for a Cytoscape instance and
@@ -34,6 +38,21 @@ export default class GraphAreaStylesheetMixin extends Vue {
      */
     private get remappedUserStylesheet(): cytoscape.StylesheetStyle[] {
         return this.stylesheet.styles.map(style => {return {selector: style.selector, style: clone(style.properties)}});
+    }
+
+    /**
+     * This function create a plus icon on the collapsed parent node
+     * It is used to show that a parent node has collapsed children 
+     * @param node 
+     * @returns 
+     */
+    private renderNode(node) {
+        const width = node.style('width');
+        const height = node.style('height');
+        const svg = `<svg width="${width}" height="${height}" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+        </svg>`;
+        return 'data:image/svg+xml;base64,' + btoa(svg);
     }
 
     private get defaultStyles(): cytoscape.StylesheetStyle[] {
@@ -123,6 +142,7 @@ export default class GraphAreaStylesheetMixin extends Vue {
             {
                 selector: "*",
                 style: {
+                    "min-zoomed-font-size": 7,
                     "opacity": 0.9,
                     "transition-property": "opacity",
                     "transition-duration": "0.25s",
@@ -130,9 +150,17 @@ export default class GraphAreaStylesheetMixin extends Vue {
             },
 
             {
+                selector: ".__nested_node",
+                style: {
+                    "background-image": (node) => this.renderNode(node),
+                }
+            },
+
+            {
                 selector: "*.__active",
                 style: {
-                    "opacity": 1
+                    "opacity": 1,
+                    position: "absolute",
                 }
             },
 
@@ -156,6 +184,7 @@ export default class GraphAreaStylesheetMixin extends Vue {
                     opacity: 0.05,
                     events: "no",
                     "z-index": 0,
+                    position: "relative",
                 }
             },
 
@@ -166,6 +195,10 @@ export default class GraphAreaStylesheetMixin extends Vue {
                     "ghost-offset-x": 5,
                     "ghost-offset-y": -5,
                     "ghost-opacity": 1,
+                    "display": "block",
+                    "text-wrap": "ellipsis",
+                    "text-overflow-wrap": "anywhere",
+                    "text-max-width": 100,
                     "shape": "octagon",
                 }
             },

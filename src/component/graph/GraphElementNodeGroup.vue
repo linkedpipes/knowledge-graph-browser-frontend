@@ -53,32 +53,36 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
 
     @Watch('node.classes')
     protected setHierarchicalInfo() {
-        if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator.layoutManager.currentLayout.constraintRulesLoaded) && (this.areaManipulator.layoutManager?.currentLayout?.supportsHierarchicalView)) {
+        if (!this.node.identifier.startsWith("pseudo_parent_") && (this.areaManipulator?.layoutManager?.currentLayout?.constraintRulesLoaded) && (this.areaManipulator?.layoutManager?.currentLayout?.supportsHierarchicalView)) {
             let parent = this.node.parent;
 
             if (parent) {
-                if (!this.node.hierarchicalClass) this.node.hierarchicalClass = parent.hierarchicalClass;
                 this.node.hierarchicalLevel = parent.hierarchicalLevel + 1;
-            } else {
-                if (this.areaManipulator.hierarchicalGroupsToCluster.length > 0) {
-                    for (let hierarchicalGroupToCluster of this.areaManipulator.hierarchicalGroupsToCluster) {
-                        if (this.node.classes.includes(hierarchicalGroupToCluster)) {
-                            this.node.hierarchicalClass = hierarchicalGroupToCluster;
-                        }
+            } 
+            
+            if (this.areaManipulator.hierarchicalGroups.length > 0) {
+                for (let hierarchicalGroup of this.areaManipulator.hierarchicalGroups) {
+                    let hierarchicalClass = hierarchicalGroup['nodeSelector'].slice(1);
+                    if (this.node.classes.includes(hierarchicalClass)) {
+                        this.node.hierarchicalClass = hierarchicalClass;
                     }
                 }
-                else {
-                    this.node.hierarchicalClass = null;
-                }
             }
+            else {
+                this.node.hierarchicalClass = null;
+            }
+
 
             // Add pseudo-parent node as parent if node is the root in a hierarchy and has no parent
             if (this.areaManipulator.visualGroups.length > 0) {
                 for (let visualGroup of this.areaManipulator.visualGroups) {
-                    if (!parent && this.node.hierarchicalClass && this.node.classes.includes(visualGroup)) {
-                        let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.hierarchicalClass);
+                    if (this.node.classes.includes(visualGroup)) {
+                        this.node.visualGroupClass = visualGroup;
+                    }
+                    if (!parent && this.node.visualGroupClass && this.node.classes.includes(visualGroup)) {
+                        let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.visualGroupClass);
                         if (!pseudoParent) {
-                            pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.hierarchicalClass);
+                            pseudoParent = this.node.graph.createNode("pseudo_parent_" + this.node.visualGroupClass);
                             pseudoParent.hierarchicalLevel = this.node.hierarchicalLevel - 1;
                             pseudoParent.mounted = true;
                         }
@@ -88,12 +92,10 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
                         this.node.parent = pseudoParent;
                     }
                 }
+            } else {
+                this.node.visualGroupClass = null;
             }
 
-            // update the depth of a hierarchy
-            if ((this.areaManipulator.globalHierarchicalDepth < this.node.hierarchicalLevel) && this.areaManipulator.hierarchicalGroupsToCluster.find(hierarchicalGroupToCluster => hierarchicalGroupToCluster === this.node.hierarchicalClass)) {
-                this.areaManipulator.globalHierarchicalDepth = this.node.hierarchicalLevel;
-            }
         }
     }
 
@@ -111,7 +113,7 @@ export default class GraphElementNodeGroup extends Mixins(GraphElementNodeMixin)
     }
 
     private get label(): string {
-        return <string>this.$tc('graph.groupNode', this.node.nodes.length);
+        return this.node.getName ;
     }
 
     @Watch('label')

@@ -38,7 +38,7 @@ export class RemoteServer {
     getPreview = (viewIRI: string, resourceIRI: string): Promise<ResponsePreview|false> => this.sentRequest("/preview", {view: viewIRI, resource: resourceIRI});
     getExpansion = (viewIRI: string, resourceIRI: string): Promise<ResponseExpand|false> => this.sentRequest("/expand", {view: viewIRI, resource: resourceIRI});
     getDetail = (viewIRI: string, resourceIRI: string): Promise<ResponseDetail|false> => this.sentRequest("/detail", {view: viewIRI, resource: resourceIRI});
-    getConstraints = (constraintIRI: string): Promise<ResponseConstraints|false> => this.sentRequest("/layout-constraints", {constraint: constraintIRI});
+    getConstraints = (constraintSetIRI: string): Promise<ResponseConstraints|false> => this.sentRequest("/layout-constraints", {constraint: constraintSetIRI});
 
     getMetaConfiguration = (IRI: string, languages: string[]): Promise<ResponseMetaConfiguration|false> => this.sentRequest("/meta-configuration", {iri: IRI, languages: languages.join(',')});
     getConfiguration = (IRI: string, languages: string[]): Promise<ResponseConfiguration|false> => this.sentRequest("/configuration", {iri: IRI, languages: languages.join(',')});
