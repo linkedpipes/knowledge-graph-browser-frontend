@@ -47,7 +47,7 @@ export default abstract class NodeCommon implements ObjectSave {
      * All incoming and outgoing edges.
      * Used for traversing the graph.
      */
-    connectedEdges: EdgeCommon[] = [];
+    connectedEdges: any[] = [];
 
     /**
      * Node's parent
