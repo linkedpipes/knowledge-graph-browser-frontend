@@ -64,7 +64,7 @@
             />
             <group-rename-dialog
                 ref="renameNode"
-                :group="node"
+                :group="nodeGroup"
             />
         </template>
     </panel-template>
