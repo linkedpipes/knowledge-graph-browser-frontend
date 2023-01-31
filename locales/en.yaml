@@ -60,7 +60,7 @@ side_panel:
   node_group:
     title: Group of single nodes | Group of {n} resources
     detail: 'Total number of all nodes: {n}'
-    detail_hint: The number of all end nodes in all (sub)groups, i.e (sub)groups itself are not counted
+    detail_hint: The number of all leaf nodes in all (sub)groups, i.e (sub)groups itself are not counted
 
   # Component for showing a list of nodes in a group
   node_grouped_list:

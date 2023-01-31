@@ -114,7 +114,7 @@ export default class ColaLayout extends Layout {
 
         // First step, mount and position the nodes which are not mounted yet
         let notMountedNodes = expansion.nodes.filter(node => !node.mounted);
-        if (this.constraintRulesLoaded && this.areaManipulator.hierarchicalGroups.length > 0) notMountedNodes = notMountedNodes.filter(node => !node.isUnmountedAndHiddenInHierarchy);
+        if (this.constraintRulesLoaded && this.areaManipulator.hierarchicalGroups.length > 0) notMountedNodes = notMountedNodes.filter(node => !node.isUnmountedAndHiddenInHierarchy || !node.belongsToGroup);
         let currentPosition = expansion.parentNode.selfOrGroup.element.element.position();
         let group: NodeGroup = null;
 
@@ -125,6 +125,7 @@ export default class ColaLayout extends Layout {
         const groupNotMountedNodes = nodes => {
             group = this.graph.createGroup();
             for (let node of nodes) {
+                if (node.belongsToGroup) continue;
                 node.mounted = true;
                 group.addNode(node);
                 if (this.areaManipulator.hierarchicalGroups.length > 0) {
@@ -135,9 +136,7 @@ export default class ColaLayout extends Layout {
                                 group.parent.children.push(group);
                             }
                         }
-                        node.parent.children.splice(
-                            node.parent.children.indexOf(node), 1
-                        );
+                        node.parent.children = node.parent.children.filter(child => child != node);
                     }
     
                     if (!group.hierarchicalLevel && node.hierarchicalLevel) {
@@ -207,9 +206,7 @@ export default class ColaLayout extends Layout {
                     }
         
                     nodesToClusterByClass.forEach(child => {
-                        notMountedNodes.splice(
-                            notMountedNodes.indexOf(child), 1
-                        );
+                        notMountedNodes = notMountedNodes.filter(notMountedNode => notMountedNode != child);
                     }); 
         
                     if (nodesToClusterByClass.length > 1) {

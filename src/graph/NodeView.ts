@@ -5,6 +5,7 @@ import { NodeType } from "./Node";
 import { NodeViewSet } from "./NodeViewSet";
 import ObjectSave from "../file-save/ObjectSave";
 import clone from "clone";
+import NodeGroup from "./NodeGroup";
 
 /**
  * Information about the type of detail. Same as ResponseElementType
@@ -193,16 +194,17 @@ export class NodeView implements ObjectSave {
 
                     let pseudoParent = this.node.graph.getNodeByIRI("pseudo_parent_" + this.node.visualGroupClass);
                     if (pseudoParent && source.parent === pseudoParent) {
-                        pseudoParent.children.splice(
-                            pseudoParent.children.indexOf(source), 1
-                        );
+                        pseudoParent.children = pseudoParent.children.filter(child => child != source);
                         target.parent = pseudoParent;
                         if (!pseudoParent.children.find(child => child.identifier === this.node.identifier)) {
                             pseudoParent.children.push(this.node);
                         }
                     }
                     source.parent = target;
-                    if (!target.children.find(child => child.identifier === expansionEdge.source)) {
+                    if (!target.children.find(child => {
+                        if ((child instanceof Node) && (child.identifier === expansionEdge.source)) return true;
+                        if ((child instanceof NodeGroup)) return child.leafNodes.find(leafNode => leafNode.identifier === expansionEdge.source);
+                    })) {
                         target.children.push(source);
                     }
 

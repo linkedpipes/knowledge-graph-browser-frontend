@@ -13,7 +13,8 @@
             <v-card-text>{{ $tc('group_compact.enabled') }}</v-card-text>
         </v-card>
 
-        <node-grouped-list delete-button break-group-button split-group-button :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
+        <node-grouped-list v-if="areaManipulator.layoutManager.currentLayout.constraintRulesLoaded && areaManipulator.layoutManager.currentLayout.supportsHierarchicalView" :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
+        <node-grouped-list v-else delete-button break-group-button split-group-button :manipulator="manipulator" :groups="groupedNodes" @nodeSelected="$event.selectExclusively()" />
 
         <template v-slot:actions v-if="!isGroupCompactModeActive">
             <panel-action-button

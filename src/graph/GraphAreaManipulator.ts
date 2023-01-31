@@ -187,9 +187,7 @@ export default class GraphAreaManipulator implements ObjectSave {
                         nodesToClusterByParent.push(child); 
                         // nodes in nodesToClusterByParent list are getting to be clustered 
                         // so we can delete them from common list of nodes to be clustered
-                        nodesToClusterByLevel.splice(
-                            nodesToClusterByLevel.indexOf(child), 1
-                        );
+                        nodesToClusterByLevel = nodesToClusterByLevel.filter(levelNode => levelNode != child);
                     });
                 }
                 else {
@@ -242,9 +240,7 @@ export default class GraphAreaManipulator implements ObjectSave {
                     // nodes in nodesToClusterByClass list are getting to be clustered 
                     // so we can delete them from common list of nodes to be clustered
                     nodesToClusterByClass.forEach(child => {
-                        nodesToClusterByParent.splice(
-                            nodesToClusterByParent.indexOf(child), 1
-                        );
+                        nodesToClusterByParent = nodesToClusterByParent.filter(nodeByParent => nodeByParent != child);
                     }); 
 
                     // group nodes if they able to be grouped
@@ -398,7 +394,8 @@ export default class GraphAreaManipulator implements ObjectSave {
                 });
             }
             if (this.isGlobalGroupingOfClustersChecked && nodesToClusterLocal.length === 0) {
-                this.nodesToCluster = this.graph.nocache_nodesVisual;
+                if (zoomIn) this.nodesToCluster = this.graph.nocache_nodesVisual;
+                if (!zoomIn) this.nodesToCluster = this.graph.nocache_nodesVisual.filter(node => node.parent);
                 this.groupingOfClustersManager(zoomIn);
             }
     }

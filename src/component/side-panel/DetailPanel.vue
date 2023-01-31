@@ -125,7 +125,7 @@
                     </v-card-text>
                 </v-card>
 
-                <v-expansion-panels accordion multiple v-if="areaManipulator.layoutManager.currentLayout.constraintRulesLoaded && areaManipulator.layoutManager.currentLayout.supportsHierarchicalView && !isGroupCompactModeActive">
+                <v-expansion-panels accordion multiple v-if="areaManipulator.layoutManager.currentLayout.constraintRulesLoaded && areaManipulator.layoutManager.currentLayout.supportsHierarchicalView && !isGroupCompactModeActive && !isCompactModeActive">
                     <v-expansion-panel v-if="node.children.length > 0">
                         <v-expansion-panel-header>
                             <div><b v-if="!node.IRI.startsWith('pseudo_parent')">List of children</b> <b v-else>List of nodes</b> - {{ $tc('side_panel.node_grouped_list.number_items', node.children.length) }}</div>
@@ -332,17 +332,12 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
             let label1: string = "";
             let label2: string = "";
 
-            // if (n1 instanceof Node) label1 = n1.currentView?.preview?.label; 
-            // else if (n1 instanceof NodeGroup) label1 = n1.mostFrequentType?.label;
 
-            // if (n2 instanceof Node) label2 = n2.currentView?.preview?.label; 
-            // else if (n2 instanceof NodeGroup) label2 = n2.mostFrequentType?.label;
+            if (n1 instanceof Node) label1 = n1.currentView?.preview?.label.toLowerCase();
+            else if (n1 instanceof NodeGroup) label1 = n1.getName.toLowerCase();
 
-            if (n1 instanceof Node) label1 = n1.currentView?.preview?.label; 
-            else if (n1 instanceof NodeGroup) label1 = n1.getName;
-
-            if (n2 instanceof Node) label2 = n2.currentView?.preview?.label; 
-            else if (n2 instanceof NodeGroup) label2 = n2.getName;
+            if (n2 instanceof Node) label2 = n2.currentView?.preview?.label.toLowerCase();
+            else if (n2 instanceof NodeGroup) label2 = n2.getName.toLowerCase();
 
             if ( label1 > label2 ) {
                 return 1;
@@ -373,12 +368,15 @@ export default class DetailPanel extends Mixins(NodeCommonPanelMixin) {
 
     private getLabel(node: NodeCommon) {
         if (node instanceof Node) return node.currentView?.preview ? node.currentView.preview.label : "-";
-        // if (node instanceof NodeGroup) return node.mostFrequentType ? node.mostFrequentType.label + " (" + node.leafNodes.length + ")" : "-";
         if (node instanceof NodeGroup) return node.getName;
     }
 
     public get isGroupCompactModeActive() {
         return this.areaManipulator.graphArea.modeGroupCompact;
+    }
+
+    public get isCompactModeActive() {
+        return this.areaManipulator.graphArea.modeCompact;
     }
 
     visibilityChanged() {

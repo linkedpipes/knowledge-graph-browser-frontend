@@ -93,6 +93,7 @@
 			:edge="edge"
 			:explicitly-active="!isNodeSelected"
             :mode-compact="modeCompact"
+			:mode-group-compact="modeGroupCompact"
 		/>
 		<graph-element-edge
 			v-for="edge in groupEdges"
@@ -101,6 +102,7 @@
 			:edge="edge"
 			:explicitly-active="!isNodeSelected"
 			:mode-compact="modeCompact"
+			:mode-group-compact="modeGroupCompact"
 		/>
 	</div>
 </template>
@@ -156,7 +158,7 @@ export default class GraphArea extends Mixins(GraphAreaStylesheetMixin) {
 	/**
 	 * Compact mode is a mode where selected nodes with all its neighbours are layouted independently of others
 	 * */
-	@Prop(Boolean) private modeCompact !: boolean;
+	@Prop(Boolean) public modeCompact !: boolean;
 
 	/**
 	 * Group compact mode allows you to explore nodes inside a group independently of others

@@ -23,6 +23,7 @@ export default class GraphElementEdge extends Vue {
      * Compact mode is a mode where selected nodes with all its neighbours are layouted independently of others
      * */
     @Prop(Boolean) protected modeCompact !: boolean;
+    @Prop(Boolean) protected modeGroupCompact !: boolean;
 
     cy!: Cytoscape.Core;
 
@@ -77,7 +78,7 @@ export default class GraphElementEdge extends Vue {
             cls.push("__hidden_opacity");
         }
 
-        if (this.compactModeLocked) {
+        if (this.compactModeLocked || this.groupCompactModeLocked) {
             cls.push("__compact_inactive");
         }
 
@@ -88,9 +89,14 @@ export default class GraphElementEdge extends Vue {
         return this.modeCompact && (!this.edge.source.selected && !this.edge.target.selected);
     }
 
+    private get groupCompactModeLocked(): boolean {
+        return this.modeGroupCompact;
+    }
+
     @Watch('compactModeLocked')
+    @Watch('groupCompactModeLocked')
     private compactModeLockedChanged() {
-        this.element?.toggleClass("__compact_inactive", this.compactModeLocked);
+        this.element?.toggleClass("__compact_inactive", this.compactModeLocked || this.groupCompactModeLocked);
     }
 
     @Watch('edge.classes', {deep: true})
