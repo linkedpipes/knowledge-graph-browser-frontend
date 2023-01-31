@@ -109,16 +109,18 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
         this.nodes.forEach(node => node.remove(isGroupRemoval));
         
         if (this.parent) {
-            if (this.parent.children?.indexOf(this) > -1) {
-                this.parent.children.splice(
-                    this.parent.children.indexOf(this), 1
-                );
-            }
+            this.parent.children = this.parent.children.filter(child => child != this);
             
             // remove also pseudo-parent node if a node is a single child of pseudo-parent node 
             if (this.parent.identifier.startsWith("pseudo_parent") && this.parent.children?.length === 0) {
                 this.parent.graph._removeNode(this.parent);
             }
+        }
+
+        if (this.belongsToGroup) {
+            this.belongsToGroup.nodes = this.belongsToGroup?.nodes.filter(groupNode => groupNode != this);
+            this.belongsToGroup.leafNodes = this.belongsToGroup?.leafNodes.filter(leafNode => this.leafNodes.find(leafNode_1 => leafNode_1 == leafNode));
+            this.belongsToGroup.checkForNodes();
         }
 
         this.selected = false;
@@ -135,15 +137,17 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
             if (this.belongsToGroup) { 
                 this.nodes[0].belongsToGroup = this.belongsToGroup;    
                 this.belongsToGroup.addNode(this.nodes[0], true);
-                this.belongsToGroup.nodes.splice(
-                    this.belongsToGroup.nodes.indexOf(this), 1
-                    );
+                this.belongsToGroup.nodes = this.belongsToGroup.nodes.filter(groupNode => groupNode != this);
                 this.belongsToGroup = null;
             }
             else {
-                this.nodes[0].belongsToGroup = null;                
-                this.nodes[0].onMountPosition = this.element?.element?.position() ? [this.element?.element?.position().x, this.element?.element?.position().y] : this.onMountPosition;
-                this.nodes[0].mounted = true;
+                this.nodes[0].belongsToGroup = null;
+                this.nodes[0].isUnmountedAndHiddenInHierarchy = this.isUnmountedAndHiddenInHierarchy;
+                if (!this.nodes[0].isUnmountedAndHiddenInHierarchy) 
+                {
+                    this.nodes[0].onMountPosition = this.element?.element?.position() ? [this.element?.element?.position().x, this.element?.element?.position().y] : this.onMountPosition;
+                    this.nodes[0].mounted = true;
+                }
             }
         }
         if (this.nodes.length <= 1) {
@@ -194,6 +198,10 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
      *         - final groupEdge --------->   -------
      */
     private getGroupEdgesInDirection(outNotIn: boolean, exclusivelyTargetIsGroup: boolean = false): GroupEdge[] {
+        let edges : GroupEdge[] = [];
+
+        if (this.groupCompactParent != null || this.groupCompactChildren.length != 0) return edges;
+
         // Initialize cache
         if (!this.groupEdgesCache) {
             this.groupEdgesCache = {
@@ -274,8 +282,6 @@ export default class NodeGroup extends NodeCommon implements ObjectSave {
                 }
             }
         }
-
-        let edges : GroupEdge[] = [];
 
         for (let [_, typeGroupEdge] of targetTypeGroupEdge) {
             for (let [_, groupEdge] of typeGroupEdge) {

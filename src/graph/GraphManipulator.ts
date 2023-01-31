@@ -127,9 +127,7 @@ export default class GraphManipulator {
                 // and delete node from its parent children list, because 
                 // a new group containing this node will be a new child of a parent
                 if (node.parent) {
-                    node.parent.children.splice(
-                        node.parent.children.indexOf(node), 1
-                    );
+                    node.parent.children = node.parent.children.filter(child => child != node);
                     if (!nodeGroup.parent) {
                         nodeGroup.parent = node.parent;
                         if (!nodeGroup.parent.children.find(child => child.identifier === nodeGroup.identifier)) {
@@ -193,7 +191,7 @@ export default class GraphManipulator {
 
                 if (group.parent) {
                     node.parent = group.parent;
-                    if (!node.parent.children.find(child => child.identifier === node.identifier)) {
+                    if (!node.parent.children.find(child => child.identifier === node.identifier) && !group.belongsToGroup) {
                         node.parent.children.push(node);
                     }
                 }
@@ -207,8 +205,8 @@ export default class GraphManipulator {
         }
 
         if (this.layoutManager?.currentLayout?.supportsHierarchicalView && this.layoutManager?.currentLayout?.constraintRulesLoaded) {
-            if (group.parent) group.parent.children.splice(group.parent.children.indexOf(group), 1);
-            if (group.belongsToGroup) group.belongsToGroup.nodes.splice(group.belongsToGroup.nodes.indexOf(group), 1);
+            if (group.parent) group.parent.children = group.parent.children.filter(child => child != group);
+            if (group.belongsToGroup) group.belongsToGroup.nodes = group.belongsToGroup.nodes.filter(child => child != group);
         }
         
         group.leafNodes.forEach(node => {
@@ -224,15 +222,15 @@ export default class GraphManipulator {
         for (let node of nodes) {
             node.belongsToGroup = newGroup;
             newGroup.addNode(node, true);
-            group.nodes.splice(group.nodes.indexOf(node), 1);
+            group.nodes = group.nodes.filter(groupNode => groupNode != node);
             if (node instanceof Node) {
                 this.setNewTopmostGroupAncestor(node);
-                group.leafNodes.splice(group.leafNodes.indexOf(node), 1);
+                group.leafNodes = group.leafNodes.filter(groupNode => groupNode != node);
             } else if (node instanceof NodeGroup) {
                 node.nodes.forEach(inGroupNode => {
                     if (inGroupNode instanceof Node) {
                         this.setNewTopmostGroupAncestor(inGroupNode);
-                        group.leafNodes.splice(group.leafNodes.indexOf(inGroupNode), 1);
+                        group.leafNodes = group.leafNodes.filter(groupNode => groupNode != inGroupNode);
                     }
                 })
             }
@@ -257,8 +255,11 @@ export default class GraphManipulator {
             group.nodes = group.nodes.filter(node => !nodes.includes(node));
         }
         
-        newGroup.onMountPosition = [group.element?.element?.position().x, group.element?.element?.position().y];
-        newGroup.mounted = true;
+        newGroup.isUnmountedAndHiddenInHierarchy = group.isUnmountedAndHiddenInHierarchy;
+        if (!newGroup.isUnmountedAndHiddenInHierarchy) {
+            newGroup.onMountPosition = [group.element?.element?.position().x, group.element?.element?.position().y];
+            newGroup.mounted = true;
+        }
         group.checkForNodes();
         newGroup.checkForNodes();
         
@@ -274,11 +275,12 @@ export default class GraphManipulator {
                 }
                 else { 
                     node.belongsToGroup = null;
+                    node.isUnmountedAndHiddenInHierarchy = group.isUnmountedAndHiddenInHierarchy;
                 }
 
                 if (group.parent) {
                     node.parent = group.parent;
-                    if (!node.parent.children.find(child => child.identifier === node.identifier)) {
+                    if (!node.parent.children.find(child => child.identifier === node.identifier && !group.belongsToGroup)) {
                         node.parent.children.push(node);
                     }
                 }
@@ -290,14 +292,14 @@ export default class GraphManipulator {
                 node.belongsToGroup = null;
             }
             
-            group.nodes.splice(group.nodes.indexOf(node), 1);
+            group.nodes = group.nodes.filter(groupNode => groupNode != node);
             if (node instanceof Node) {
                 this.setNewTopmostGroupAncestor(node);
-                group.leafNodes.splice(group.leafNodes.indexOf(node), 1);
+                group.leafNodes = group.leafNodes.filter(groupNode => groupNode != node);
             } else if (node instanceof NodeGroup) {
                 node.leafNodes.forEach(leafNode => {
                     this.setNewTopmostGroupAncestor(leafNode);
-                    group.leafNodes.splice(group.leafNodes.indexOf(leafNode), 1);
+                    group.leafNodes = group.leafNodes.filter(groupNode => groupNode != leafNode);
                 })
             }
             

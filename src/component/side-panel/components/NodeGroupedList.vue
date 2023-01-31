@@ -123,11 +123,11 @@
                 let label1: string = "";
                 let label2: string = "";
 
-                if (n1 instanceof Node) label1 = n1.currentView?.preview?.label; 
-                else if (n1 instanceof NodeGroup) label1 = n1.getName;
+                if (n1 instanceof Node) label1 = n1.currentView?.preview?.label.toLowerCase();
+                else if (n1 instanceof NodeGroup) label1 = n1.getName.toLowerCase();
 
-                if (n2 instanceof Node) label2 = n2.currentView?.preview?.label; 
-                else if (n2 instanceof NodeGroup) label2 = n2.getName;
+                if (n2 instanceof Node) label2 = n2.currentView?.preview?.label.toLowerCase();
+                else if (n2 instanceof NodeGroup) label2 = n2.getName.toLowerCase();
 
                 if ( label1 > label2 ) {
                     return 1;

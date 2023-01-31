@@ -195,7 +195,7 @@ export class Node extends NodeCommon implements ObjectSave {
             this.removeChildrenRecursively(this, isGroupRemoval);
         } else {
             if (this.belongsToGroup) {
-                this.belongsToGroup.nodes = this.belongsToGroup.nodes.filter(node => node !== this);
+                this.belongsToGroup.nodes = this.belongsToGroup.nodes.filter(node => node != this);
                 this.belongsToGroup.checkForNodes();
             }
             this.graph._removeNode(this);
@@ -217,18 +217,14 @@ export class Node extends NodeCommon implements ObjectSave {
         }
         
         if ((node instanceof Node) && node.belongsToGroup && !isGroupRemoval) {
-            node.belongsToGroup.nodes = node.belongsToGroup.nodes.filter(group_node => group_node !== node);
-            node.belongsToGroup.leafNodes = node.belongsToGroup.leafNodes.filter(group_node => group_node !== node);
+            node.belongsToGroup.nodes = node.belongsToGroup.nodes.filter(groupNode => groupNode != node);
+            node.belongsToGroup.leafNodes = node.belongsToGroup.leafNodes.filter(leafNode => leafNode != node);
             node.belongsToGroup.checkForNodes();
         }
 
         node.selected = false;
-        
-        if (node.parent?.children?.indexOf(node) > -1) {
-            node.parent?.children?.splice(
-                node.parent?.children?.indexOf(node), 1
-            );
-        }
+
+        if (node.parent) node.parent.children = node.parent.children.filter(child => child != node);
 
         if (node instanceof Node) {
             node.graph._removeNode(node);

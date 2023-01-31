@@ -67,9 +67,7 @@ export default class KCluster extends Vue {
             } else if (method === "kmedoids") {
                 centroids = this.getMedoids(nodesToCluster);
                 centroids.forEach(centroid => {
-                    nodesToCluster.splice(
-                        nodesToCluster.indexOf(centroid), 1
-                      );
+                    nodesToCluster = nodesToCluster.filter(node => node != centroid);
                 }); 
             }
             
